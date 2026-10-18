@@ -104,3 +104,18 @@ export function readActiveChannelId(): string {
 export function readClientActor(): ActorContext {
   return resolveActor(readTeamState());
 }
+
+/** Reset team storage to initial state (demo reset). */
+export function resetTeamStorage(): void {
+  cache = null;
+  cacheRaw = null;
+  initial = null;
+  if (!isBrowser()) return;
+  try {
+    window.localStorage.removeItem(TEAM_KEY);
+    window.localStorage.removeItem(ACTIVE_CHANNEL_KEY);
+  } catch {
+    /* ignore */
+  }
+  window.dispatchEvent(new Event(TEAM_EVENT));
+}
