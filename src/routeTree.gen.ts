@@ -19,6 +19,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedActivityFeedRouteImport } from './routes/_authenticated/activity-feed'
 import { Route as AuthenticatedAlertsRouteImport } from './routes/_authenticated/alerts'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedChannelTeamRouteImport } from './routes/_authenticated/channel-team'
 import { Route as AuthenticatedCustomCommandsRouteImport } from './routes/_authenticated/custom-commands'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedGiveawayRouteImport } from './routes/_authenticated/giveaway'
@@ -151,6 +152,12 @@ const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedChannelTeamRoute =
+  AuthenticatedChannelTeamRouteImport.update({
+    id: '/channel-team',
+    path: '/channel-team',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCustomCommandsRoute =
   AuthenticatedCustomCommandsRouteImport.update({
     id: '/custom-commands',
@@ -612,6 +619,7 @@ export interface FileRoutesByFullPath {
   '/activity-feed': typeof AuthenticatedActivityFeedRoute
   '/alerts': typeof AuthenticatedAlertsRouteWithChildren
   '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/channel-team': typeof AuthenticatedChannelTeamRoute
   '/custom-commands': typeof AuthenticatedCustomCommandsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/giveaway': typeof AuthenticatedGiveawayRoute
@@ -703,6 +711,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/activity-feed': typeof AuthenticatedActivityFeedRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/channel-team': typeof AuthenticatedChannelTeamRoute
   '/custom-commands': typeof AuthenticatedCustomCommandsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/giveaway': typeof AuthenticatedGiveawayRoute
@@ -796,6 +805,7 @@ export interface FileRoutesById {
   '/_authenticated/activity-feed': typeof AuthenticatedActivityFeedRoute
   '/_authenticated/alerts': typeof AuthenticatedAlertsRouteWithChildren
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
+  '/_authenticated/channel-team': typeof AuthenticatedChannelTeamRoute
   '/_authenticated/custom-commands': typeof AuthenticatedCustomCommandsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/giveaway': typeof AuthenticatedGiveawayRoute
@@ -890,6 +900,7 @@ export interface FileRouteTypes {
     | '/activity-feed'
     | '/alerts'
     | '/analytics'
+    | '/channel-team'
     | '/custom-commands'
     | '/dashboard'
     | '/giveaway'
@@ -981,6 +992,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/activity-feed'
     | '/analytics'
+    | '/channel-team'
     | '/custom-commands'
     | '/dashboard'
     | '/giveaway'
@@ -1073,6 +1085,7 @@ export interface FileRouteTypes {
     | '/_authenticated/activity-feed'
     | '/_authenticated/alerts'
     | '/_authenticated/analytics'
+    | '/_authenticated/channel-team'
     | '/_authenticated/custom-commands'
     | '/_authenticated/dashboard'
     | '/_authenticated/giveaway'
@@ -1291,6 +1304,13 @@ declare module '@tanstack/react-router' {
       path: '/analytics'
       fullPath: '/analytics'
       preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/channel-team': {
+      id: '/_authenticated/channel-team'
+      path: '/channel-team'
+      fullPath: '/channel-team'
+      preLoaderRoute: typeof AuthenticatedChannelTeamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/custom-commands': {
@@ -1904,6 +1924,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedActivityFeedRoute: typeof AuthenticatedActivityFeedRoute
   AuthenticatedAlertsRoute: typeof AuthenticatedAlertsRouteWithChildren
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
+  AuthenticatedChannelTeamRoute: typeof AuthenticatedChannelTeamRoute
   AuthenticatedCustomCommandsRoute: typeof AuthenticatedCustomCommandsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedGiveawayRoute: typeof AuthenticatedGiveawayRoute
@@ -1928,6 +1949,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedActivityFeedRoute: AuthenticatedActivityFeedRoute,
   AuthenticatedAlertsRoute: AuthenticatedAlertsRouteWithChildren,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
+  AuthenticatedChannelTeamRoute: AuthenticatedChannelTeamRoute,
   AuthenticatedCustomCommandsRoute: AuthenticatedCustomCommandsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedGiveawayRoute: AuthenticatedGiveawayRoute,

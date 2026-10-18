@@ -1,11 +1,22 @@
 import { DemoDb, type DemoSnapshot, type Row } from "@/demo/db";
 import { buildDemoSnapshot, DEMO_RPC } from "@/demo/fixtures";
+import { applyChannelDataset } from "@/features/channel-team/channelData";
+import { DEFAULT_CHANNEL_ID, readActiveChannelId } from "@/features/channel-team/storage";
 
-/** localStorage key holding the visitor's edited tables. */
+/** localStorage key holding the visitor's edited tables for the personal channel. */
 export const DEMO_DB_KEY = "cylixstudio-demo:db:v1";
 export const DEMO_REQUEST_HEADER = "x-demo-db";
 export const DEMO_PATCH_HEADER = "x-demo-patch";
+/** Channel being browsed, the acting identity's permissions, and the guard report coming back. */
+export const DEMO_CHANNEL_HEADER = "x-demo-channel";
+export const DEMO_ACTOR_HEADER = "x-demo-actor";
+export const DEMO_TEAM_HEADER = "x-demo-team";
 export const DEMO_CHANGE_EVENT = "cylixstudio-demo:db-change";
+
+/** Every channel keeps its own saved tables, so data never mixes between channels. */
+export function dbKeyFor(channelId: string): string {
+  return channelId === DEFAULT_CHANNEL_ID ? DEMO_DB_KEY : `${DEMO_DB_KEY}:${channelId}`;
+}
 
 /** Event logs are capped so the overlay stays small enough to travel in a header. */
 const TRANSIENT_CAPS: Record<string, number> = {
@@ -21,8 +32,8 @@ export function emptyOverlay(): DemoOverlay {
   return { v: 1, tables: {} };
 }
 
-export function createSeededDb(): DemoDb {
-  const db = new DemoDb(buildDemoSnapshot());
+export function createSeededDb(channelId: string = DEFAULT_CHANNEL_ID): DemoDb {
+  const db = new DemoDb(applyChannelDataset(buildDemoSnapshot(), channelId));
   db.rpcHandlers = { ...DEMO_RPC };
   return db;
 }
@@ -77,7 +88,7 @@ export async function decodeOverlay(text: string): Promise<DemoOverlay | null> {
 export function readStoredOverlay(): DemoOverlay {
   if (typeof window === "undefined") return emptyOverlay();
   try {
-    const raw = window.localStorage.getItem(DEMO_DB_KEY);
+    const raw = window.localStorage.getItem(dbKeyFor(readActiveChannelId()));
     if (!raw) return emptyOverlay();
     const parsed = JSON.parse(raw) as DemoOverlay;
     return parsed && parsed.v === 1 && parsed.tables ? parsed : emptyOverlay();
@@ -89,7 +100,7 @@ export function readStoredOverlay(): DemoOverlay {
 export function writeStoredOverlay(overlay: DemoOverlay): void {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(DEMO_DB_KEY, JSON.stringify(overlay));
+    window.localStorage.setItem(dbKeyFor(readActiveChannelId()), JSON.stringify(overlay));
   } catch {
     // Quota exceeded: keep working in memory only.
   }

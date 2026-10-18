@@ -1,8 +1,10 @@
 import type { DemoDb } from "@/demo/db";
+import { DENIED_EVENT, installGuard } from "@/features/channel-team/guard";
+import { readActiveChannelId, readClientActor } from "@/features/channel-team/storage";
 import {
   DEMO_CHANGE_EVENT,
-  DEMO_DB_KEY,
   applyOverlay,
+  dbKeyFor,
   capRows,
   createSeededDb,
   emptyOverlay,
@@ -32,8 +34,12 @@ function announce(): void {
 }
 
 function buildClientDb(): DemoDb {
-  const db = createSeededDb();
+  const db = createSeededDb(readActiveChannelId());
   applyOverlay(db, readStoredOverlay());
+  installGuard(db, readClientActor, {
+    audit: (entry) => void import("@/features/channel-team/adapter").then((m) => m.recordOperation(entry)),
+    denied: (key) => window.dispatchEvent(new CustomEvent(DENIED_EVENT, { detail: { key } })),
+  });
   const dirty = new Set<string>();
   let scheduled = false;
   db.onMutate = (table) => {
@@ -52,7 +58,7 @@ function buildClientDb(): DemoDb {
   if (!g.__demoStorageHooked) {
     g.__demoStorageHooked = true;
     window.addEventListener("storage", (event) => {
-      if (event.key === DEMO_DB_KEY || event.key === null) reloadClientDb();
+      if (event.key === dbKeyFor(readActiveChannelId()) || event.key === null) reloadClientDb();
     });
   }
   return db;
@@ -68,9 +74,17 @@ export function reloadClientDb(): void {
   if (!isBrowser()) return;
   const db = g.__demoClientDb;
   if (!db) return;
-  const fresh = createSeededDb();
+  const fresh = createSeededDb(readActiveChannelId());
   applyOverlay(fresh, readStoredOverlay());
   for (const [table, rows] of Object.entries(fresh.snapshot())) db.setTable(table, rows);
+  announce();
+}
+
+/** Drops the in-memory database so the next access is rebuilt for the now-active channel. */
+export function rebuildClientDb(): void {
+  if (!isBrowser()) return;
+  g.__demoClientDb = undefined;
+  getClientDb();
   announce();
 }
 
@@ -90,7 +104,7 @@ export function mergeServerPatch(patch: DemoOverlay): void {
 export function resetClientDb(): void {
   if (!isBrowser()) return;
   writeStoredOverlay(emptyOverlay());
-  window.localStorage.removeItem(DEMO_DB_KEY);
+  window.localStorage.removeItem(dbKeyFor(readActiveChannelId()));
   g.__demoClientDb = undefined;
   getClientDb();
   announce();

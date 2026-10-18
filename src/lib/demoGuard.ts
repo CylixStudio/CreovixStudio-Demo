@@ -62,23 +62,34 @@ function installDemoStateBridge(): void {
     if (target.origin !== window.location.origin || !SAME_ORIGIN_PREFIXES.some((p) => target.pathname.startsWith(p))) {
       return original(input, init);
     }
-    const { DEMO_PATCH_HEADER, DEMO_REQUEST_HEADER, decodeOverlay, encodeOverlay, readStoredOverlay } = await import(
-      "@/demo/overlay"
-    );
+    const {
+      DEMO_ACTOR_HEADER,
+      DEMO_CHANNEL_HEADER,
+      DEMO_PATCH_HEADER,
+      DEMO_REQUEST_HEADER,
+      DEMO_TEAM_HEADER,
+      decodeOverlay,
+      encodeOverlay,
+      readStoredOverlay,
+    } = await import("@/demo/overlay");
+    const team = await import("@/features/channel-team/storage");
+    const actor = team.readClientActor();
     const overlay = readStoredOverlay();
+    const extra: Record<string, string> = {
+      [DEMO_CHANNEL_HEADER]: actor.channelId,
+      [DEMO_ACTOR_HEADER]: btoa(JSON.stringify(actor)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
+    };
+    if (Object.keys(overlay.tables).length > 0) extra[DEMO_REQUEST_HEADER] = await encodeOverlay(overlay);
     let nextInput = input;
     let nextInit = init;
-    if (Object.keys(overlay.tables).length > 0) {
-      const encoded = await encodeOverlay(overlay);
-      if (input instanceof Request && !init) {
-        const headers = new Headers(input.headers);
-        headers.set(DEMO_REQUEST_HEADER, encoded);
-        nextInput = new Request(input, { headers });
-      } else {
-        const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
-        headers.set(DEMO_REQUEST_HEADER, encoded);
-        nextInit = { ...init, headers };
-      }
+    if (input instanceof Request && !init) {
+      const headers = new Headers(input.headers);
+      for (const [name, value] of Object.entries(extra)) headers.set(name, value);
+      nextInput = new Request(input, { headers });
+    } else {
+      const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
+      for (const [name, value] of Object.entries(extra)) headers.set(name, value);
+      nextInit = { ...init, headers };
     }
     const response = await original(nextInput, nextInit);
     const patch = response.headers.get(DEMO_PATCH_HEADER);
@@ -86,6 +97,8 @@ function installDemoStateBridge(): void {
       const decoded = await decodeOverlay(patch);
       if (decoded) (await import("@/demo/context")).mergeServerPatch(decoded);
     }
+    const report = response.headers.get(DEMO_TEAM_HEADER);
+    if (report) await (await import("@/features/channel-team/report")).applyGuardReport(report);
     return response;
   }) as typeof fetch;
 }

@@ -6,6 +6,8 @@
 
 export type Row = Record<string, unknown>;
 
+type ActorContext = import("@/features/channel-team/types").ActorContext;
+
 /** Table key columns. Anything not listed uses `id`. */
 export const PRIMARY_KEYS: Record<string, string[]> = {
   user_subscriptions: ["user_id"],
@@ -518,11 +520,16 @@ class Query implements PromiseLike<DbResult> {
         }
         created.push(row);
       }
+      for (const row of created) {
+        const denied = this.db.writeGuard?.({ table, mode: "insert", before: null, after: row });
+        if (denied) return fail(denied, "42501");
+      }
       for (const row of created) this.db.put(table, row);
       return this.finish(created, created.length);
     }
     if (this.mode === "upsert") {
       const out: Row[] = [];
+      const plan: Array<{ row: Row; previous?: Row }> = [];
       const conflict = this.onConflict ?? pkOf(table);
       for (const input of this.payload) {
         const existing = this.db
@@ -532,31 +539,55 @@ class Query implements PromiseLike<DbResult> {
           if (this.ignoreDuplicates) continue;
           const merged: Row = { ...existing, ...clone(input) };
           if ("updated_at" in existing && input["updated_at"] === undefined) merged["updated_at"] = new Date().toISOString();
-          this.db.put(table, merged, existing);
-          out.push(merged);
+          plan.push({ row: merged, previous: existing });
         } else {
-          const row = this.normalizeInsert(input);
-          this.db.put(table, row);
-          out.push(row);
+          plan.push({ row: this.normalizeInsert(input) });
         }
+      }
+      for (const step of plan) {
+        const denied = this.db.writeGuard?.({ table, mode: "upsert", before: step.previous ?? null, after: step.row });
+        if (denied) return fail(denied, "42501");
+      }
+      for (const step of plan) {
+        this.db.put(table, step.row, step.previous);
+        out.push(step.row);
       }
       return this.finish(out, out.length);
     }
     if (this.mode === "update") {
-      const updated: Row[] = [];
+      const plan: Array<{ row: Row; next: Row }> = [];
       for (const row of this.matching()) {
         const next: Row = { ...row, ...clone(this.patch) };
         if ("updated_at" in row && this.patch["updated_at"] === undefined) next["updated_at"] = new Date().toISOString();
-        this.db.put(table, next, row);
-        updated.push(next);
+        plan.push({ row, next });
+      }
+      for (const step of plan) {
+        const denied = this.db.writeGuard?.({ table, mode: "update", before: step.row, after: step.next });
+        if (denied) return fail(denied, "42501");
+      }
+      const updated: Row[] = [];
+      for (const step of plan) {
+        this.db.put(table, step.next, step.row);
+        updated.push(step.next);
       }
       return this.finish(updated, updated.length);
     }
     const rows = this.matching();
+    for (const row of rows) {
+      const denied = this.db.writeGuard?.({ table, mode: "delete", before: row, after: null });
+      if (denied) return fail(denied, "42501");
+    }
     for (const row of rows) this.db.remove(table, row);
     return this.finish(rows, rows.length);
   }
 }
+
+export type WriteGuard = (op: {
+  table: string;
+  mode: "insert" | "update" | "delete" | "upsert";
+  before: Row | null;
+  after: Row | null;
+}) => string | null;
 
 export type RpcHandler = (db: DemoDb, args: Row) => unknown;
 export type DemoSnapshot = Record<string, Row[]>;
@@ -565,6 +596,9 @@ export class DemoDb {
   private tables = new Map<string, Map<string, Row>>();
   rpcHandlers: Record<string, RpcHandler> = {};
   onMutate: ((table: string) => void) | null = null;
+  /** Demo permission hook (Channel Team). Return a message to reject a write. */
+  writeGuard: WriteGuard | null = null;
+  actorProvider: (() => ActorContext | null) | null = null;
 
   constructor(snapshot?: DemoSnapshot) {
     if (snapshot) this.load(snapshot);

@@ -19,6 +19,7 @@ import {
   MessageSquareCode,
   Link2,
   Settings,
+  Users,
 } from "lucide-react";
 
 import { UpgradePlanHost } from "@/components/subscription/UpgradePlanHost";
@@ -83,6 +84,7 @@ const NAV_SECTIONS = [
     items: [
       { to: "/activity-feed" as const, icon: Activity, labelKey: "nav.activity" },
       { to: "/analytics" as const, icon: BarChart3, labelKey: "nav.analytics" },
+      { to: "/channel-team" as const, icon: Users, labelKey: "nav.channelTeam" },
       { to: "/schedule" as const, icon: CalendarDays, labelKey: "nav.schedule" },
       { to: "/link-in-bio" as const, icon: Link2, labelKey: "nav.linkInBio" },
     ],
