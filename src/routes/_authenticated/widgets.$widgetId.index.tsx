@@ -27,7 +27,7 @@ import { syncGoalFollowers } from "@/lib/goals.functions";
 import { notePlanError, requestUpgrade } from "@/components/subscription/upgradePlan";
 import { ChatThemePicker } from "@/components/widgets/ChatThemePicker";
 import { KickSubscriberBadgesField } from "@/components/widgets/KickSubscriberBadgesField";
-import { saveWidgetSettings } from "@/lib/widgets.functions";
+import { saveWidgetSettingsLocal as saveWidgetSettings } from "@/lib/widgetSave";
 import { useWidgetStream } from "@/hooks/useWidgetStream";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -231,7 +231,7 @@ function WidgetBuilder() {
   }, [queryClient, widget, widgetId]);
 
   const stream = useWidgetStream(widget?.is_enabled ? (widget?.public_token ?? null) : null);
-  const saveWidget = useServerFn(saveWidgetSettings);
+  const saveWidget = saveWidgetSettings;
 
   const save = useMutation({
     mutationFn: async () => {

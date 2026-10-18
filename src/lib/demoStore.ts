@@ -1,6 +1,6 @@
 import { DEMO_USER_ID } from "@/lib/demoMode";
+import { buildDemoFile } from "@/demo/fixtures";
 import {
-  emptyDemoFile,
   normalizeDemoFile,
   type DemoChatMessage,
   type DemoFile,
@@ -14,8 +14,6 @@ const CHANGE_EVENT = "cylix-demo";
 
 let cache: DemoFile | null = null;
 let cacheRaw = "";
-let serverRev = 0;
-let chain: Promise<unknown> = Promise.resolve();
 
 export function demoStorageKey(): string {
   return STORAGE_KEY;
@@ -43,51 +41,60 @@ export function demoChangeEvent(): string {
 }
 
 export async function loadDemoState(options?: { wait?: boolean; signal?: AbortSignal }): Promise<DemoFile> {
-  const wait = options?.wait === true;
-  const url = wait ? `/api/demo/state?wait=1&since=${serverRev}` : "/api/demo/state";
+  if (options?.wait && typeof window !== "undefined") {
+    // Long-poll replacement: resolve on the next local change (this or another tab).
+    await new Promise<void>((resolve) => {
+      const done = () => {
+        window.removeEventListener(CHANGE_EVENT, done);
+        window.removeEventListener("storage", onStorage);
+        options.signal?.removeEventListener("abort", done);
+        resolve();
+      };
+      const onStorage = (event: StorageEvent) => {
+        if (event.key === STORAGE_KEY) done();
+      };
+      window.addEventListener(CHANGE_EVENT, done);
+      window.addEventListener("storage", onStorage);
+      options.signal?.addEventListener("abort", done);
+    });
+  }
+  return readState();
+}
+
+function readState(): DemoFile {
+  if (typeof window === "undefined") return buildDemoFile();
   try {
-    const response = await fetch(url, { cache: "no-store", signal: options?.signal });
-    if (response.status === 204) return cache ?? emptyDemoFile();
-    if (response.ok) {
-      const rev = Number(response.headers.get("x-demo-rev"));
-      if (Number.isFinite(rev)) serverRev = rev;
-      const next = normalizeDemoFile(await response.json());
-      remember(next);
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const next = normalizeDemoFile(JSON.parse(raw));
+      cache = next;
+      cacheRaw = raw;
       return next;
     }
   } catch {
-    /* local fallback below */
+    /* fall through to fixtures */
   }
+  const seeded = cache ?? buildDemoFile();
+  cache = seeded;
+  return seeded;
+}
+
+/** Removes the visitor's saved widget state so the fixtures load again. */
+export function resetDemoState(): void {
+  cache = null;
+  cacheRaw = "";
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    const next = raw ? normalizeDemoFile(JSON.parse(raw)) : emptyDemoFile();
-    cache = next;
-    return next;
+    window.localStorage.removeItem(STORAGE_KEY);
   } catch {
-    return cache ?? emptyDemoFile();
+    /* ignore */
   }
+  window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
 export function updateDemoState(mutator: (state: DemoFile) => DemoFile): Promise<DemoFile> {
-  const run = chain.then(async () => {
-    const current = cache ?? (await loadDemoState());
-    const next = normalizeDemoFile(mutator(current));
-    remember(next);
-    const response = await fetch("/api/demo/state", {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(next),
-    });
-    if (!response.ok) throw new Error("Could not save demo data");
-    const saved = normalizeDemoFile(await response.json());
-    remember(saved);
-    return saved;
-  });
-  chain = run.then(
-    () => undefined,
-    () => undefined,
-  );
-  return run;
+  const next = normalizeDemoFile(mutator(readState()));
+  remember(next);
+  return Promise.resolve(next);
 }
 
 function newId(): string {

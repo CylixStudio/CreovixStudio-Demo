@@ -44,19 +44,15 @@ function MediaOverlay() {
 
   useEffect(() => {
     if (!token) return;
-    let source: EventSource | null = null;
     let stopped = false;
     const load = async () => {
       const r = await fetch(`/api/public/media-request/${encodeURIComponent(token)}/live`, { cache: "no-store" });
       if (r.ok) setData(await r.json());
     };
     void load();
-    source = new EventSource(`/api/public/media-request/${encodeURIComponent(token)}/stream`);
-    source.addEventListener("playback", (e) => setData((old) => ({ ...old, ...JSON.parse((e as MessageEvent).data) })));
-    const poll = setInterval(() => void load(), 5000);
+    const poll = setInterval(() => void load(), 2000);
     return () => {
       stopped = true;
-      source?.close();
       clearInterval(poll);
       void stopped;
     };

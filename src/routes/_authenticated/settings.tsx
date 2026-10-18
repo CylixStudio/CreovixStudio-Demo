@@ -7,6 +7,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { AdminCodesPanel } from "@/components/settings/AdminCodesPanel";
 import { AdminVersionPanel } from "@/components/settings/AdminVersionPanel";
 import { ConnectionsPanel } from "@/components/settings/ConnectionsPanel";
+import { DemoDataPanel } from "@/components/settings/DemoDataPanel";
 import { SettingsBackupPanel } from "@/components/settings/SettingsBackupPanel";
 import { SubscriptionPanel } from "@/components/settings/SubscriptionPanel";
 import { useIsAdmin } from "@/hooks/useSubscription";
@@ -272,6 +273,9 @@ function SettingsPage() {
               </p>
             </div>
             <SubscriptionPanel userId={user.id} />
+          </div>
+          <div className="mt-10 border-t border-white/5 pt-8">
+            <DemoDataPanel />
           </div>
           <div className="mt-10 border-t border-white/5 pt-8">
             <SettingsBackupPanel />

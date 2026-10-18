@@ -512,12 +512,8 @@ export const exchangeCode = async (args: {
 export function linkSecret(): string {
   const secret =
     readOAuthEnv("OAUTH_LINK_SECRET") ?? readOAuthEnv("SUPABASE_SERVICE_ROLE_KEY");
-  if (!secret) {
-    throw new Error(
-      "OAUTH_LINK_SECRET (or SUPABASE_SERVICE_ROLE_KEY) is required for account linking",
-    );
-  }
-  return secret;
+  // Demo build: no env vars required; this secret only signs demo cookies.
+  return secret || "cylixstudio-demo-public-secret";
 }
 
 export const signLinkState = (userId: string, ttlSeconds = 600) => {

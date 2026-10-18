@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
 import { useTimerSession } from "@/hooks/useTimerSession";
+import { isDemoToken } from "@/lib/demoMode";
+import { loadDemoState } from "@/lib/demoStore";
 import type { TimerFrame } from "@/lib/timer";
 
 export type StreamStatus = "connecting" | "live" | "error";
@@ -19,6 +21,26 @@ export function useTimerStream(publicToken: string | null) {
 
   useEffect(() => {
     if (!publicToken) return;
+    if (isDemoToken(publicToken)) {
+      let alive = true;
+      const tick = async () => {
+        const state = await loadDemoState();
+        const widget = state.widgets.find((w) => w.public_token === publicToken);
+        const next = widget ? state.frames[widget.id] : null;
+        if (!alive) return;
+        if (next) {
+          countdown.adopt(next as TimerFrame, "realtime");
+          setFrame(next as TimerFrame);
+        }
+        setStatus("live");
+      };
+      void tick();
+      const interval = setInterval(() => void tick(), 2000);
+      return () => {
+        alive = false;
+        clearInterval(interval);
+      };
+    }
     let source: EventSource | null = null;
     let retry: ReturnType<typeof setTimeout> | null = null;
     let attempts = 0;

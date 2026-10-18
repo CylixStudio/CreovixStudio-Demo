@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { demoChangeEvent, demoStorageKey, loadDemoState, peekDemoCache } from "@/lib/demoStore";
 import { normalizeDemoFile, type DemoFile } from "@/lib/demoState";
 import { isDemoToken } from "@/lib/demoMode";
+import { getClientDb } from "@/demo/context";
+import { DEMO_CHANGE_EVENT } from "@/demo/overlay";
 import {
   createOverlayLink,
   eventFromBroadcast,
@@ -192,6 +194,90 @@ export function useWidgetStream(publicToken: string | null) {
   }, [publicToken, countdown.adopt]);
 
   const pullRef = useRef<((reason: "fallback" | "refresh") => void) | null>(null);
+
+  // Demo overlays read activity from the visitor's local demo database.
+  useEffect(() => {
+    if (!publicToken || !isDemoToken(publicToken)) return;
+    const read = () => {
+      const rows = getClientDb().rows("events");
+      const mapped: OverlayEvent[] = rows
+        .map((row) => {
+          const raw = (row["raw_payload"] ?? {}) as Record<string, unknown>;
+          return {
+            id: String(row["id"]),
+            platform: String(row["platform"] ?? "KICK"),
+            eventType: String(row["event_type"] ?? "FOLLOW"),
+            actorName: (row["actor_name"] as string | null) ?? null,
+            amount: row["amount"] == null ? null : Number(row["amount"]),
+            currency: (row["currency"] as string | null) ?? null,
+            quantity: Number(row["quantity"] ?? 1),
+            secondsAdded: Number(row["seconds_added"] ?? 0),
+            createdAt: String(row["created_at"] ?? new Date().toISOString()),
+            isTest: raw["isTest"] === true || raw["simulated"] === true || raw["test_harness"] === true,
+          } satisfies OverlayEvent;
+        })
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .slice(0, 40);
+      setEvents(mapped);
+    };
+    read();
+    window.addEventListener(DEMO_CHANGE_EVENT, read);
+    return () => window.removeEventListener(DEMO_CHANGE_EVENT, read);
+  }, [publicToken]);
+
+  // Runtime for the interactive widgets, derived from the saved widget config.
+  useEffect(() => {
+    if (!publicToken || !isDemoToken(publicToken) || !widget) return;
+    const now = Date.now();
+    if (widget.type === "POLL") {
+      setPollRuntime({
+        status: "open",
+        title: "Which game should we play next?",
+        options: [
+          { id: "a", label: "Elden Ring", votes: 142 },
+          { id: "b", label: "Hades II", votes: 96 },
+          { id: "c", label: "Minecraft", votes: 61 },
+        ],
+        endsAt: new Date(now + 3_600_000).toISOString(),
+        hideAt: null,
+        winnerId: null,
+        updatedAt: new Date(now).toISOString(),
+        eventName: "demo",
+        lastMessageId: null,
+        revision: 1,
+      });
+    } else if (widget.type === "PREDICTION") {
+      setPredictionRuntime({
+        status: "open",
+        title: "Will we beat the boss on the first try?",
+        outcomes: [
+          { id: "yes", label: "Yes", points: 18400, voters: 41 },
+          { id: "no", label: "No", points: 26100, voters: 58 },
+        ],
+        endsAt: new Date(now + 3_600_000).toISOString(),
+        hideAt: null,
+        winnerId: null,
+        updatedAt: new Date(now).toISOString(),
+        eventName: "demo",
+        lastMessageId: null,
+        revision: 1,
+      });
+    } else if (widget.type === "STREAM_EVENTS_SCHEDULE") {
+      setStreamEvents({ startedAt: new Date(now - 25 * 60_000).toISOString(), bonusElapsedSeconds: 0, revision: 1 });
+    } else if (widget.type === "CHAT_SPOTLIGHT") {
+      setSpotlight({
+        id: "demo-spotlight",
+        platform: "KICK",
+        author: "Nova",
+        color: "#bee1fc",
+        text: "This stream setup is unreal. Cylix makes everything so smooth!",
+        badges: ["vip"],
+        badgeImages: [],
+        pinnedAt: new Date(now).toISOString(),
+        nonce: 1,
+      });
+    }
+  }, [publicToken, widget?.id, widget?.type]);
 
   useEffect(() => {
     if (!publicToken || isDemoToken(publicToken)) return;

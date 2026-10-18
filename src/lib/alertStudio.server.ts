@@ -1,13 +1,10 @@
 /**
- * Demo-only alert store. Files stay in .demo-data/alerts.
+ * Demo-only alert store. Backed by the per-request DemoDb (table demo_kv).
  * Nothing here talks to Supabase, Kick, or Twitch.
  * The Free/Pro switch is a local test. Production must use userHasActivePro
  * and must not copy this switch.
  */
-import { randomBytes, randomUUID } from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
-
+import { kvGet, kvSet } from "@/lib/demoKv.server";
 import { DEMO_BUILD } from "@/lib/demoMode";
 import {
   ALERT_CATALOG,
@@ -33,28 +30,33 @@ import {
   selectableAlert,
 } from "@/lib/alertStudio";
 
-const root = path.join(process.cwd(), ".demo-data", "alerts");
-const settingsPath = path.join(root, "settings.json");
-const queuePath = path.join(root, "queue.json");
-const mediaDir = path.join(root, "media");
+// State lives in the demo database (visitor's browser); nothing touches the server disk.
+const SETTINGS_KEY = "alerts:settings";
+const QUEUE_KEY = "alerts:queue";
+const CONTROL_KEY = "alerts:control";
 
 let chain: Promise<unknown> = Promise.resolve();
-let overlaySeenAt = 0;
 const listeners = new Set<(event: AlertEvent) => void>();
 
 type StoredSettings = Omit<AlertStudioState, "limitBytes" | "overlaySeenAt">;
 
-function ensureDirs(): void {
-  fs.mkdirSync(mediaDir, { recursive: true });
+function readJson(key: string): unknown {
+  const raw = kvGet(key);
+  if (raw === null) throw new Error("missing");
+  return JSON.parse(raw);
+}
+
+function overlaySeenAtNow(): number {
+  return Number(kvGet("alerts:overlay-seen")) || 0;
 }
 
 function freshToken(): string {
-  return `demo-alerts-${randomBytes(9).toString("hex")}`;
+  return "demo-alerts-cylixdemo0001";
 }
 
 function readStored(): StoredSettings {
   try {
-    return normalizeStored(JSON.parse(fs.readFileSync(settingsPath, "utf8")));
+    return normalizeStored(readJson(SETTINGS_KEY));
   } catch {
     const created: StoredSettings = {
       plan: "pro",
@@ -87,7 +89,6 @@ function normalizeStored(raw: unknown): StoredSettings {
           typeof row["id"] === "string" && /^[0-9a-f-]{36}$/i.test(row["id"]) ? row["id"] : "";
         const ext = typeof row["ext"] === "string" ? row["ext"] : "";
         if (!alertId || !slot || !id || !ext) return [];
-        if (!fs.existsSync(path.join(mediaDir, `${id}.${ext}`))) return [];
         return [
           {
             ...(isVariationId(row["variationId"]) ? { variationId: row["variationId"] } : {}),
@@ -107,8 +108,7 @@ function normalizeStored(raw: unknown): StoredSettings {
 }
 
 function writeStored(settings: StoredSettings): void {
-  ensureDirs();
-  fs.writeFileSync(settingsPath, JSON.stringify(settings));
+  kvSet(SETTINGS_KEY, JSON.stringify(settings));
 }
 
 function withLock<T>(work: () => T): Promise<T> {
@@ -126,7 +126,7 @@ export function demoAlertsEnabled(): boolean {
 
 export function readAlertStudio(): AlertStudioState {
   const stored = readStored();
-  return { ...stored, limitBytes: mediaLimit(stored.plan), overlaySeenAt };
+  return { ...stored, limitBytes: mediaLimit(stored.plan), overlaySeenAt: overlaySeenAtNow() };
 }
 
 export function saveAlertStudio(patch: {
@@ -162,7 +162,7 @@ export function saveAlertStudio(patch: {
     media: current.media,
   };
   writeStored(next);
-  return { ...next, limitBytes: mediaLimit(plan), overlaySeenAt };
+  return { ...next, limitBytes: mediaLimit(plan), overlaySeenAt: overlaySeenAtNow() };
 }
 
 export function updateAlertStudio(
@@ -173,7 +173,7 @@ export function updateAlertStudio(
 
 function readQueue(): AlertEvent[] {
   try {
-    const parsed = JSON.parse(fs.readFileSync(queuePath, "utf8"));
+    const parsed = readJson(QUEUE_KEY) as AlertEvent[];
     return Array.isArray(parsed)
       ? parsed.filter((item) => item && typeof item.id === "string")
       : [];
@@ -197,9 +197,8 @@ function trimQueue(events: AlertEvent[], keepId: string | null): AlertEvent[] {
 }
 
 function writeQueue(events: AlertEvent[], keepId?: string | null): void {
-  ensureDirs();
   const preserved = keepId !== undefined ? keepId : (readControl().current?.id ?? null);
-  fs.writeFileSync(queuePath, JSON.stringify(trimQueue(events, preserved)));
+  kvSet(QUEUE_KEY, JSON.stringify(trimQueue(events, preserved)));
 }
 
 export function listAlertEvents(): AlertEvent[] {
@@ -231,7 +230,6 @@ export function acknowledgeAlert(id: string): Promise<void> {
 // reload and behave identically across devices. Durable fields persist to
 // control.json; only the live overlay heartbeats stay in memory because they
 // describe current connections rather than stored state.
-const controlPath = path.join(root, "control.json");
 
 // How long an overlay may hold the display lease before another source may take
 // over. Longer than any alert (delay + duration) so normal playback never loses
@@ -257,13 +255,33 @@ export type AlertControlSignal = {
   skipId?: string | null;
 };
 
-// Live connection heartbeats: overlayId -> last-seen timestamp (in memory only).
-const overlayBeats = new Map<string, number>();
+// Live connection heartbeats: overlayId -> last-seen timestamp. Persisted because the
+// demo server is stateless between requests.
+const overlayBeats = {
+  get(id: string): number | undefined {
+    return beatsRead()[id];
+  },
+  set(id: string, at: number): void {
+    const beats = beatsRead();
+    for (const [key, value] of Object.entries(beats)) if (at - value > 60_000) delete beats[key];
+    beats[id] = at;
+    kvSet("alerts:beats", JSON.stringify(beats));
+  },
+};
+
+function beatsRead(): Record<string, number> {
+  try {
+    return JSON.parse(kvGet("alerts:beats") ?? "{}") as Record<string, number>;
+  } catch {
+    return {};
+  }
+}
+
 const controlListeners = new Set<(signal: AlertControlSignal) => void>();
 
 function readControl(): AlertControl {
   try {
-    const raw = JSON.parse(fs.readFileSync(controlPath, "utf8")) as Record<string, unknown>;
+    const raw = readJson(CONTROL_KEY) as Record<string, unknown>;
     const current = raw["current"];
     const currentRecord =
       current && typeof current === "object" ? (current as Record<string, unknown>) : null;
@@ -287,8 +305,7 @@ function readControl(): AlertControl {
 }
 
 function writeControl(control: AlertControl): void {
-  ensureDirs();
-  fs.writeFileSync(controlPath, JSON.stringify(control));
+  kvSet(CONTROL_KEY, JSON.stringify(control));
 }
 
 function pendingEvents(control: AlertControl, queue: AlertEvent[]): AlertEvent[] {
@@ -339,7 +356,7 @@ export function getAlertControlState(): {
  */
 export function touchAlertOverlay(token: string, overlayId?: string | null): boolean {
   if (readStored().token !== token) return false;
-  overlaySeenAt = Date.now();
+  kvSet("alerts:overlay-seen", String(Date.now()));
   if (!overlayId) return true;
   const now = Date.now();
   overlayBeats.set(overlayId, now);
@@ -513,7 +530,7 @@ export function queueAlertTest(input: {
         asset.variationId === variation?.id,
     ) ?? null;
   const event: AlertEvent = {
-    id: randomUUID(),
+    id: crypto.randomUUID(),
     alertId: definition.id,
     platform: input.platform,
     username: simulation.username,
@@ -568,15 +585,19 @@ export async function storeAlertMedia(input: {
     return { ok: false, message: supportFor(definition, input.platform).note };
   }
   return withLock(() => {
+    // Demo: uploads need durable binary storage, which the database-free demo does not have.
+    if (input.bytes.byteLength >= 0) {
+      return {
+        ok: false as const,
+        message: "رفع الملفات غير متاح في الديمو. استخدم رابط URL للصورة أو الصوت.",
+      };
+    }
     const stored = readStored();
     const checked = inspectUpload(input.bytes, input.filename, input.slot, stored.plan);
     if (!checked.ok) return checked;
     if (input.variationId !== undefined && !isVariationId(input.variationId))
       return { ok: false as const, message: "تنويعة غير صالحة." };
-    const id = randomUUID();
-    const filePath = path.join(mediaDir, `${id}.${checked.ext}`);
-    ensureDirs();
-    fs.writeFileSync(filePath, input.bytes);
+    const id = crypto.randomUUID();
     const previous = stored.media.filter(
       (asset) =>
         asset.platform === input.platform &&
@@ -584,20 +605,14 @@ export async function storeAlertMedia(input: {
         asset.slot === input.slot &&
         asset.variationId === input.variationId,
     );
-    for (const asset of previous) {
-      fs.rmSync(path.join(mediaDir, `${asset.id}.${asset.ext}`), { force: true });
-    }
+    void previous;
     const asset: MediaAsset = {
       ...(input.variationId ? { variationId: input.variationId } : {}),
       id,
       platform: input.platform,
       alertId: definition.id,
       slot: input.slot,
-      name:
-        path
-          .basename(input.filename)
-          .replace(/[^\w.\u0600-\u06ff -]/g, "")
-          .slice(0, 80) || `file.${checked.ext}`,
+      name: input.filename.replace(/[^\w.\u0600-\u06ff -]/g, "").slice(0, 80) || `file.${checked.ext}`,
       bytes: input.bytes.byteLength,
       mime: checked.mime,
       ext: checked.ext,
@@ -619,18 +634,13 @@ export async function storeAlertMedia(input: {
     return {
       ok: true as const,
       asset,
-      studio: { ...next, limitBytes: mediaLimit(next.plan), overlaySeenAt },
+      studio: { ...next, limitBytes: mediaLimit(next.plan), overlaySeenAt: overlaySeenAtNow() },
     };
   });
 }
 
-export function readAlertMedia(id: string): { bytes: Buffer; mime: string } | null {
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
-  const asset = readStored().media.find((item) => item.id === id);
-  if (!asset) return null;
-  const filePath = path.join(mediaDir, `${asset.id}.${asset.ext}`);
-  if (!fs.existsSync(filePath)) return null;
-  return { bytes: fs.readFileSync(filePath), mime: asset.mime };
+export function readAlertMedia(_id: string): { bytes: Uint8Array; mime: string } | null {
+  return null;
 }
 
 export function deleteAlertMedia(id: string): AlertStudioState | null {
@@ -638,7 +648,6 @@ export function deleteAlertMedia(id: string): AlertStudioState | null {
   const stored = readStored();
   const asset = stored.media.find((item) => item.id === id);
   if (!asset) return null;
-  fs.rmSync(path.join(mediaDir, `${asset.id}.${asset.ext}`), { force: true });
   const config = asset.variationId
     ? stored.alerts[asset.platform][asset.alertId].variations.find(
         (item) => item.id === asset.variationId,
@@ -649,7 +658,7 @@ export function deleteAlertMedia(id: string): AlertStudioState | null {
   }
   const next = { ...stored, media: stored.media.filter((item) => item.id !== id) };
   writeStored(next);
-  return { ...next, limitBytes: mediaLimit(next.plan), overlaySeenAt };
+  return { ...next, limitBytes: mediaLimit(next.plan), overlaySeenAt: overlaySeenAtNow() };
 }
 
 export function removeAlertMedia(id: string): Promise<AlertStudioState | null> {

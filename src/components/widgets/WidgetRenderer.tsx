@@ -26,6 +26,7 @@ import { EVENT_LABEL_I18N, resolveEventLabelLines, type EventLabelOption } from 
 import { t as translate, useLanguage } from "@/lib/i18n";
 import { lookupChannel } from "@/lib/liveCounter.functions";
 import { readOverlayViewers } from "@/lib/toolWidgets.functions";
+import { isDemoToken } from "@/lib/demoMode";
 import { parseOverlayTheme, withAlpha } from "@/lib/overlayTheme";
 import { chromeLayoutClass, parseChromeLayout, parseEventLabelLayout, parseGoalLayout, parseViewerLayout } from "@/lib/widgetLayouts";
 import { SpinWheelView } from "@/components/widgets/SpinWheel";
@@ -2541,6 +2542,11 @@ function ViewerCounterView({
         }
       }
       if (!publicToken) return;
+      if (isDemoToken(publicToken)) {
+        const wobble = Math.round(Math.sin(Date.now() / 20000) * 18);
+        applySnapshot(parsed.metric === "followers" ? 12480 : 1290 + wobble, true, null);
+        return;
+      }
       try {
         const result = await readOverlayViewers({ data: { publicToken } });
         if (cancelled) return;

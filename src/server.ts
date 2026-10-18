@@ -4,6 +4,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { enterRequestRuntime, registerRequestContext } from "./lib/requestContext.server";
+import { withDemoDb } from "./demo/serverScope.server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -59,20 +60,7 @@ function isClientAbort(error: unknown): boolean {
   );
 }
 
-function isCloudflareWorkersRuntime(): boolean {
-  return typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
-}
-
-// Streamlabs / StreamElements sockets stay open for the life of the Node
-// process. Workers isolates do not keep that loop alive, so skip it there.
-// Webhook ingest still runs inside fetch, using the host waitUntil.
-if (!isCloudflareWorkersRuntime()) {
-  void import("./lib/relaySockets.server")
-    .then((mod) => mod.startRelaySockets())
-    .catch((error: unknown) => {
-      console.error("[relay-sockets] not started", error instanceof Error ? error.message : "error");
-    });
-}
+// Demo: no Streamlabs / StreamElements relay sockets are opened.
 
 type ScheduledController = {
   scheduledTime: number;
@@ -95,8 +83,10 @@ export default {
     try {
       return await enterRequestRuntime(request, ctx, async () => {
         const handler = await getServerEntry();
-        const response = await handler.fetch(request, env, ctx);
-        return await normalizeCatastrophicSsrResponse(response);
+        return await withDemoDb(request, async () => {
+          const response = await handler.fetch(request, env, ctx);
+          return await normalizeCatastrophicSsrResponse(response);
+        });
       });
     } catch (error) {
       // Client disconnected (navigation/refresh/closed SSE) — not a server fault.

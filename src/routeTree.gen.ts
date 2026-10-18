@@ -49,7 +49,6 @@ import { Route as AuthenticatedAlertsAlertIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedToolsToolRouteImport } from './routes/_authenticated/tools.$tool'
 import { Route as AuthenticatedWidgetsIndexRouteImport } from './routes/_authenticated/widgets.index'
 import { Route as AuthenticatedWidgetsWidgetIdRouteImport } from './routes/_authenticated/widgets.$widgetId'
-import { Route as ApiDemoStateRouteImport } from './routes/api/demo/state'
 import { Route as ApiLiveCounterLookupRouteImport } from './routes/api/live-counter/lookup'
 import { Route as MarksTokenMarkIdRouteImport } from './routes/marks.$token.$markId'
 import { Route as OverlayDemoAlertsTokenRouteImport } from './routes/overlay.demo-alerts.$token'
@@ -310,11 +309,6 @@ const AuthenticatedWidgetsWidgetIdRoute =
     path: '/widgets/$widgetId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ApiDemoStateRoute = ApiDemoStateRouteImport.update({
-  id: '/api/demo/state',
-  path: '/api/demo/state',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiLiveCounterLookupRoute = ApiLiveCounterLookupRouteImport.update({
   id: '/api/live-counter/lookup',
   path: '/api/live-counter/lookup',
@@ -646,7 +640,6 @@ export interface FileRoutesByFullPath {
   '/alerts/$alertId': typeof AuthenticatedAlertsAlertIdRoute
   '/tools/$tool': typeof AuthenticatedToolsToolRoute
   '/widgets/$widgetId': typeof AuthenticatedWidgetsWidgetIdRouteWithChildren
-  '/api/demo/state': typeof ApiDemoStateRoute
   '/api/live-counter/lookup': typeof ApiLiveCounterLookupRoute
   '/marks/$token/$markId': typeof MarksTokenMarkIdRoute
   '/overlay/demo-alerts/$token': typeof OverlayDemoAlertsTokenRoute
@@ -737,7 +730,6 @@ export interface FileRoutesByTo {
   '/u/$slug': typeof USlugRoute
   '/alerts/$alertId': typeof AuthenticatedAlertsAlertIdRoute
   '/tools/$tool': typeof AuthenticatedToolsToolRoute
-  '/api/demo/state': typeof ApiDemoStateRoute
   '/api/live-counter/lookup': typeof ApiLiveCounterLookupRoute
   '/marks/$token/$markId': typeof MarksTokenMarkIdRoute
   '/overlay/demo-alerts/$token': typeof OverlayDemoAlertsTokenRoute
@@ -832,7 +824,6 @@ export interface FileRoutesById {
   '/_authenticated/alerts/$alertId': typeof AuthenticatedAlertsAlertIdRoute
   '/_authenticated/tools/$tool': typeof AuthenticatedToolsToolRoute
   '/_authenticated/widgets/$widgetId': typeof AuthenticatedWidgetsWidgetIdRouteWithChildren
-  '/api/demo/state': typeof ApiDemoStateRoute
   '/api/live-counter/lookup': typeof ApiLiveCounterLookupRoute
   '/marks/$token/$markId': typeof MarksTokenMarkIdRoute
   '/overlay/demo-alerts/$token': typeof OverlayDemoAlertsTokenRoute
@@ -927,7 +918,6 @@ export interface FileRouteTypes {
     | '/alerts/$alertId'
     | '/tools/$tool'
     | '/widgets/$widgetId'
-    | '/api/demo/state'
     | '/api/live-counter/lookup'
     | '/marks/$token/$markId'
     | '/overlay/demo-alerts/$token'
@@ -1018,7 +1008,6 @@ export interface FileRouteTypes {
     | '/u/$slug'
     | '/alerts/$alertId'
     | '/tools/$tool'
-    | '/api/demo/state'
     | '/api/live-counter/lookup'
     | '/marks/$token/$markId'
     | '/overlay/demo-alerts/$token'
@@ -1112,7 +1101,6 @@ export interface FileRouteTypes {
     | '/_authenticated/alerts/$alertId'
     | '/_authenticated/tools/$tool'
     | '/_authenticated/widgets/$widgetId'
-    | '/api/demo/state'
     | '/api/live-counter/lookup'
     | '/marks/$token/$markId'
     | '/overlay/demo-alerts/$token'
@@ -1189,7 +1177,6 @@ export interface RootRouteChildren {
   OverlayTiktokTappersRoute: typeof OverlayTiktokTappersRoute
   StoreSlugRoute: typeof StoreSlugRoute
   USlugRoute: typeof USlugRoute
-  ApiDemoStateRoute: typeof ApiDemoStateRoute
   ApiLiveCounterLookupRoute: typeof ApiLiveCounterLookupRoute
   OverlayDemoAlertsTokenRoute: typeof OverlayDemoAlertsTokenRoute
   ApiAuthProviderCallbackRoute: typeof ApiAuthProviderCallbackRoute
@@ -1515,13 +1502,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/widgets/$widgetId'
       preLoaderRoute: typeof AuthenticatedWidgetsWidgetIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/api/demo/state': {
-      id: '/api/demo/state'
-      path: '/api/demo/state'
-      fullPath: '/api/demo/state'
-      preLoaderRoute: typeof ApiDemoStateRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/live-counter/lookup': {
       id: '/api/live-counter/lookup'
@@ -2019,7 +1999,6 @@ const rootRouteChildren: RootRouteChildren = {
   OverlayTiktokTappersRoute: OverlayTiktokTappersRoute,
   StoreSlugRoute: StoreSlugRoute,
   USlugRoute: USlugRoute,
-  ApiDemoStateRoute: ApiDemoStateRoute,
   ApiLiveCounterLookupRoute: ApiLiveCounterLookupRoute,
   OverlayDemoAlertsTokenRoute: OverlayDemoAlertsTokenRoute,
   ApiAuthProviderCallbackRoute: ApiAuthProviderCallbackRoute,

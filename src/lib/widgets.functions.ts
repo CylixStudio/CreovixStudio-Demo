@@ -33,10 +33,7 @@ export const saveWidgetSettings = createServerFn({ method: "POST" })
     }) => input,
   )
   .handler(async ({ data, context }) => {
-    if (DEMO_BUILD) {
-      const { saveDemoWidgetSettings } = await import("@/lib/demoStore.server");
-      return saveDemoWidgetSettings(data);
-    }
+    if (DEMO_BUILD) return { ok: true as const };
     const { supabase, userId } = context;
     const { data: existing, error: readError } = await supabase
       .from("widgets")

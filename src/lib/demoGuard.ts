@@ -39,3 +39,55 @@ export function installDemoNetworkGuard(): void {
 }
 
 installDemoNetworkGuard();
+
+const SAME_ORIGIN_PREFIXES = ["/_serverFn/", "/api/"];
+
+/**
+ * Browser only: carries the visitor's saved demo tables to the stateless server and
+ * folds whatever the server changed back into localStorage.
+ */
+function installDemoStateBridge(): void {
+  if (!DEMO_BUILD || typeof window === "undefined") return;
+  const marker = window as unknown as { __cylixDemoBridge?: boolean };
+  if (marker.__cylixDemoBridge) return;
+  marker.__cylixDemoBridge = true;
+  const original = window.fetch.bind(window);
+  window.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    let target: URL;
+    try {
+      target = new URL(requestUrl(input), window.location.href);
+    } catch {
+      return original(input, init);
+    }
+    if (target.origin !== window.location.origin || !SAME_ORIGIN_PREFIXES.some((p) => target.pathname.startsWith(p))) {
+      return original(input, init);
+    }
+    const { DEMO_PATCH_HEADER, DEMO_REQUEST_HEADER, decodeOverlay, encodeOverlay, readStoredOverlay } = await import(
+      "@/demo/overlay"
+    );
+    const overlay = readStoredOverlay();
+    let nextInput = input;
+    let nextInit = init;
+    if (Object.keys(overlay.tables).length > 0) {
+      const encoded = await encodeOverlay(overlay);
+      if (input instanceof Request && !init) {
+        const headers = new Headers(input.headers);
+        headers.set(DEMO_REQUEST_HEADER, encoded);
+        nextInput = new Request(input, { headers });
+      } else {
+        const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
+        headers.set(DEMO_REQUEST_HEADER, encoded);
+        nextInit = { ...init, headers };
+      }
+    }
+    const response = await original(nextInput, nextInit);
+    const patch = response.headers.get(DEMO_PATCH_HEADER);
+    if (patch) {
+      const decoded = await decodeOverlay(patch);
+      if (decoded) (await import("@/demo/context")).mergeServerPatch(decoded);
+    }
+    return response;
+  }) as typeof fetch;
+}
+
+installDemoStateBridge();

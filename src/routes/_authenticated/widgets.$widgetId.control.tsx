@@ -9,7 +9,7 @@ import { widgetErrorText } from "@/lib/createWidget";
 import { isMissingViewerSession } from "@/lib/supabase/sessionError";
 import { supabase } from "@/lib/supabase/client";
 import { notePlanError } from "@/components/subscription/upgradePlan";
-import { saveWidgetSettings } from "@/lib/widgets.functions";
+import { saveWidgetSettingsLocal as saveWidgetSettings } from "@/lib/widgetSave";
 import { useWidgetStream } from "@/hooks/useWidgetStream";
 
 export const Route = createFileRoute("/_authenticated/widgets/$widgetId/control")({
@@ -41,7 +41,7 @@ function TimerControlPopout() {
   const [config, setConfig] = useState<Record<string, unknown>>({});
   useEffect(() => { if (widget?.config) setConfig(widget.config as Record<string, unknown>); }, [widget?.config]);
   const stream = useWidgetStream(widget?.public_token ?? null);
-  const saveWidget = useServerFn(saveWidgetSettings);
+  const saveWidget = saveWidgetSettings;
   const save = useMutation({
     mutationFn: async () => {
       await saveWidget({ data: { widgetId, config } });

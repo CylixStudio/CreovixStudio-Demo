@@ -5,6 +5,7 @@ import { WidgetRenderer } from "@/components/widgets/WidgetRenderer";
 import { wheelSpinLockMs } from "@/components/widgets/SpinWheel";
 import { useWidgetStream } from "@/hooks/useWidgetStream";
 import { OVERLAY_FONT_STYLESHEET } from "@/lib/overlayTheme";
+import { isDemoToken } from "@/lib/demoMode";
 
 export const Route = createFileRoute("/overlay/$publicId")({
   head: () => ({
@@ -62,7 +63,7 @@ function OverlayPage() {
     };
   }, []);
 
-  const hideWheel = widget?.type === "SPIN_WHEEL" && !wheelVisible;
+  const hideWheel = widget?.type === "SPIN_WHEEL" && !wheelVisible && !isDemoToken(publicId);
 
   return (
     <main className="grid min-h-screen w-full place-items-center bg-transparent p-6">
@@ -85,7 +86,8 @@ function OverlayPage() {
           linkStatus={status}
           linkSurface="overlay"
           publicToken={publicId}
-          spinIdle={false}
+          spinIdle={isDemoToken(publicId)}
+          demo={isDemoToken(publicId) && widget.type === "EMOTE_RAIN"}
           spin={shownSpin}
         />
       ) : null}

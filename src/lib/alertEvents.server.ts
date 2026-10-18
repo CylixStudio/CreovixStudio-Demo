@@ -3,7 +3,7 @@
  *
  * It mirrors the real webhook pipeline that already exists in this repo
  * (signature verification -> normalization -> per-channel isolation -> queue)
- * but writes only to the isolated demo alert store (.demo-data/alerts). It never
+ * but writes only to the demo alert store (DemoDb). It never
  * touches Supabase, CylixBot receipts, Kick OAuth, or the production webhook
  * routes under /api/public/webhooks.
  *
@@ -12,16 +12,12 @@
  * signed simulator. Every step below is the real one; only the transport that
  * feeds it is simulated.
  */
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 import type { AlertKind, AlertPlatform } from "@/lib/alertStudio";
 import { enqueuePlatformAlert } from "@/lib/alertStudio.server";
 import { DEMO_CHANNEL_ID, PLATFORM_EVENT_TYPES, type DemoPlatform } from "./alertEvents.shared";
 
-const root = path.join(process.cwd(), ".demo-data", "alerts");
-const secretPath = path.join(root, "ingest-secret");
 const SIGNATURE_TTL_MS = 5 * 60_000;
 
 export type PlatformEventPayload = {
@@ -36,23 +32,9 @@ export type PlatformEventPayload = {
   message?: string;
 };
 
-let cachedSecret = "";
-
+// The simulator signs and verifies inside the same request, so a fixed public demo secret is enough.
 export function ingestSecret(): string {
-  if (cachedSecret) return cachedSecret;
-  try {
-    const value = fs.readFileSync(secretPath, "utf8").trim();
-    if (value) {
-      cachedSecret = value;
-      return cachedSecret;
-    }
-  } catch {
-    // fall through
-  }
-  fs.mkdirSync(root, { recursive: true });
-  cachedSecret = randomBytes(24).toString("hex");
-  fs.writeFileSync(secretPath, cachedSecret, { mode: 0o600 });
-  return cachedSecret;
+  return "cylixstudio-demo-ingest-secret";
 }
 
 export function signIngestBody(rawBody: string, timestamp = Date.now()): string {
@@ -149,7 +131,7 @@ export async function simulatePlatformEvent(input: {
   alertId?: string;
   providerEventId: string;
 }> {
-  const providerEventId = `${input.platform.toLowerCase()}-sim-${randomBytes(8).toString("hex")}`;
+  const providerEventId = `${input.platform.toLowerCase()}-sim-${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
   const payload: PlatformEventPayload = {
     platform: input.platform,
     type: input.type,

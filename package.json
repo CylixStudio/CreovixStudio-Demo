@@ -1,7 +1,7 @@
 {
   "name": "creovix-studio",
   "private": true,
-  "sideEffects": false,
+  "sideEffects": ["**/*.css", "./src/lib/demoGuard.ts", "src/lib/demoGuard.ts"],
   "type": "module",
   "engines": {
     "node": ">=20.19.0"

@@ -34,10 +34,8 @@ function DemoAlertsOverlay() {
 
   useEffect(() => {
     let cancelled = false;
-    let source: EventSource | null = null;
     let retry: number | null = null;
     let poll: number | null = null;
-    let fallback = false;
     let finish: number | null = null;
     let playing = false;
     let currentId: string | null = null;
@@ -127,43 +125,23 @@ function DemoAlertsOverlay() {
           return;
         }
         if (!response.ok) return;
-        const payload = (await response.json()) as { paused?: boolean };
+        const payload = (await response.json()) as { paused?: boolean; currentId?: string | null };
         paused = Boolean(payload.paused);
+        if (playing && payload.currentId !== currentId) {
+          // Skipped from the dashboard: the server cleared the on-screen alert.
+          handleControl({ type: "skip", paused, skipId: currentId });
+          return;
+        }
         if (!paused) void requestNext();
       } catch {
         /* transient */
       }
     };
 
-    const connect = () => {
-      source?.close();
-      source = new EventSource(`/api/demo/alert-studio/overlay/${token}/stream`);
-      source.addEventListener("init", (event) => {
-        fallback = false;
-        if (poll) window.clearInterval(poll);
-        poll = null;
-        const payload = JSON.parse((event as MessageEvent).data) as { paused?: boolean };
-        paused = Boolean(payload.paused);
-        void requestNext();
-      });
-      source.addEventListener("alert", () => {
-        if (!paused) void requestNext();
-      });
-      source.addEventListener("control", (event) => {
-        handleControl(JSON.parse((event as MessageEvent).data));
-      });
-      source.onerror = () => {
-        source?.close();
-        if (cancelled || fallback) return;
-        fallback = true;
-        void syncFallback();
-        poll = window.setInterval(() => void syncFallback(), 2000);
-        retry = window.setTimeout(connect, 2000);
-      };
-    };
-
-    connect();
-
+    // The demo has no persistent server connection (Vercel is stateless), so the
+    // overlay polls the demo queue instead of holding an EventSource open.
+    void syncFallback();
+    poll = window.setInterval(() => void syncFallback(), 1000);
     const beat = () => {
       void fetch(`/api/demo/alert-studio/overlay/${token}/presence`, {
         method: "POST",
@@ -179,7 +157,6 @@ function DemoAlertsOverlay() {
 
     return () => {
       cancelled = true;
-      source?.close();
       if (retry) window.clearTimeout(retry);
       if (poll) window.clearInterval(poll);
       if (finish) window.clearTimeout(finish);

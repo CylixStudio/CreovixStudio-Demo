@@ -9,7 +9,7 @@ import { useWidgets } from "@/hooks/useWidgets";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { notePlanError } from "@/components/subscription/upgradePlan";
 import { createWidget, widgetErrorText } from "@/lib/createWidget";
-import { saveWidgetSettings } from "@/lib/widgets.functions";
+import { saveWidgetSettingsLocal as saveWidgetSettings } from "@/lib/widgetSave";
 import { useLanguage } from "@/lib/i18n";
 import type { StandaloneTool } from "@/lib/standaloneTools";
 import { SIGNED_OUT_ERROR } from "@/lib/supabase/sessionError";
