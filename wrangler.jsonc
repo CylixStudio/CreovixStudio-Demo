@@ -1,0 +1,31 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cylixstudio",
+  // Current date. nodejs_compat is on by default for dates on/after 2026-08-04;
+  // the flag is still set so Workers Builds and older tooling enable it explicitly.
+  "compatibility_date": "2026-10-12",
+  "compatibility_flags": ["nodejs_compat"],
+  // Custom fetch entry: request context + host waitUntil. The Vite plugin
+  // bundles this to dist/server/index.js and attaches client assets from dist/client.
+  "main": "src/server.ts",
+  // Cron is not active. Do not add triggers.crons in this file yet.
+  // Later: Workers & Pages → cylixstudio → Settings → Triggers → Cron Triggers
+  // → * * * * *
+  // "triggers": { "crons": ["* * * * *"] }
+  // Free plan: 5 cron triggers per account, 10 ms CPU per cron, 15 min wall time.
+  "observability": {
+    "enabled": true,
+    "redact_query_string": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 0.1,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.1,
+      "persist": true
+    }
+  }
+}

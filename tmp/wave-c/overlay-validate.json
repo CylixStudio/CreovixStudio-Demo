@@ -1,0 +1,124 @@
+{
+  "browser": "Chrome headless, not OBS",
+  "overlay": "http://127.0.0.1:3001/overlay/demo-dff48feb-fec6-408c-8134-d1c6999cd662",
+  "booted": {
+    "requests": 1,
+    "text": "DemoChatter\n:\nHello chat, this is a local demo message.\nDemoChatter\n:\nHello chat"
+  },
+  "one": [
+    {
+      "ok": true,
+      "visible": true,
+      "putMs": 16.5,
+      "afterPutMs": 22.3,
+      "duplicateIds": 0,
+      "newestFirst": true
+    },
+    {
+      "ok": true,
+      "visible": true,
+      "putMs": 14,
+      "afterPutMs": 27.8,
+      "duplicateIds": 0,
+      "newestFirst": true
+    },
+    {
+      "ok": true,
+      "visible": true,
+      "putMs": 12,
+      "afterPutMs": 23.6,
+      "duplicateIds": 0,
+      "newestFirst": true
+    },
+    {
+      "ok": true,
+      "visible": true,
+      "putMs": 14.8,
+      "afterPutMs": 22.6,
+      "duplicateIds": 0,
+      "newestFirst": true
+    },
+    {
+      "ok": true,
+      "visible": true,
+      "putMs": 53.2,
+      "afterPutMs": 22.3,
+      "duplicateIds": 0,
+      "newestFirst": true
+    },
+    {
+      "ok": true,
+      "visible": true,
+      "putMs": 23.2,
+      "afterPutMs": 32.8,
+      "duplicateIds": 0,
+      "newestFirst": true
+    },
+    {
+      "ok": true,
+      "visible": true,
+      "putMs": 19.3,
+      "afterPutMs": 25.3,
+      "duplicateIds": 0,
+      "newestFirst": true
+    },
+    {
+      "ok": true,
+      "visible": true,
+      "putMs": 13.2,
+      "afterPutMs": 18,
+      "duplicateIds": 0,
+      "newestFirst": true
+    }
+  ],
+  "ten": {
+    "rendered": 8,
+    "newest": "t04m1e",
+    "expectedNewest": "t04m1e",
+    "duplicates": 0,
+    "shownMarks": 8,
+    "afterPutMs": 28.4,
+    "put": "node"
+  },
+  "burst": {
+    "rendered": 8,
+    "first": "b00",
+    "last": "b07",
+    "duplicates": 0,
+    "afterPutMs": 27.8,
+    "putMs": 28.6
+  },
+  "duplicateNodes": 1,
+  "offline": {
+    "beforeCount": 30,
+    "duringOffline": {
+      "count": 1,
+      "failed": 0
+    },
+    "recoverMs": 19.1
+  },
+  "twoOverlaysMs": [
+    296.8,
+    19.6
+  ],
+  "idle20s": {
+    "primary": {
+      "count": 3,
+      "waits": 3,
+      "gets": 3
+    },
+    "second": {
+      "count": 4,
+      "waits": 3
+    },
+    "primaryStart": 31,
+    "secondStart": 3
+  },
+  "reopenMs": 0,
+  "nodesAfterReopen": 8,
+  "heap": {
+    "before": 22111844,
+    "afterReloads": 29589820
+  },
+  "thirtyMinuteIdle": "Not Measured"
+}

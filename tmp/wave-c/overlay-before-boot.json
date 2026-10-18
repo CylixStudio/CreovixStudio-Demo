@@ -1,0 +1,13 @@
+{
+  "readyMs": null,
+  "nav": {
+    "ttfb": 32.80000000074506,
+    "dcl": 0,
+    "load": 0,
+    "transfer": 0.6999999992549419
+  },
+  "href": "http://127.0.0.1:3001/overlay/demo-dff48feb-fec6-408c-8134-d1c6999cd662",
+  "demoRequests": 0,
+  "demoWindowMs": 0,
+  "perSecond": 0
+}

@@ -1,0 +1,579 @@
+{
+  "rows": [
+    {
+      "key": "cold:home",
+      "wall": 1167,
+      "ttfb": 31.5,
+      "response": 32.4,
+      "dcl": 499.5,
+      "load": 522.2,
+      "ready": 1505.2,
+      "ok": true,
+      "href": "http://127.0.0.1:3001/dashboard",
+      "counts": {
+        "document": 1,
+        "server": 1,
+        "asset": 263,
+        "other": 3
+      },
+      "long": 1,
+      "longMs": 80,
+      "maxLong": 80,
+      "resources": 250,
+      "cards": 0,
+      "switches": 0,
+      "snippet": "CylixStudio\nBETA\nv0.2\nالاشتراك\nالرئيسية\nالتحليلات\nالنشاط\nأوامر الشات\nرابط البايو\nعداد المتابعين (مبا",
+      "interesting": [
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867"
+      ]
+    },
+    {
+      "key": "cold:login",
+      "wall": 994,
+      "ttfb": 44.4,
+      "response": 44.9,
+      "dcl": 330.5,
+      "load": 351.5,
+      "ready": 987,
+      "ok": true,
+      "href": "http://127.0.0.1:3001/dashboard",
+      "counts": {
+        "document": 1,
+        "server": 1,
+        "asset": 235,
+        "other": 8
+      },
+      "long": 1,
+      "longMs": 58,
+      "maxLong": 58,
+      "resources": 221,
+      "cards": 0,
+      "switches": 0,
+      "snippet": "أهلاً بك في لوحة تحكم CylixStudio\nSupabase is not configured for this build. In Vercel/Cloudflare se",
+      "interesting": [
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867"
+      ]
+    },
+    {
+      "key": "cold:dashboard",
+      "wall": 893,
+      "ttfb": 24.5,
+      "response": 24.8,
+      "dcl": 165.2,
+      "load": 188.5,
+      "ready": 978.6,
+      "ok": true,
+      "href": "http://127.0.0.1:3001/dashboard",
+      "counts": {
+        "document": 1,
+        "server": 3,
+        "asset": 264,
+        "other": 22
+      },
+      "long": 1,
+      "longMs": 55,
+      "maxLong": 55,
+      "resources": 250,
+      "cards": 0,
+      "switches": 0,
+      "snippet": "CylixStudio\nBETA\ndemo\nالاشتراك\nالرئيسية\nالتحليلات\nالنشاط\nأوامر الشات\nرابط البايو\nعداد المتابعين (مبا",
+      "interesting": [
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "GET server /api/demo/state"
+      ]
+    },
+    {
+      "key": "cold:custom-commands",
+      "wall": 836,
+      "ttfb": 27.5,
+      "response": 28,
+      "dcl": 158.5,
+      "load": 174.6,
+      "ready": 1134.4,
+      "ok": true,
+      "href": "http://127.0.0.1:3001/custom-commands",
+      "counts": {
+        "document": 1,
+        "server": 1,
+        "asset": 230,
+        "other": 1
+      },
+      "long": 1,
+      "longMs": 55,
+      "maxLong": 55,
+      "resources": 209,
+      "cards": 0,
+      "switches": 0,
+      "snippet": "CylixStudio\nBETA\ndemo\nالاشتراك\nالرئيسية\nالتحليلات\nالنشاط\nأوامر الشات\nرابط البايو\nعداد المتابعين (مبا",
+      "interesting": [
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867"
+      ]
+    },
+    {
+      "key": "cold:widgets",
+      "wall": 933,
+      "ttfb": 19.7,
+      "response": 20,
+      "dcl": 168,
+      "load": 183.9,
+      "ready": 987.9,
+      "ok": true,
+      "href": "http://127.0.0.1:3001/widgets",
+      "counts": {
+        "document": 1,
+        "server": 2,
+        "asset": 257,
+        "other": 8
+      },
+      "long": 1,
+      "longMs": 62,
+      "maxLong": 62,
+      "resources": 250,
+      "cards": 0,
+      "switches": 0,
+      "snippet": "CylixStudio\nBETA\ndemo\nالاشتراك\nالرئيسية\nالتحليلات\nالنشاط\nأوامر الشات\nرابط البايو\nعداد المتابعين (مبا",
+      "interesting": [
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "GET server /api/demo/state"
+      ]
+    },
+    {
+      "key": "cold:settings",
+      "wall": 848,
+      "ttfb": 37.4,
+      "response": 38.1,
+      "dcl": 181.4,
+      "load": 202.8,
+      "ready": 1058.1,
+      "ok": true,
+      "href": "http://127.0.0.1:3001/settings",
+      "counts": {
+        "document": 1,
+        "server": 1,
+        "asset": 219,
+        "other": 1
+      },
+      "long": 1,
+      "longMs": 64,
+      "maxLong": 64,
+      "resources": 215,
+      "cards": 0,
+      "switches": 0,
+      "snippet": "CylixStudio\nBETA\ndemo\nالاشتراك\nالرئيسية\nالتحليلات\nالنشاط\nأوامر الشات\nرابط البايو\nعداد المتابعين (مبا",
+      "interesting": [
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867"
+      ]
+    },
+    {
+      "key": "cold:public-commands",
+      "wall": 961,
+      "ttfb": 26.1,
+      "response": 26.8,
+      "dcl": 183,
+      "load": 295.2,
+      "ready": 957.4,
+      "ok": true,
+      "href": "http://127.0.0.1:3001/commands/creovixstudio",
+      "counts": {
+        "document": 1,
+        "server": 2,
+        "asset": 177,
+        "other": 9
+      },
+      "long": 1,
+      "longMs": 54,
+      "maxLong": 54,
+      "resources": 180,
+      "cards": 36,
+      "switches": 0,
+      "snippet": "creovixstudio\n\n29 أمر متاح\n\nCYLIXSTUDIO\n\nصفحة أوامر القناة\n\nالأوامر المخصصة\nالرسائل المؤقتة\nالأوامر ",
+      "interesting": [
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "POST server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvcHVibGljQ2hhbm5lbC5mdW5jdGlvbnMudHM_dHNzLXNlcnZlcmZuLXNwbGl0IiwiZXhwb3J0IjoibG9hZFB1YmxpY0NvbW1hbmRzUGFnZV9jcmVhdGVTZXJ2ZXJGbl9oYW5kbGVyIn0"
+      ]
+    },
+    {
+      "key": "warm:home",
+      "wall": 736,
+      "ttfb": 22.7,
+      "response": 23,
+      "dcl": 48.3,
+      "load": 60.9,
+      "ready": 781,
+      "ok": true,
+      "href": "http://127.0.0.1:3001/dashboard",
+      "counts": {
+        "document": 1,
+        "server": 3,
+        "asset": 266,
+        "other": 22
+      },
+      "long": 3,
+      "longMs": 298,
+      "maxLong": 183,
+      "resources": 250,
+      "cards": 0,
+      "switches": 0,
+      "snippet": "CylixStudio\nBETA\ndemo\nالاشتراك\nالرئيسية\nالتحليلات\nالنشاط\nأوامر الشات\nرابط البايو\nعداد المتابعين (مبا",
+      "interesting": [
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "GET server /api/demo/state"
+      ]
+    },
+    {
+      "key": "warm:login",
+      "wall": 772,
+      "ttfb": 31.9,
+      "response": 32.4,
+      "dcl": 56.7,
+      "load": 67.6,
+      "ready": 835.1,
+      "ok": true,
+      "href": "http://127.0.0.1:3001/dashboard",
+      "counts": {
+        "document": 1,
+        "server": 3,
+        "asset": 267,
+        "other": 25
+      },
+      "long": 2,
+      "longMs": 244,
+      "maxLong": 177,
+      "resources": 250,
+      "cards": 0,
+      "switches": 0,
+      "snippet": "CylixStudio\nBETA\ndemo\nالاشتراك\nالرئيسية\nالتحليلات\nالنشاط\nأوامر الشات\nرابط البايو\nعداد المتابعين (مبا",
+      "interesting": [
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "GET server /api/demo/state"
+      ]
+    },
+    {
+      "key": "warm:dashboard",
+      "wall": 773,
+      "ttfb": 30.8,
+      "response": 32,
+      "dcl": 90.4,
+      "load": 104.4,
+      "ready": 829.4,
+      "ok": true,
+      "href": "http://127.0.0.1:3001/dashboard",
+      "counts": {
+        "document": 1,
+        "server": 3,
+        "asset": 264,
+        "other": 22
+      },
+      "long": 3,
+      "longMs": 329,
+      "maxLong": 221,
+      "resources": 250,
+      "cards": 0,
+      "switches": 0,
+      "snippet": "CylixStudio\nBETA\ndemo\nالاشتراك\nالرئيسية\nالتحليلات\nالنشاط\nأوامر الشات\nرابط البايو\nعداد المتابعين (مبا",
+      "interesting": [
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "GET server /api/demo/state"
+      ]
+    },
+    {
+      "key": "warm:custom-commands",
+      "wall": 754,
+      "ttfb": 32.8,
+      "response": 33.3,
+      "dcl": 89.8,
+      "load": 102.9,
+      "ready": 750.2,
+      "ok": true,
+      "href": "http://127.0.0.1:3001/custom-commands",
+      "counts": {
+        "document": 1,
+        "server": 4,
+        "asset": 273,
+        "other": 7
+      },
+      "long": 2,
+      "longMs": 112,
+      "maxLong": 59,
+      "resources": 250,
+      "cards": 10,
+      "switches": 10,
+      "snippet": "CylixStudio\nBETA\ndemo\nالاشتراك\nالرئيسية\nالتحليلات\nالنشاط\nأوامر الشات\nرابط البايو\nعداد المتابعين (مبا",
+      "interesting": [
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvY3VzdG9tQ29tbWFuZHMuZnVuY3Rpb25zLnRzP3Rzcy1zZXJ2ZXJmbi1zcGxpdCIsImV4cG9ydCI6ImdldEN1c3RvbUNvbW1hbmRzU3RhdGVfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvbWVzc2FnZVRpbWVycy5mdW5jdGlvbnMudHM_dHNzLXNlcnZlcmZuLXNwbGl0IiwiZXhwb3J0IjoibGlzdE1lc3NhZ2VUaW1lcnNfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJsaXN0RGVmYXVsdENvbW1hbmRzX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ"
+      ]
+    },
+    {
+      "key": "warm:widgets",
+      "wall": 749,
+      "ttfb": 23.4,
+      "response": 24,
+      "dcl": 84.8,
+      "load": 99.7,
+      "ready": 745.7,
+      "ok": true,
+      "href": "http://127.0.0.1:3001/widgets",
+      "counts": {
+        "document": 1,
+        "server": 2,
+        "asset": 257,
+        "other": 8
+      },
+      "long": 3,
+      "longMs": 199,
+      "maxLong": 73,
+      "resources": 250,
+      "cards": 2,
+      "switches": 0,
+      "snippet": "CylixStudio\nBETA\ndemo\nالاشتراك\nالرئيسية\nالتحليلات\nالنشاط\nأوامر الشات\nرابط البايو\nعداد المتابعين (مبا",
+      "interesting": [
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "GET server /api/demo/state"
+      ]
+    },
+    {
+      "key": "warm:settings",
+      "wall": 751,
+      "ttfb": 26.6,
+      "response": 27.3,
+      "dcl": 88.5,
+      "load": 107,
+      "ready": 748.3,
+      "ok": true,
+      "href": "http://127.0.0.1:3001/settings",
+      "counts": {
+        "document": 1,
+        "server": 1,
+        "asset": 263,
+        "other": 7
+      },
+      "long": 1,
+      "longMs": 59,
+      "maxLong": 59,
+      "resources": 250,
+      "cards": 0,
+      "switches": 0,
+      "snippet": "CylixStudio\nBETA\ndemo\nالاشتراك\nالرئيسية\nالتحليلات\nالنشاط\nأوامر الشات\nرابط البايو\nعداد المتابعين (مبا",
+      "interesting": [
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867"
+      ]
+    },
+    {
+      "key": "warm:public-commands",
+      "wall": 779,
+      "ttfb": 50.2,
+      "response": 51.7,
+      "dcl": 110.8,
+      "load": 126.5,
+      "ready": 775.5,
+      "ok": true,
+      "href": "http://127.0.0.1:3001/commands/creovixstudio",
+      "counts": {
+        "document": 1,
+        "server": 2,
+        "asset": 177,
+        "other": 9
+      },
+      "long": 1,
+      "longMs": 71,
+      "maxLong": 71,
+      "resources": 180,
+      "cards": 36,
+      "switches": 0,
+      "snippet": "creovixstudio\n\n29 أمر متاح\n\nCYLIXSTUDIO\n\nصفحة أوامر القناة\n\nالأوامر المخصصة\nالرسائل المؤقتة\nالأوامر ",
+      "interesting": [
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "POST server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvcHVibGljQ2hhbm5lbC5mdW5jdGlvbnMudHM_dHNzLXNlcnZlcmZuLXNwbGl0IiwiZXhwb3J0IjoibG9hZFB1YmxpY0NvbW1hbmRzUGFnZV9jcmVhdGVTZXJ2ZXJGbl9oYW5kbGVyIn0"
+      ]
+    }
+  ],
+  "interactions": {
+    "navCustomCommands": {
+      "ok": true,
+      "elapsedMs": 162.2,
+      "detail": {
+        "ok": true,
+        "href": "/custom-commands",
+        "switches": 10,
+        "elapsedMs": 162.2,
+        "waitedMs": 147
+      },
+      "requests": [
+        "POST server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvc2JjU2VhbC5mdW5jdGlvbnMudHM_dHNzLXNlcnZlcmZuLXNwbGl0IiwiZXhwb3J0IjoicmVzb2x2ZVNiY0NlcnRpZmljYXRlVXJsX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvY3VzdG9tQ29tbWFuZHMuZnVuY3Rpb25zLnRzP3Rzcy1zZXJ2ZXJmbi1zcGxpdCIsImV4cG9ydCI6ImdldEN1c3RvbUNvbW1hbmRzU3RhdGVfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvbWVzc2FnZVRpbWVycy5mdW5jdGlvbnMudHM_dHNzLXNlcnZlcmZuLXNwbGl0IiwiZXhwb3J0IjoibGlzdE1lc3NhZ2VUaW1lcnNfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJsaXN0RGVmYXVsdENvbW1hbmRzX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ",
+        "GET document /custom-commands",
+        "GET other https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&family=Press+Start+2P&display=swap",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ys43PWrfQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ys93PU.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CUXMQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCUXMQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCUXMQ.woff2",
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvY3VzdG9tQ29tbWFuZHMuZnVuY3Rpb25zLnRzP3Rzcy1zZXJ2ZXJmbi1zcGxpdCIsImV4cG9ydCI6ImdldEN1c3RvbUNvbW1hbmRzU3RhdGVfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvbWVzc2FnZVRpbWVycy5mdW5jdGlvbnMudHM_dHNzLXNlcnZlcmZuLXNwbGl0IiwiZXhwb3J0IjoibGlzdE1lc3NhZ2VUaW1lcnNfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJsaXN0RGVmYXVsdENvbW1hbmRzX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ",
+        "POST server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJzZXREZWZhdWx0Q29tbWFuZEVuYWJsZWRfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "POST server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJzZXREZWZhdWx0Q29tbWFuZEVuYWJsZWRfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJsaXN0RGVmYXVsdENvbW1hbmRzX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJsaXN0RGVmYXVsdENvbW1hbmRzX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ",
+        "GET document /commands/creovixstudio",
+        "GET other https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&family=Press+Start+2P&display=swap",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ys43PWrfQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ys93PU.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CUXMQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCUXMQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCUXMQ.woff2",
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "POST server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvcHVibGljQ2hhbm5lbC5mdW5jdGlvbnMudHM_dHNzLXNlcnZlcmZuLXNwbGl0IiwiZXhwb3J0IjoibG9hZFB1YmxpY0NvbW1hbmRzUGFnZV9jcmVhdGVTZXJ2ZXJGbl9oYW5kbGVyIn0",
+        "GET other data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%231c2430%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2224%22%20r%3D%2212%22%20fill%3D%22%23a9dcff%22%2F%3E%3Cellipse%20cx%3D%2232%22%20cy%3D%2258%22%20rx%3D%2220%22%20ry%3D%2216%22%20fill%3D%22%23a9dcff%22%2F%3E%3C%2Fsvg%3E"
+      ]
+    },
+    "navSettings": {
+      "ok": false,
+      "click": {
+        "t": 1058.2999999988824,
+        "result": {
+          "ok": false,
+          "reason": "missing-link",
+          "hrefs": [
+            "/dashboard",
+            "/subscription",
+            "/dashboard",
+            "/analytics",
+            "/activity-feed",
+            "/custom-commands",
+            "/link-in-bio",
+            "/live-counter",
+            "/schedule",
+            "/mark-points",
+            "/loyalty"
+          ]
+        }
+      },
+      "requests": [
+        "GET document /custom-commands",
+        "GET other https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&family=Press+Start+2P&display=swap",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ys43PWrfQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ys93PU.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CUXMQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCUXMQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCUXMQ.woff2",
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvY3VzdG9tQ29tbWFuZHMuZnVuY3Rpb25zLnRzP3Rzcy1zZXJ2ZXJmbi1zcGxpdCIsImV4cG9ydCI6ImdldEN1c3RvbUNvbW1hbmRzU3RhdGVfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvbWVzc2FnZVRpbWVycy5mdW5jdGlvbnMudHM_dHNzLXNlcnZlcmZuLXNwbGl0IiwiZXhwb3J0IjoibGlzdE1lc3NhZ2VUaW1lcnNfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJsaXN0RGVmYXVsdENvbW1hbmRzX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ",
+        "POST server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJzZXREZWZhdWx0Q29tbWFuZEVuYWJsZWRfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "POST server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJzZXREZWZhdWx0Q29tbWFuZEVuYWJsZWRfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJsaXN0RGVmYXVsdENvbW1hbmRzX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJsaXN0RGVmYXVsdENvbW1hbmRzX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ",
+        "GET document /commands/creovixstudio",
+        "GET other https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&family=Press+Start+2P&display=swap",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ys43PWrfQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ys93PU.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CUXMQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCUXMQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCUXMQ.woff2",
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "POST server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvcHVibGljQ2hhbm5lbC5mdW5jdGlvbnMudHM_dHNzLXNlcnZlcmZuLXNwbGl0IiwiZXhwb3J0IjoibG9hZFB1YmxpY0NvbW1hbmRzUGFnZV9jcmVhdGVTZXJ2ZXJGbl9oYW5kbGVyIn0",
+        "GET other data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%231c2430%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2224%22%20r%3D%2212%22%20fill%3D%22%23a9dcff%22%2F%3E%3Cellipse%20cx%3D%2232%22%20cy%3D%2258%22%20rx%3D%2220%22%20ry%3D%2216%22%20fill%3D%22%23a9dcff%22%2F%3E%3C%2Fsvg%3E"
+      ]
+    },
+    "toggleDefault": {
+      "ok": true,
+      "elapsedMs": 21.1,
+      "detail": {
+        "ok": true,
+        "checked": "true",
+        "href": "/custom-commands",
+        "elapsedMs": 21.1,
+        "waitedMs": 19
+      },
+      "requests": [
+        "POST server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJzZXREZWZhdWx0Q29tbWFuZEVuYWJsZWRfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "POST server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJzZXREZWZhdWx0Q29tbWFuZEVuYWJsZWRfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJsaXN0RGVmYXVsdENvbW1hbmRzX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJsaXN0RGVmYXVsdENvbW1hbmRzX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ",
+        "GET document /commands/creovixstudio",
+        "GET other https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&family=Press+Start+2P&display=swap",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ys43PWrfQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ys93PU.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CUXMQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCUXMQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCUXMQ.woff2",
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "POST server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvcHVibGljQ2hhbm5lbC5mdW5jdGlvbnMudHM_dHNzLXNlcnZlcmZuLXNwbGl0IiwiZXhwb3J0IjoibG9hZFB1YmxpY0NvbW1hbmRzUGFnZV9jcmVhdGVTZXJ2ZXJGbl9oYW5kbGVyIn0",
+        "GET other data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%231c2430%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2224%22%20r%3D%2212%22%20fill%3D%22%23a9dcff%22%2F%3E%3Cellipse%20cx%3D%2232%22%20cy%3D%2258%22%20rx%3D%2220%22%20ry%3D%2216%22%20fill%3D%22%23a9dcff%22%2F%3E%3C%2Fsvg%3E"
+      ]
+    },
+    "toggleDefaultCompared": {
+      "ok": false,
+      "elapsedMs": 8039,
+      "detail": {
+        "ok": false,
+        "waitedMs": 8039,
+        "href": "http://127.0.0.1:3001/custom-commands",
+        "text": "CylixStudio\nBETA\ndemo\nالاشتراك\nالرئيسية\nالتحليلات\nالنشاط\nأوامر الشات\nرابط البايو\nعداد المتابعين (مباشر)\nالجدول\nالعلامات المرجعية\nالولاء\nDE\nDemoUser\nPro · Demo\nAR\nEN\nالأوامر الافترا"
+      },
+      "requests": [
+        "POST server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJzZXREZWZhdWx0Q29tbWFuZEVuYWJsZWRfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJsaXN0RGVmYXVsdENvbW1hbmRzX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ",
+        "GET server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGVmYXVsdENvbW1hbmRzLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJsaXN0RGVmYXVsdENvbW1hbmRzX2NyZWF0ZVNlcnZlckZuX2hhbmRsZXIifQ",
+        "GET document /commands/creovixstudio",
+        "GET other https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&family=Press+Start+2P&display=swap",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ys43PWrfQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ys93PU.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CUXMQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCUXMQ.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCRXMR5Kw.woff2",
+        "GET other https://fonts.gstatic.com/s/ibmplexsansarabic/v15/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCUXMQ.woff2",
+        "GET server /node_modules/@tanstack/start-client-core/dist/esm/client-rpc/serverFnFetcher.js?v=8c181867",
+        "POST server /_serverFn/eyJmaWxlIjoiL3NyYy9saWIvcHVibGljQ2hhbm5lbC5mdW5jdGlvbnMudHM_dHNzLXNlcnZlcmZuLXNwbGl0IiwiZXhwb3J0IjoibG9hZFB1YmxpY0NvbW1hbmRzUGFnZV9jcmVhdGVTZXJ2ZXJGbl9oYW5kbGVyIn0",
+        "GET other data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%231c2430%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2224%22%20r%3D%2212%22%20fill%3D%22%23a9dcff%22%2F%3E%3Cellipse%20cx%3D%2232%22%20cy%3D%2258%22%20rx%3D%2220%22%20ry%3D%2216%22%20fill%3D%22%23a9dcff%22%2F%3E%3C%2Fsvg%3E"
+      ]
+    },
+    "publicSearch": {
+      "ok": true,
+      "elapsedMs": 9.2,
+      "detail": {
+        "ok": true,
+        "count": 1,
+        "elapsedMs": 9.2,
+        "waitedMs": 1
+      },
+      "requests": []
+    },
+    "publicTab": {
+      "ok": false,
+      "elapsedMs": 8027,
+      "detail": {
+        "ok": false,
+        "waitedMs": 8027,
+        "href": "http://127.0.0.1:3001/commands/creovixstudio",
+        "text": "creovixstudio\n\n29 أمر متاح\n\nCYLIXSTUDIO\n\nصفحة أوامر القناة\n\nالأوامر المخصصة\nالرسائل المؤقتة\nالأوامر الافتراضية\n\nلا توجد أوامر مطابقة.\n\n1"
+      },
+      "requests": []
+    }
+  }
+}

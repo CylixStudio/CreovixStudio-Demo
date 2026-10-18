@@ -1,0 +1,3 @@
+ALTER TABLE public.media_request_settings ADD COLUMN IF NOT EXISTS player_layout text NOT NULL DEFAULT 'VERTICAL_CARD';
+ALTER TABLE public.media_request_settings DROP CONSTRAINT IF EXISTS media_request_settings_player_layout_check;
+ALTER TABLE public.media_request_settings ADD CONSTRAINT media_request_settings_player_layout_check CHECK (player_layout IN ('VERTICAL_CARD','COMPACT_SLIM','MINIMAL_ROW'));

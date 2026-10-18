@@ -1,0 +1,2 @@
+ALTER TYPE public.platform_type ADD VALUE IF NOT EXISTS 'YOUTUBE';
+ALTER TYPE public.platform_type ADD VALUE IF NOT EXISTS 'X';

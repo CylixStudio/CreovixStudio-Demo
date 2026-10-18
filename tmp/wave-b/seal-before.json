@@ -1,0 +1,18 @@
+{
+  "first": {
+    "added": 1,
+    "waitedMs": 929,
+    "sawText": true
+  },
+  "settings": {
+    "added": 0,
+    "waitedMs": 5027,
+    "sawText": false
+  },
+  "second": {
+    "added": 0,
+    "waitedMs": 5009,
+    "sawText": true
+  },
+  "total": 1
+}

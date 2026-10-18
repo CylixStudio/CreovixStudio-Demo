@@ -1,0 +1,3 @@
+# Nitro SSR on Netlify. Copied into `dist` at build time.
+# Static assets are still preferred; this only handles unmatched routes.
+/*    /.netlify/functions/server    200

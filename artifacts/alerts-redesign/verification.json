@@ -1,0 +1,15 @@
+{
+  "checks": [
+    "Desktop width and exact field order",
+    "Settings persist across reload",
+    "Variation acceptance persists independent configuration",
+    "Variation body scrolls with stationary acceptance footer",
+    "Image upload preview and independent variation media",
+    "All code tabs persist independently without execution",
+    "Actual JSON download and import round trip",
+    "Saved variation reaches transparent OBS renderer with correct variables and media",
+    "Overlay acknowledges and drains the test queue",
+    "Mobile has no horizontal overflow; modal fits viewport"
+  ],
+  "errors": []
+}

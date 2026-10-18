@@ -1,0 +1,524 @@
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link, useNavigate, useRouteContext, useRouter, useRouterState } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Activity,
+  BarChart3,
+  Bookmark,
+  CalendarDays,
+  Check,
+  ChevronsLeft,
+  CreditCard,
+  Crown,
+  Bell,
+  BookOpen,
+  Hash,
+  Home,
+  LogOut,
+  MessageSquareCode,
+  Link2,
+  Settings,
+} from "lucide-react";
+
+import { UpgradePlanHost } from "@/components/subscription/UpgradePlanHost";
+import { StreamlabsBridge } from "@/components/layout/StreamlabsBridge";
+import { StreamElementsBridge } from "@/components/layout/StreamElementsBridge";
+import { BrandLogo } from "@/components/brand/BrandLogo";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { supabase } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { disableTestMode, isTestMode } from "@/lib/testMode";
+import { DEMO_PLAN, DEMO_ROLE, DEMO_USERNAME, isDemoBuild } from "@/lib/demoMode";
+import { listManagedChannels, switchManagedChannel } from "@/lib/managedChannels.functions";
+import { useLanguage, type TranslationKey } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import type { Subathon } from "@/hooks/useWorkspace";
+import { cn } from "@/lib/utils";
+
+type AppShellProps = {
+  children: ReactNode;
+  title: string;
+  subtitle?: ReactNode;
+  actions?: ReactNode;
+  user: { email?: string | undefined; id?: string | undefined } | null | undefined;
+  profile?: { name: string | null; image: string | null } | null | undefined;
+  subathons?: Subathon[];
+  activeSubathonId?: string | null;
+};
+
+const SIDEBAR_KEY = "creovix:sidebar-collapsed";
+const EXPANDED_W = "16.5rem";
+const COLLAPSED_W = "4.75rem";
+
+/** Live sidebar destinations only — unfinished tools stay off the nav until ready. */
+type NavItem = {
+  to: string;
+  icon: typeof Home;
+  labelKey: TranslationKey;
+};
+
+const NAV_SECTIONS = [
+  {
+    id: "home",
+    headerKey: "nav.sections.home",
+    items: [
+      { to: "/dashboard" as const, icon: Home, labelKey: "nav.home" },
+    ],
+  },
+  {
+    id: "streamTools",
+    headerKey: "nav.sections.streamTools",
+    items: [
+      { to: "/custom-commands" as const, icon: MessageSquareCode, labelKey: "nav.chatCommands" },
+      { to: "/alerts" as const, icon: Bell, labelKey: "nav.alerts" },
+      { to: "/live-counter" as const, icon: Hash, labelKey: "nav.counter" },
+      { to: "/loyalty" as const, icon: Crown, labelKey: "nav.tools.loyalty" },
+      { to: "/mark-points" as const, icon: Bookmark, labelKey: "nav.markPoints" },
+    ],
+  },
+  {
+    id: "management",
+    headerKey: "nav.sections.management",
+    items: [
+      { to: "/activity-feed" as const, icon: Activity, labelKey: "nav.activity" },
+      { to: "/analytics" as const, icon: BarChart3, labelKey: "nav.analytics" },
+      { to: "/schedule" as const, icon: CalendarDays, labelKey: "nav.schedule" },
+      { to: "/link-in-bio" as const, icon: Link2, labelKey: "nav.linkInBio" },
+    ],
+  },
+  {
+    id: "account",
+    headerKey: "nav.sections.account",
+    items: [
+      { to: "/subscription" as const, icon: CreditCard, labelKey: "nav.subscription" },
+    ],
+  },
+] as const satisfies ReadonlyArray<{
+  id: string;
+  headerKey: TranslationKey;
+  items: ReadonlyArray<NavItem>;
+}>;
+
+const menuSurface = "absolute z-50 min-w-44 rounded-xl border p-1.5";
+const menuSurfaceStyle = {
+  background: "rgba(10, 10, 10, 0.95)",
+  backdropFilter: "blur(12px)",
+  borderColor: "rgba(255, 255, 255, 0.1)",
+  boxShadow: "0 16px 40px rgba(0, 0, 0, 0.55)",
+} as const;
+
+function useClickOutside(onClose: () => void) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handler = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) onClose();
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [onClose]);
+  return ref;
+}
+
+function IconTip({
+  label,
+  collapsed,
+  children,
+}: {
+  label: string;
+  collapsed: boolean;
+  children: ReactNode;
+}) {
+  if (!collapsed) return children;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side="left" sideOffset={10}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+const FALLBACK_STUDIO_VERSION = "v0.2";
+
+export function AppShell({ children, title, subtitle, actions, user, profile }: AppShellProps) {
+  const navigate = useNavigate();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { workspaceOwnerId } = useRouteContext({ from: "/_authenticated" });
+  const listChannels = useServerFn(listManagedChannels);
+  const switchChannel = useServerFn(switchManagedChannel);
+  const studioVersion = useQuery({
+    queryKey: ["studio-version"],
+    queryFn: async () => {
+      if (isDemoBuild()) return "demo";
+      const { data, error } = await supabase
+        .from("studio_settings")
+        .select("value")
+        .eq("key", "app_version")
+        .maybeSingle();
+      if (error) return null;
+      const value = data?.value?.trim();
+      return value || null;
+    },
+    staleTime: 60_000,
+  });
+  const versionLabel = studioVersion.data?.trim() || FALLBACK_STUDIO_VERSION;
+  const { t, dir } = useLanguage();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  const [collapsed, setCollapsed] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [switching, setSwitching] = useState(false);
+  const profileRef = useClickOutside(() => setProfileOpen(false));
+
+  useEffect(() => {
+    try {
+      setCollapsed(window.localStorage.getItem(SIDEBAR_KEY) === "1");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem(SIDEBAR_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
+
+  const signOut = async () => {
+    if (isDemoBuild()) {
+      navigate({ to: "/dashboard", replace: true });
+      return;
+    }
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    disableTestMode();
+    if (isSupabaseConfigured()) await supabase.auth.signOut();
+    navigate({ to: "/login", replace: true });
+  };
+
+  const managed = useQuery({
+    queryKey: ["managed-channels", user?.id],
+    enabled: Boolean(user?.id) && !isTestMode() && !isDemoBuild() && isSupabaseConfigured(),
+    queryFn: () => listChannels(),
+    staleTime: 30_000,
+  });
+  const channels = managed.data?.channels ?? [];
+  const activeChannel = channels.find((channel) => channel.ownerUserId === workspaceOwnerId) ?? null;
+  const switched = Boolean(activeChannel);
+
+  const selectChannel = async (ownerUserId: string | null) => {
+    if (switching) return;
+    setSwitching(true);
+    try {
+      await switchChannel({ data: { ownerUserId } });
+      await queryClient.invalidateQueries({ queryKey: ["workspace"] });
+      await router.invalidate();
+      setProfileOpen(false);
+      await navigate({ to: "/dashboard" });
+    } catch {
+      /* The server rejects a switch that is not backed by a live grant. */
+    } finally {
+      setSwitching(false);
+    }
+  };
+
+  const actorName = managed.data?.account.name || (!switched ? profile?.name : null) || "CylixStudio";
+  const actorImage = managed.data?.account.image || (!switched ? profile?.image : null);
+  const buttonName = isDemoBuild() ? DEMO_USERNAME : activeChannel?.name || actorName;
+  const buttonImage = activeChannel ? activeChannel.image : actorImage;
+  const initials = (buttonName.trim() || "CY").slice(0, 2).toUpperCase();
+  const menuItem =
+    "flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-start text-[0.8rem] transition-colors";
+  const sidebarW = collapsed ? COLLAPSED_W : EXPANDED_W;
+
+  const navBtn = (active: boolean) =>
+    cn(
+      "group relative flex w-full items-center rounded-xl border text-[0.82rem] transition-colors",
+      collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5",
+      active
+        ? "border-[#bee1fc]/50 bg-[#bee1fc]/20 text-foreground"
+        : "border-transparent text-muted-foreground hover:bg-[oklch(1_0_0/0.06)] hover:text-foreground",
+    );
+
+  return (
+    <TooltipProvider delayDuration={80}>
+      <UpgradePlanHost />
+      <div className="ambient-field min-h-screen bg-background text-foreground">
+        {isTestMode() || isDemoBuild() || !user?.id ? null : (
+          <>
+            <StreamlabsBridge userId={user.id} />
+            <StreamElementsBridge userId={user.id} />
+          </>
+        )}
+
+        <aside
+          className="fixed inset-y-0 start-0 z-40 flex flex-col border-e border-[rgba(255,255,255,0.1)] transition-[width] duration-200 ease-out"
+          style={{
+            width: sidebarW,
+            background: "rgba(10, 10, 10, 0.92)",
+            backdropFilter: "blur(16px)",
+            boxShadow: "0 10px 30px rgba(0, 0, 0, 0.45)",
+          }}
+        >
+          <div className={cn("flex items-center gap-2 border-b border-white/10 px-3 py-3", collapsed && "justify-center")}>
+            <Link
+              to="/dashboard"
+              className={cn("flex min-w-0 items-center gap-2", collapsed && "justify-center")}
+              aria-label="CylixStudio home"
+            >
+              {collapsed ? (
+                <BrandLogo markOnly size="sm" title="CylixStudio" />
+              ) : (
+                <span className="flex min-w-0 items-center gap-2">
+                  <BrandLogo showWordmark size="sm" />
+                  <span
+                    dir="ltr"
+                    className={cn(
+                      "inline-flex shrink-0 items-center rounded-md border border-primary/35 bg-primary/10",
+                      "text-primary",
+                    )}
+                  >
+                    <span className="px-1.5 py-0.5 text-[0.58rem] font-semibold uppercase leading-none tracking-[0.14em]">
+                      Beta
+                    </span>
+                    <span className="h-2.5 w-px shrink-0 bg-primary/40" aria-hidden />
+                    <span className="px-1.5 py-0.5 text-[0.58rem] font-semibold normal-case leading-none tracking-[0.14em]">
+                      {versionLabel}
+                    </span>
+                  </span>
+                </span>
+              )}
+            </Link>
+            {collapsed ? null : (
+              <button
+                type="button"
+                onClick={toggleCollapsed}
+                aria-label={t("nav.collapseSidebar")}
+                className="ms-auto grid size-8 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
+              >
+                <ChevronsLeft className="size-4 rtl:rotate-180" />
+              </button>
+            )}
+          </div>
+
+          {collapsed ? (
+            <div className="flex justify-center py-2">
+              <IconTip label={t("nav.expandSidebar")} collapsed>
+                <button
+                  type="button"
+                  onClick={toggleCollapsed}
+                  aria-label={t("nav.expandSidebar")}
+                  className="grid size-9 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
+                >
+                  <ChevronsLeft className="size-4 rotate-180 rtl:rotate-0" />
+                </button>
+              </IconTip>
+            </div>
+          ) : null}
+
+          <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-2 py-3">
+            {NAV_SECTIONS.map((section) => (
+              <div key={section.id} className={cn("flex flex-col", collapsed ? "gap-1" : "gap-1.5")}>
+                {collapsed ? null : (
+                  <div className="px-2 pt-2 first:pt-0">
+                    <span className="text-[0.65rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                      {t(section.headerKey)}
+                    </span>
+                  </div>
+                )}
+                <div className={cn("flex flex-col", collapsed ? "gap-0.5" : "gap-1")}>
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const active =
+                      item.to === "/alerts"
+                        ? pathname === "/alerts" || pathname.startsWith("/alerts/")
+                        : pathname === item.to;
+                    const label = t(item.labelKey);
+                    return (
+                      <IconTip key={item.to} label={label} collapsed={collapsed}>
+                        <Link to={item.to} className={navBtn(active)} aria-current={active ? "page" : undefined}>
+                          <Icon className="size-4 shrink-0" aria-hidden />
+                          {collapsed ? null : <span className="truncate">{label}</span>}
+                        </Link>
+                      </IconTip>
+                    );
+                  })}
+                </div>
+                <div className={cn("border-t border-white/10", collapsed ? "mt-0.5" : "mt-1")} aria-hidden />
+              </div>
+            ))}
+          </nav>
+
+          <div className="mt-auto space-y-2 border-t border-white/10 px-2 py-3">
+            <div
+              dir="ltr"
+              className={cn(
+                "flex flex-row items-center",
+                collapsed ? "flex-col gap-2" : "gap-1.5",
+              )}
+            >
+            <div ref={profileRef} className="relative order-1 min-w-0 flex-1">
+              <IconTip label={t("nav.profile")} collapsed={collapsed}>
+                <button
+                  type="button"
+                  onClick={() => setProfileOpen((open) => !open)}
+                  aria-label={t("nav.profile")}
+                  aria-expanded={profileOpen}
+                  dir="ltr"
+                  className={cn(
+                    "flex w-full items-center rounded-xl transition-colors hover:bg-white/5",
+                    collapsed ? "justify-center p-1" : "gap-2.5 px-2 py-1.5",
+                  )}
+                >
+                  <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-full border border-[oklch(1_0_0/0.12)]">
+                    {buttonImage ? (
+                      <img src={buttonImage} alt="" className="size-full object-cover" loading="lazy" />
+                    ) : (
+                      <span className="grid size-full place-items-center bg-secondary text-[0.65rem] font-semibold">
+                        {initials}
+                      </span>
+                    )}
+                  </span>
+                  {collapsed ? null : (
+                    <span className="min-w-0 flex-1 text-left">
+                      <span className="block truncate text-xs font-semibold">{buttonName}</span>
+                      {isDemoBuild() ? (
+                        <span className="block truncate text-[0.65rem] text-muted-foreground">
+                          {DEMO_PLAN} · {DEMO_ROLE}
+                        </span>
+                      ) : null}
+                    </span>
+                  )}
+                </button>
+              </IconTip>
+
+              {profileOpen ? (
+                <div
+                  className={cn(
+                    menuSurface,
+                    "min-w-60",
+                    collapsed ? "start-full bottom-0 ms-2" : "start-0 bottom-full mb-2",
+                  )}
+                  style={menuSurfaceStyle}
+                  role="menu"
+                >
+                  {switched ? (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      dir="ltr"
+                      onClick={() => void selectChannel(null)}
+                      aria-label={t("nav.managedChannels.back")}
+                      className="w-full rounded-xl px-3 py-2.5 text-left hover:bg-[oklch(1_0_0/0.06)]"
+                    >
+                      <p className="text-[0.82rem] font-semibold">{actorName}</p>
+                    </button>
+                  ) : (
+                    <div className="px-3 py-2.5 text-left" dir="ltr">
+                      <p className="text-[0.82rem] font-semibold">{isDemoBuild() ? DEMO_USERNAME : actorName}</p>
+                      {isDemoBuild() ? (
+                        <p className="mt-1 text-[0.72rem] text-muted-foreground">
+                          {DEMO_PLAN} · {DEMO_ROLE}. Local demo only. Kick, Supabase, and payments are not connected.
+                        </p>
+                      ) : null}
+                    </div>
+                  )}
+                  <div className="my-1 border-t border-[rgba(255,255,255,0.08)]" />
+                  {channels.length > 0 ? (
+                    <>
+                      <p className="px-3 py-1.5 text-start text-[0.68rem] font-semibold text-muted-foreground" dir={dir}>
+                        {t("nav.managedChannels")}
+                      </p>
+                      {channels.map((channel) => {
+                        const selected = channel.ownerUserId === workspaceOwnerId;
+                        const label = channel.name ?? t("nav.managedChannels.unnamed");
+                        return (
+                          <button
+                            key={channel.ownerUserId}
+                            type="button"
+                            role="menuitem"
+                            dir={dir}
+                            disabled={!channel.canOpen || switching}
+                            aria-current={selected ? "true" : undefined}
+                            onClick={() => void selectChannel(channel.ownerUserId)}
+                            className={cn(
+                              menuItem,
+                              "flex-row",
+                              selected
+                                ? "bg-[oklch(1_0_0/0.08)] text-foreground"
+                                : "text-muted-foreground hover:bg-[oklch(1_0_0/0.06)] hover:text-foreground",
+                              !channel.canOpen && "opacity-50",
+                            )}
+                          >
+                            {selected ? <Check className="size-4 shrink-0" aria-hidden /> : null}
+                            <span className="min-w-0 flex-1 truncate text-start">{label}</span>
+                          </button>
+                        );
+                      })}
+                      <div className="my-1 border-t border-[rgba(255,255,255,0.08)]" />
+                    </>
+                  ) : null}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    dir={dir}
+                    onClick={() => {
+                      setProfileOpen(false);
+                      navigate({ to: "/settings" });
+                    }}
+                    className={`${menuItem} flex-row text-muted-foreground hover:bg-[oklch(1_0_0/0.06)] hover:text-foreground`}
+                  >
+                    <Settings className="size-4 shrink-0" aria-hidden />
+                    <span className="min-w-0 flex-1 text-start">{t("nav.settings")}</span>
+                  </button>
+                  <button type="button" role="menuitem" dir={dir} onClick={() => { setProfileOpen(false); navigate({ to: "/docs" }); }} className={`${menuItem} flex-row text-muted-foreground hover:bg-[oklch(1_0_0/0.06)] hover:text-foreground`}>
+                    <BookOpen className="size-4 shrink-0" aria-hidden />
+                    <span className="min-w-0 flex-1 text-start">{t("nav.docs")}</span>
+                  </button>
+                  <div className="my-1 border-t border-[rgba(255,255,255,0.08)]" />
+                  <button
+                    type="button"
+                    role="menuitem"
+                    dir={dir}
+                    onClick={() => void signOut()}
+                    className={`${menuItem} flex-row text-red-500 hover:bg-[rgba(239,68,68,0.15)]`}
+                  >
+                    <LogOut className="size-4 shrink-0" aria-hidden />
+                    <span className="min-w-0 flex-1 text-start">{t("nav.signOut")}</span>
+                  </button>
+                </div>
+              ) : null}
+            </div>
+            <LanguageSwitcher collapsed={collapsed} className="order-2" />
+            </div>
+          </div>
+        </aside>
+
+        <div
+          className="min-h-screen min-w-0 transition-[padding] duration-200 ease-out"
+          style={{ paddingInlineStart: sidebarW }}
+        >
+          <div className="mx-auto w-full max-w-[1800px] px-4 pb-16 pt-8 md:px-8">
+            <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+              <div className="min-w-0 text-start">
+                <h1 className="text-[1.6rem] font-semibold tracking-tight">{title}</h1>
+                {subtitle ? <div className="mt-1 text-start text-sm text-muted-foreground">{subtitle}</div> : null}
+              </div>
+              {actions ? <div className="flex items-center justify-end gap-2 pe-1 sm:pe-2">{actions}</div> : null}
+            </div>
+            <main className="min-w-0">{children}</main>
+          </div>
+        </div>
+      </div>
+    </TooltipProvider>
+  );
+}

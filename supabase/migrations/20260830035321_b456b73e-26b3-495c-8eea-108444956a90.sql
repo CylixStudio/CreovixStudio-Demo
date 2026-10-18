@@ -1,0 +1,10 @@
+REVOKE ALL ON FUNCTION public.has_role(uuid, app_role) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.redeem_activation_code(text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.generate_activation_code(integer) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.apply_timer_seconds(uuid, integer) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.apply_goal_increment(uuid, numeric) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.apply_timer_seconds(uuid, integer) TO service_role;
+GRANT EXECUTE ON FUNCTION public.apply_goal_increment(uuid, numeric) TO service_role;
+GRANT EXECUTE ON FUNCTION public.has_role(uuid, app_role) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.redeem_activation_code(text) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.generate_activation_code(integer) TO authenticated, service_role;

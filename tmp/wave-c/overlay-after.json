@@ -1,0 +1,155 @@
+{
+  "overlay": "http://127.0.0.1:3001/overlay/demo-dff48feb-fec6-408c-8134-d1c6999cd662",
+  "browser": "Chrome headless, not OBS",
+  "navWallClockMs": 29521,
+  "boot": {
+    "readyMs": null,
+    "nav": {
+      "ttfb": 32.80000000074506,
+      "dcl": 0,
+      "load": 0,
+      "transfer": 0.6999999992549419
+    },
+    "href": "http://127.0.0.1:3001/overlay/demo-dff48feb-fec6-408c-8134-d1c6999cd662",
+    "demoRequests": 0,
+    "demoWindowMs": 0,
+    "perSecond": 0
+  },
+  "one": {
+    "singles": [
+      {
+        "ok": true,
+        "visible": true,
+        "putMs": 8.3,
+        "afterPutMs": 2543.1,
+        "totalMs": 2560,
+        "firstId": "mepryfn4r",
+        "expectedFirst": "mepryfn4r",
+        "ordered": true
+      },
+      {
+        "ok": true,
+        "visible": true,
+        "putMs": 11.6,
+        "afterPutMs": 28.9,
+        "totalMs": 51,
+        "firstId": "myk5kbvyg",
+        "expectedFirst": "myk5kbvyg",
+        "ordered": true
+      },
+      {
+        "ok": true,
+        "visible": true,
+        "putMs": 12.1,
+        "afterPutMs": 22.4,
+        "totalMs": 44.7,
+        "firstId": "mund5thuu",
+        "expectedFirst": "mund5thuu",
+        "ordered": true
+      },
+      {
+        "ok": true,
+        "visible": true,
+        "putMs": 20.4,
+        "afterPutMs": 34.1,
+        "totalMs": 64.9,
+        "firstId": "ml3sl1eaj",
+        "expectedFirst": "ml3sl1eaj",
+        "ordered": true
+      },
+      {
+        "ok": true,
+        "visible": true,
+        "putMs": 12.6,
+        "afterPutMs": 20,
+        "totalMs": 62.5,
+        "firstId": "mq6i4ysf7",
+        "expectedFirst": "mq6i4ysf7",
+        "ordered": true
+      },
+      {
+        "ok": true,
+        "visible": true,
+        "putMs": 11.6,
+        "afterPutMs": 22.9,
+        "totalMs": 48,
+        "firstId": "mryg7clpx",
+        "expectedFirst": "mryg7clpx",
+        "ordered": true
+      },
+      {
+        "ok": true,
+        "visible": true,
+        "putMs": 10.9,
+        "afterPutMs": 22.2,
+        "totalMs": 43.5,
+        "firstId": "mprw15qh3",
+        "expectedFirst": "mprw15qh3",
+        "ordered": true
+      },
+      {
+        "ok": true,
+        "visible": true,
+        "putMs": 11.7,
+        "afterPutMs": 17.9,
+        "totalMs": 40.9,
+        "firstId": "m5rrqw4ti",
+        "expectedFirst": "m5rrqw4ti",
+        "ordered": true
+      }
+    ],
+    "ten": {
+      "visible": true,
+      "shown": 8,
+      "afterPutMs": 23.6,
+      "count": 8,
+      "newestFirst": true
+    },
+    "burst": {
+      "visible": true,
+      "afterPutMs": 22.2,
+      "rendered": 8,
+      "first": "b00",
+      "last": "b07",
+      "longTasks": [],
+      "wallMs": 37.3
+    },
+    "arabic": {
+      "ok": true,
+      "visible": true,
+      "putMs": 45.7,
+      "afterPutMs": 24,
+      "totalMs": 96.4,
+      "firstId": "mdsqc1lk2",
+      "expectedFirst": "mdsqc1lk2",
+      "ordered": true
+    },
+    "mixed": {
+      "ok": true,
+      "visible": true,
+      "putMs": 18,
+      "afterPutMs": 24.4,
+      "totalMs": 65,
+      "firstId": "mdkuilsjn",
+      "expectedFirst": "mdkuilsjn",
+      "ordered": true
+    },
+    "badges": {
+      "ok": true,
+      "visible": true,
+      "putMs": 12.5,
+      "afterPutMs": 19.1,
+      "totalMs": 44.4,
+      "firstId": "mpcluqwln",
+      "expectedFirst": "mpcluqwln",
+      "ordered": true
+    }
+  },
+  "idleBefore": 40,
+  "idle3s": {
+    "total": 40,
+    "recent": 0,
+    "gets": 0
+  },
+  "reopenMs": null
+}

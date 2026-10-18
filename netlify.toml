@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Catch-all SSR: static files in `dist` are served first (Nitro preferStatic).
+# Unmatched routes (app pages, server functions, /api/*) go to the Nitro function.
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/server"
+  status = 200

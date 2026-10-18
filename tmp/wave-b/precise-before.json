@@ -1,0 +1,446 @@
+{
+  "cold": {
+    "/": {
+      "contentMs": 1337.7,
+      "href": "/dashboard",
+      "timing": {
+        "ttfb": 28.90000000037253,
+        "load": 509.80000000074506,
+        "dcl": 482.40000000037253,
+        "longCount": 4,
+        "longMs": 403,
+        "maxLong": 216
+      },
+      "fns": [
+        {
+          "name": "GET /api/demo/state",
+          "method": "GET",
+          "status": 200,
+          "ms": 14
+        },
+        {
+          "name": "giveaway.functions.ts:getGiveawayState",
+          "method": "GET",
+          "status": 200,
+          "ms": 18
+        },
+        {
+          "name": "sbcSeal.functions.ts:resolveSbcCertificateUrl",
+          "method": "POST",
+          "status": null,
+          "ms": null
+        }
+      ]
+    },
+    "/login": {
+      "contentMs": 522.9,
+      "href": "/dashboard",
+      "timing": {
+        "ttfb": 27.600000001490116,
+        "load": 74.40000000037253,
+        "dcl": 57.19999999925494,
+        "longCount": 2,
+        "longMs": 134,
+        "maxLong": 69
+      },
+      "fns": [
+        {
+          "name": "GET /api/demo/state",
+          "method": "GET",
+          "status": null,
+          "ms": null
+        },
+        {
+          "name": "giveaway.functions.ts:getGiveawayState",
+          "method": "GET",
+          "status": null,
+          "ms": null
+        }
+      ]
+    },
+    "/dashboard": {
+      "contentMs": 923.1,
+      "href": "/dashboard",
+      "timing": {
+        "ttfb": 41.59999999962747,
+        "load": 219.59999999962747,
+        "dcl": 153.39999999850988,
+        "longCount": 3,
+        "longMs": 355,
+        "maxLong": 221
+      },
+      "fns": [
+        {
+          "name": "GET /api/demo/state",
+          "method": "GET",
+          "status": 200,
+          "ms": 11
+        },
+        {
+          "name": "giveaway.functions.ts:getGiveawayState",
+          "method": "GET",
+          "status": 200,
+          "ms": 9
+        },
+        {
+          "name": "sbcSeal.functions.ts:resolveSbcCertificateUrl",
+          "method": "POST",
+          "status": 200,
+          "ms": 66
+        }
+      ]
+    },
+    "/custom-commands": {
+      "contentMs": 591.3,
+      "href": "/custom-commands",
+      "timing": {
+        "ttfb": 26,
+        "load": 98.80000000074506,
+        "dcl": 82.40000000037253,
+        "longCount": 1,
+        "longMs": 65,
+        "maxLong": 65
+      },
+      "fns": [
+        {
+          "name": "customCommands.functions.ts:getCustomCommandsState",
+          "method": "GET",
+          "status": 200,
+          "ms": 10
+        },
+        {
+          "name": "messageTimers.functions.ts:listMessageTimers",
+          "method": "GET",
+          "status": 200,
+          "ms": 12
+        },
+        {
+          "name": "defaultCommands.functions.ts:listDefaultCommands",
+          "method": "GET",
+          "status": 200,
+          "ms": 13
+        }
+      ]
+    },
+    "/widgets": {
+      "contentMs": 490.2,
+      "href": "/widgets",
+      "timing": {
+        "ttfb": 21.5,
+        "load": 79.09999999962747,
+        "dcl": 66.29999999888241,
+        "longCount": 3,
+        "longMs": 172,
+        "maxLong": 65
+      },
+      "fns": [
+        {
+          "name": "GET /api/demo/state",
+          "method": "GET",
+          "status": 200,
+          "ms": 9
+        }
+      ]
+    },
+    "/settings": {
+      "contentMs": 464.2,
+      "href": "/settings",
+      "timing": {
+        "ttfb": 23.90000000037253,
+        "load": 81.69999999925494,
+        "dcl": 68.69999999925494,
+        "longCount": 1,
+        "longMs": 51,
+        "maxLong": 51
+      },
+      "fns": []
+    },
+    "/commands/creovixstudio": {
+      "contentMs": 379.2,
+      "href": "/commands/creovixstudio",
+      "timing": {
+        "ttfb": 20.199999999254942,
+        "load": 77.09999999962747,
+        "dcl": 52,
+        "longCount": 1,
+        "longMs": 52,
+        "maxLong": 52
+      },
+      "fns": [
+        {
+          "name": "publicChannel.functions.ts:loadPublicCommandsPage",
+          "method": "POST",
+          "status": 200,
+          "ms": 7
+        }
+      ]
+    }
+  },
+  "warm": {
+    "/": {
+      "contentMs": 560.7,
+      "href": "/dashboard",
+      "timing": {
+        "ttfb": 17.300000000745058,
+        "load": 49.600000001490116,
+        "dcl": 38.5,
+        "longCount": 2,
+        "longMs": 236,
+        "maxLong": 183
+      },
+      "fns": [
+        {
+          "name": "GET /api/demo/state",
+          "method": "GET",
+          "status": 200,
+          "ms": 8
+        },
+        {
+          "name": "giveaway.functions.ts:getGiveawayState",
+          "method": "GET",
+          "status": 200,
+          "ms": 10
+        },
+        {
+          "name": "sbcSeal.functions.ts:resolveSbcCertificateUrl",
+          "method": "POST",
+          "status": 200,
+          "ms": 71
+        }
+      ]
+    },
+    "/login": {
+      "contentMs": 366.3,
+      "href": "/dashboard",
+      "timing": {
+        "ttfb": 22.800000000745058,
+        "load": 61.09999999962747,
+        "dcl": 48.90000000037253,
+        "longCount": 2,
+        "longMs": 189,
+        "maxLong": 138
+      },
+      "fns": [
+        {
+          "name": "GET /api/demo/state",
+          "method": "GET",
+          "status": 200,
+          "ms": 7
+        },
+        {
+          "name": "giveaway.functions.ts:getGiveawayState",
+          "method": "GET",
+          "status": 200,
+          "ms": null
+        }
+      ]
+    },
+    "/dashboard": {
+      "contentMs": 572.9,
+      "href": "/dashboard",
+      "timing": {
+        "ttfb": 24.799999998882413,
+        "load": 89.40000000037253,
+        "dcl": 78.09999999962747,
+        "longCount": 2,
+        "longMs": 232,
+        "maxLong": 181
+      },
+      "fns": [
+        {
+          "name": "GET /api/demo/state",
+          "method": "GET",
+          "status": 200,
+          "ms": 8
+        },
+        {
+          "name": "giveaway.functions.ts:getGiveawayState",
+          "method": "GET",
+          "status": 200,
+          "ms": 8
+        },
+        {
+          "name": "sbcSeal.functions.ts:resolveSbcCertificateUrl",
+          "method": "POST",
+          "status": null,
+          "ms": null
+        }
+      ]
+    },
+    "/custom-commands": {
+      "contentMs": 507.2,
+      "href": "/custom-commands",
+      "timing": {
+        "ttfb": 18.700000001117587,
+        "load": 69.10000000149012,
+        "dcl": 58.40000000037253,
+        "longCount": 1,
+        "longMs": 58,
+        "maxLong": 58
+      },
+      "fns": [
+        {
+          "name": "customCommands.functions.ts:getCustomCommandsState",
+          "method": "GET",
+          "status": 200,
+          "ms": 9
+        },
+        {
+          "name": "messageTimers.functions.ts:listMessageTimers",
+          "method": "GET",
+          "status": 200,
+          "ms": 11
+        },
+        {
+          "name": "defaultCommands.functions.ts:listDefaultCommands",
+          "method": "GET",
+          "status": 200,
+          "ms": 9
+        }
+      ]
+    },
+    "/widgets": {
+      "contentMs": 475,
+      "href": "/widgets",
+      "timing": {
+        "ttfb": 17.299999998882413,
+        "load": 74.19999999925494,
+        "dcl": 62.59999999962747,
+        "longCount": 3,
+        "longMs": 162,
+        "maxLong": 61
+      },
+      "fns": [
+        {
+          "name": "GET /api/demo/state",
+          "method": "GET",
+          "status": 200,
+          "ms": 9
+        }
+      ]
+    },
+    "/settings": {
+      "contentMs": 512.5,
+      "href": "/settings",
+      "timing": {
+        "ttfb": 26,
+        "load": 89.20000000111759,
+        "dcl": 76.30000000074506,
+        "longCount": 1,
+        "longMs": 68,
+        "maxLong": 68
+      },
+      "fns": []
+    },
+    "/commands/creovixstudio": {
+      "contentMs": 419.3,
+      "href": "/commands/creovixstudio",
+      "timing": {
+        "ttfb": 19.5,
+        "load": 72.09999999962747,
+        "dcl": 47,
+        "longCount": 1,
+        "longMs": 74,
+        "maxLong": 74
+      },
+      "fns": [
+        {
+          "name": "publicChannel.functions.ts:loadPublicCommandsPage",
+          "method": "POST",
+          "status": 200,
+          "ms": 9
+        }
+      ]
+    }
+  },
+  "interactions": {
+    "navCommands": {
+      "ok": true,
+      "elapsedMs": 126.3,
+      "before": {
+        "ok": true
+      },
+      "detail": {
+        "ok": true,
+        "switches": 10,
+        "elapsed": 126.29999999888241
+      },
+      "calls": [
+        {
+          "name": "customCommands.functions.ts:getCustomCommandsState",
+          "status": 200,
+          "method": "Fetch"
+        },
+        {
+          "name": "messageTimers.functions.ts:listMessageTimers",
+          "status": 200,
+          "method": "Fetch"
+        },
+        {
+          "name": "defaultCommands.functions.ts:listDefaultCommands",
+          "status": 200,
+          "method": "Fetch"
+        }
+      ]
+    },
+    "toggle": {
+      "ok": false,
+      "elapsedMs": null,
+      "before": {
+        "ok": true,
+        "before": "true"
+      },
+      "detail": {
+        "ok": false
+      },
+      "calls": [
+        {
+          "name": "defaultCommands.functions.ts:setDefaultCommandEnabled",
+          "status": 200,
+          "method": "Fetch"
+        },
+        {
+          "name": "defaultCommands.functions.ts:listDefaultCommands",
+          "status": 200,
+          "method": "Fetch"
+        }
+      ]
+    },
+    "prefixSave": {
+      "ok": true,
+      "elapsedMs": 29.4,
+      "before": {
+        "ok": true,
+        "tab": true
+      },
+      "detail": {
+        "ok": true,
+        "elapsed": 29.40000000037253
+      },
+      "calls": []
+    },
+    "prefixSaveClick": {
+      "ok": true,
+      "elapsedMs": 59.6,
+      "before": {
+        "ok": true
+      },
+      "detail": {
+        "ok": true,
+        "elapsed": 59.59999999962747
+      },
+      "calls": [
+        {
+          "name": "customCommands.functions.ts:saveCustomCommandSettings",
+          "status": 200,
+          "method": "Fetch"
+        },
+        {
+          "name": "customCommands.functions.ts:getCustomCommandsState",
+          "status": 200,
+          "method": "Fetch"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,2545 @@
+﻿CylixStudio - site texts
+Generated: 2026-09-26T09:16:26.215Z
+Entries: 2012
+
+Open this file and copy any line you need.
+================================================================================
+
+## i18n (shared dictionary)
+--------------------------------------------------------------------------------
+
+[src/lib/i18n.tsx]
+1. 16-character prepaid code  <- gateway.redeem.hint
+2. 30 days  <- dash.range.30
+3. 30 Days  <- activity.range.30
+4. 7 days  <- dash.range.7
+5. 7 Days  <- activity.range.7
+6. 90 Days  <- activity.range.90
+7. Account  <- settings.connections.account
+8. Account & subscription  <- settings.profile.heading
+9. Account connected successfully!  <- settings.connections.toast.generic
+10. Activate  <- gateway.redeem.cta
+11. Activation failed.  <- gateway.redeem.failed
+12. Activity Feed  <- activity.title
+13. Admin - Redeem codes  <- settings.tab.admin
+14. Advanced analytics  <- gateway.pro.bullet.analytics
+15. Advanced analytics  <- gateway.feature.analytics
+16. Advanced analytics & export  <- gateway.free.bullet.analytics
+17. All advanced widgets unlocked  <- gateway.pro.bullet.advanced
+18. All platforms - Twitch, Kick, YouTube, TikTok  <- gateway.free.bullet.platforms
+19. All Time  <- activity.range.all
+20. An unexpected error occurred while loading this page. You can try again or go back home.  <- error.body
+21. Analytics  <- nav.analytics
+22. Analytics  <- analytics.title
+23. Analytics  <- dash.analytics
+24. Anonymous  <- activity.anonymous
+25. Back  <- dash.back
+26. Bits  <- activity.test.bits
+27. Bits / gifts  <- dash.bits
+28. Cancel  <- settings.backup.cancel
+29. Chat engagement  <- dash.chat
+30. Connect  <- settings.connections.connect
+31. Connect the services that power alerts, chat events and overlays.  <- settings.connections.hint
+32. Connected  <- settings.connections.connected
+33. Connections  <- settings.tab.connections
+34. Connections, account and backup.  <- settings.subtitle
+35. Continue with Free  <- gateway.free.cta
+36. Core tools to get on stream, with clear limits as you grow.  <- gateway.free.description
+37. Custom  <- dash.range.custom
+38. Custom  <- activity.range.custom
+39. Custom chat commands  <- gateway.feature.commands
+40. Delete widget  <- home.delete
+41. Demo data  <- dash.demo
+42. Disconnect  <- settings.connections.disconnect
+43. Disconnected  <- settings.connections.disconnected
+44. Download a JSON backup of your commands and preferences, or restore one on this account.  <- settings.backup.body
+45. Each button sends one real event through the live pipeline, so your widgets and the Activity Feed update exactly as they would for a real viewer.  <- settings.test.body
+46. Email  <- settings.profile.email
+47. Enter a 16-character prepaid or gift code to unlock Pro instantly.  <- gateway.redeem.body
+48. Essential widgets & OBS overlays  <- gateway.free.bullet.widgets
+49. event  <- activity.event
+50. events  <- activity.events
+51. Every CylixStudio capability, side by side.  <- gateway.compare.subtitle
+52. Everything you need to build, customize, and control your stream.  <- home.subtitle
+53. Expired  <- settings.profile.expired
+54. Expires  <- settings.profile.expires
+55. Export & import  <- settings.backup.heading
+56. Export Settings  <- settings.backup.export
+57. Feature  <- gateway.compare.feature
+58. Feed paused due to scroll  <- activity.paused
+59. Filter  <- activity.filter
+60. Followers, subs, tips and bits over a range you choose.  <- analytics.subtitle
+61. Free  <- gateway.free.name
+62. Full data export  <- gateway.pro.bullet.export
+63. Full data export  <- gateway.feature.export
+64. Full plan comparison  <- gateway.compare.title
+65. Giveaways  <- gateway.feature.giveaways
+66. Go home  <- error.home
+67. Home  <- nav.home
+68. Import  <- settings.backup.apply
+69. Import Settings  <- settings.backup.import
+70. Inactive  <- settings.profile.inactive
+71. Included  <- settings.backup.included
+72. Invalid or already used code.  <- gateway.redeem.invalid
+73. Kick account connected successfully!  <- settings.connections.toast.kick
+74. Kick Events  <- activity.filter.kick
+75. Loading your activity history…  <- activity.loading
+76. Message timers  <- gateway.feature.timers
+77. Monthly  <- gateway.billing.monthly
+78. Most Popular  <- gateway.pro.badge
+79. Multi-platform streaming tools for Twitch, Kick, YouTube and TikTok - pick Free or Pro to get started.  <- gateway.welcome.subtitle
+80. Name  <- settings.profile.name
+81. New follower  <- activity.test.follower
+82. New followers  <- dash.followers
+83. New Followers  <- activity.followers
+84. No activity yet - events from your connected platforms will show up here.  <- activity.empty
+85. No tools match your search.  <- home.empty
+86. None  <- settings.backup.none
+87. Notifications  <- nav.notifications
+88. Other Sources  <- activity.filter.other
+89. Other Sources / Custom Events  <- activity.test.group.other
+90. Pause  <- settings.connections.pause
+91. Paused  <- settings.connections.paused
+92. Platforms  <- settings.connections.heading
+93. Prepaid access  <- gateway.redeem.eyebrow
+94. Priority support  <- gateway.feature.priority
+95. Privacy Policy  <- login.privacy
+96. Pro  <- gateway.pro.name
+97. Pro can activate directly after checkout, or via a prepaid / gift redeem code. Free limits apply to custom commands, timers and advanced tools.  <- gateway.compare.note
+98. Profile  <- settings.tab.profile
+99. Profile menu  <- nav.profile
+100. Public overlay links  <- gateway.feature.overlays
+101. Recent support  <- dash.support
+102. Reconnect  <- settings.connections.reconnect
+103. Redeem code  <- gateway.redeem.label
+104. Redeem your code  <- gateway.redeem.title
+105. Renew subscription  <- settings.profile.renew
+106. Resume  <- settings.connections.resume
+107. Schedule  <- nav.schedule
+108. Search widgets  <- nav.search
+109. Settings  <- nav.settings
+110. Settings  <- settings.title
+111. Sign-in  <- settings.profile.login
+112. Simulate platform events  <- settings.test.heading
+113. Stream schedule  <- gateway.feature.schedule
+114. StreamElements connected  <- settings.connections.toast.se
+115. StreamElements Events  <- activity.filter.streamelements
+116. Streaming tools, built for your stream.  <- home.title
+117. Streamlabs connected via Socket API  <- settings.connections.toast.sl
+118. Streamlabs Events  <- activity.filter.streamlabs
+119. Subscriber  <- activity.test.subscriber
+120. Subscription  <- settings.profile.subscription
+121. Terms of Service  <- login.terms
+122. Test events  <- settings.tab.test
+123. Test events  <- settings.test.title
+124. This backup file version is not supported.  <- settings.backup.unsupported
+125. This code has expired.  <- gateway.redeem.expired
+126. This file is not a CylixStudio settings backup.  <- settings.backup.invalid
+127. This page didn  <- error.title
+128. TikTok account connected successfully!  <- settings.connections.toast.tiktok
+129. TikTok Events  <- activity.filter.tiktok
+130. Tip / Donation  <- activity.test.donation
+131. Tips / donations  <- dash.tips
+132. Tips / Revenue  <- activity.tips
+133. tools available  <- home.count
+134. Total subs  <- dash.subs
+135. Total Subs  <- activity.subs
+136. Try again  <- error.retry
+137. Twitch account connected successfully!  <- settings.connections.toast.twitch
+138. Twitch Events  <- activity.filter.twitch
+139. Unlimited commands & message timers  <- gateway.pro.bullet.unlimited
+140. Unlimited tools for serious streamers - advanced widgets, Link in Bio, and full analytics.  <- gateway.pro.description
+141. Unlock Pro  <- gateway.pro.cta
+142. Up to 10 custom commands  <- gateway.free.bullet.commands
+143. Up to 3 message timers  <- gateway.free.bullet.timers
+144. View full feature comparison  <- gateway.compare.open
+145. Welcome to CylixStudio  <- gateway.welcome.title
+146. Yearly  <- gateway.billing.yearly
+147. You can change plans anytime from Settings after you enter the studio.  <- gateway.footer
+148. Your complete historical log of follows, subs, gifts, bits, raids and tips.  <- activity.subtitle
+149. YouTube Events  <- activity.filter.youtube
+
+## /
+--------------------------------------------------------------------------------
+
+[src/routes/__root.tsx]
+150. CylixStudio
+151. CylixStudio builds live stream overlays: subathon timer, goals, chat box and more for Twitch, Kick and TikTok.
+152. Go home
+153. Page not found
+154. re looking for doesn
+155. Subathon timer, goals, chat box and overlays for Twitch, Kick and TikTok.
+156. The page you're looking for doesn't exist or has been moved.
+
+## /activity-feed
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/activity-feed.tsx]
+157. bg-neutral-800/80 text-foreground
+158. Browse and filter your full stream event history in one clean feed.
+159. CylixStudio - Activity Feed
+160. Historical activity log of follows, subscriptions, gift subs, bits, raids and tips across your connected streaming platforms.
+161. id, platform, event_type, actor_name, amount, currency, quantity, seconds_added, raw_payload, created_at
+
+## /analytics
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/analytics.tsx]
+162. CylixStudio - Analytics
+163. Followers, subscriptions, tips and bits with flexible time ranges and chart series filters.
+164. Studio metrics and trends for the period you choose.
+
+## /api/public/clip/:id
+--------------------------------------------------------------------------------
+
+[src/routes/api/public/clip/$id.ts]
+165. id, title, url, external_id, thumbnail_url, duration_seconds, clipped_by, created_at
+
+## /api/public/giveaway/:token/live
+--------------------------------------------------------------------------------
+
+[src/routes/api/public/giveaway/$token/live.ts]
+166. id, platform, username
+167. user_id, keyword, draw_state, last_winner
+
+## /api/public/media-request/:token/stream
+--------------------------------------------------------------------------------
+
+[src/routes/api/public/media-request/$token/stream.ts]
+168. no-cache, no-transform
+
+## /api/public/overlay/:publicId/live
+--------------------------------------------------------------------------------
+
+[src/routes/api/public/overlay/$publicId/live.ts]
+169. id, platform, event_type, actor_name, amount, currency, quantity, seconds_added, created_at
+170. id, title, max_duration_seconds
+171. title, unit, target_value, current_value
+
+## /api/public/overlay/:publicId/meta
+--------------------------------------------------------------------------------
+
+[src/routes/api/public/overlay/$publicId/meta.ts]
+172. id, name, theme
+173. id, name, type, config, is_enabled
+
+## /api/public/overlay/:publicId/stream
+--------------------------------------------------------------------------------
+
+[src/routes/api/public/overlay/$publicId/stream.ts]
+174. : ping
+175. config, state
+176. id, title, max_duration_seconds
+177. no-store, no-transform
+178. retry: 2000
+179. title, unit, target_value, current_value
+
+## /api/public/webhooks/kick
+--------------------------------------------------------------------------------
+
+[src/routes/api/public/webhooks/kick.ts]
+180. Kick viewer
+
+## /api/public/webhooks/pro-checkout
+--------------------------------------------------------------------------------
+
+[src/routes/api/public/webhooks/pro-checkout.ts]
+181. bearer
+182. user_id is required for direct activation
+
+## /api/public/webhooks/streamelements
+--------------------------------------------------------------------------------
+
+[src/routes/api/public/webhooks/streamelements.ts]
+183. bearer
+184. Invalid token
+185. Missing token
+
+## /api/public/webhooks/streamlabs
+--------------------------------------------------------------------------------
+
+[src/routes/api/public/webhooks/streamlabs.ts]
+186. bearer
+
+## /api/public/webhooks/twitch
+--------------------------------------------------------------------------------
+
+[src/routes/api/public/webhooks/twitch.ts]
+187. Invalid signature
+
+## /auth.callback
+--------------------------------------------------------------------------------
+
+[src/routes/auth.callback.tsx]
+188. Completing your streaming platform sign-in.
+189. Completing your Twitch or Kick sign-in.
+190. CylixStudio - Finishing Sign-in
+191. Finishing sign-in…
+192. Sign-in failed, redirecting…
+
+## /clip-command
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/clip-command.tsx]
+193. absolute top-0.5 size-5 rounded-full bg-white transition-all
+194. Advanced settings
+195. border-primary/50 bg-primary/15 text-foreground
+196. Bot connected
+197. Bot disconnected
+198. Bot Status: Connected & Listening
+199. Bot Status: Disconnected
+200. Clip Command
+201. Clip command settings saved
+202. Copy clip URL
+203. Could not save clip settings
+204. Created Clips
+205. Custom response
+206. CylixStudio - Clip Command
+207. Default length
+208. Download clip
+209. Enable clip command
+210. Enable the chat command on your channel.
+211. Enable the clip command
+212. Let viewers create instant clips by typing !clip in chat. Configure permissions, clip length and the bot response.
+213. Let viewers instantly create clips by typing !clip in chat
+214. Maximum length
+215. No clips yet - clips created on your channel will appear here.
+216. Optionally specify duration with !clip 45
+217. Play clip
+218. relative h-6 w-10 shrink-0 rounded-full transition-colors
+219. rounded-full border px-3 py-1.5 text-[0.78rem] font-medium transition-colors
+220. Save Changes
+221. Saved
+222. The clip command can take up to 5 minutes to initialise after enabling.
+223. View all clips
+224. Viewer-triggered clipping with permissions, length limits and a custom chat reply.
+225. Viewers type !clip in chat
+226. Who can use
+
+## /clip.:id
+--------------------------------------------------------------------------------
+
+[src/routes/clip.$id.tsx]
+227. A Kick stream moment captured by the CylixStudio clip bot.
+228. Captured with CylixStudio
+229. CylixStudio - Watch Clip
+230. Loading clip…
+231. This clip is no longer available.
+232. Watch a Kick stream clip captured automatically by the CylixStudio !clip command.
+
+## /clips
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/clips.tsx]
+233. A searchable gallery of community clips with playback, sharing and download actions.
+234. Browse and watch clips created by the community.
+235. Browse, search, watch and share every clip your community created on your channel.
+236. Channel clips
+237. Clip deleted
+238. Clipped by
+239. Copy link
+240. Could not copy link
+241. Could not delete clip
+242. Could not load clips
+243. Could not load clips. Try again.
+244. CylixStudio - Channel Clips
+245. just now
+246. Loading clips…
+247. Most recent
+248. Most viewed
+249. No clips match that search.
+250. No clips yet. Clips created on your channel will appear here.
+251. Open original
+252. Promise
+253. Search by title or username
+254. Select a clip
+255. text-muted-foreground hover:text-foreground
+256. text-sm text-muted-foreground hover:text-foreground
+257. Top all time
+258. Top today
+259. w-full border border-zinc-800 bg-transparent py-2 ps-9 pe-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-zinc-600
+
+## /custom-commands
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/custom-commands.tsx]
+260. absolute top-[2px] size-2.5 rounded-full transition-[inset-inline-start,background-color] duration-200 ease-out
+261. absolute top-2 left-1/2 z-20 box-border block h-2 w-2 -translate-x-1/2 rounded-full bg-emerald-600 p-0 leading-none
+262. absolute top-2 left-1/2 z-20 box-border block h-2 w-2 -translate-x-1/2 rounded-full bg-zinc-600 p-0 leading-none
+263. Add a command name and the message the bot should send.
+264. Add command
+265. Add timer
+266. Arabic letters use ؟ and English letters use ? automatically.
+267. border-primary/50 bg-primary/15
+268. border-primary/50 bg-primary/15 text-foreground
+269. Bot reply
+270. Built-in Kick chat commands. Edit the reply - the trigger stays reserved.
+271. Choose Kick, Twitch, or both, then enable the command.
+272. Command name
+273. Command trigger
+274. Could not save the command.
+275. Could not save the timer.
+276. Create a chat trigger and auto-reply so viewers get instant answers.
+277. Create chat triggers and automatic replies for your stream.
+278. Create custom chat commands with a flexible prefix, auto-replies, platform targeting and enable/disable controls.
+279. Create first command
+280. Custom Chat Commands
+281. Custom Commands
+282. Customize the bot reply. The trigger name cannot be changed.
+283. CylixStudio - Custom Chat Commands
+284. Default Commands
+285. Default trigger saved
+286. Delete this command?
+287. Delete this timer?
+288. Edit command
+289. Edit timer
+290. Enable it. The bot sends to Kick while this Studio page is open.
+291. Enter a command name.
+292. Enter a message.
+293. Enter a reply message.
+294. Everyone
+295. Fallback reply
+296. flex flex-wrap justify-start gap-3
+297. Follow the stream and drink water.
+298. Hide Variables
+299. How it works
+300. inline-flex items-center gap-2
+301. inline-flex items-center rounded-full border px-3 py-1.5 text-[0.78rem] font-medium transition-colors
+302. Join Discord: discord.gg/your-server
+303. Kick
+304. Kick sends the reply. Twitch is stored as a flag only. !clip is never taken.
+305. Load More
+306. Message Timers
+307. Moderators & Streamer
+308. New command
+309. New timer
+310. No commands match.
+311. No commands yet
+312. No matching command
+313. No timers yet. Add one to post a repeating Kick chat message.
+314. relative h-3.5 w-6 shrink-0 rounded-full transition-colors duration-200
+315. Repeating Kick chat messages on an interval.
+316. Save command
+317. Save timer
+318. Save trigger
+319. Search commands…
+320. Show Variables
+321. start-[0.7rem] bg-white
+322. start-[2px] bg-zinc-400
+323. Streamer-owned chat commands with optional prefixes and automatic bot replies.
+324. Subscribers
+325. That command name already exists.
+326. That name is reserved for a default command.
+327. The bot posts this message on Kick every N minutes while Studio stays open.
+328. The chat trigger will stop working immediately.
+329. The repeating message will stop immediately.
+330. There is no server cron and Twitch is not sent.
+331. These five commands are always listed. Enable the ones you want in Kick chat.
+332. Trigger preview
+333. Try a chat line
+334. Twitch
+335. Type what a viewer would send. Matching is local and does not post to chat.
+336. Use default
+337. User Roles
+338. Viewers type the trigger in chat and the bot sends your reply.
+339. VIPs
+340. Where the symbol goes
+341. Who can use it
+342. Would reply
+343. سؤال
+
+## /dashboard
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/dashboard.tsx]
+344. Cancel
+345. Channel-point song requests from YouTube, Spotify, Anghami and SoundCloud with a moderated queue and OBS player.
+346. Chat box
+347. chat messages live island bubbles transparent
+348. Chat spotlight
+349. Could not create this goal.
+350. Could not delete this widget.
+351. Could not open this tool.
+352. countdown subathon clock timer rules logic
+353. Create goal
+354. Custom goal
+355. Customize custom goal
+356. CylixStudio - Widget Hub
+357. Discover, open and customize every streaming widget: timers, goals, alerts, chat, wheels, emote rain and more.
+358. Edit
+359. Emote rain
+360. emote rain particles hype gifts
+361. Essential widgets are unlocked. Activate a Pro code for Emote Rain and other Pro tools.
+362. Everything you need to build, customize, and control your stream.
+363. Falling emotes triggered by chat spam, gifts and hype events.
+364. Goal bar
+365. goal donation follower subscriber custom progress bar target
+366. Goal type
+367. Live platform chat with Dynamic Island, speech bubble or transparent layouts.
+368. Live TikTok tap leaderboard with animated ranks and instant reordering.
+369. media request song request youtube spotify anghami soundcloud kick channel points queue player
+370. Media Requests
+371. Open queue
+372. Pick a goal type - targets, labels, triggers, colors and the OBS URL update instantly.
+373. Pin one chat message to a premium glass card on your OBS overlay.
+374. Progress bar toward a total tap target with live percentage and confetti.
+375. Progress goals for followers, subscribers, donations or custom targets.
+376. schedule events countdown segments timeline up next on stream clock
+377. spotlight pin highlight featured message chat
+378. Subathon timer
+379. Target
+380. text-muted-foreground hover:text-foreground
+381. This tool has no openable route yet.
+382. TikTok Tap Goal Overlay
+383. tiktok taps likes goal target progress bar confetti
+384. tiktok taps likes leaderboard top tappers ranking
+385. Timed on-stream segments with a live countdown glass card - skip, edit, and sync to stream start.
+386. Top Tappers Overlay
+387. Triggers
+388. Unlock Pro
+389. Visual timer editor with a dedicated Rules & Logic sub-tab.
+390. Your goals
+391. جدول فعاليات البث
+
+## /giveaway
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/giveaway.tsx]
+392. 1 minute
+393. Claim window
+394. Clear list
+395. Collect chat entries with a custom keyword and draw a winner on stream.
+396. Collect chat entries with a keyword, then pick a winner live on stream.
+397. Could not clear participants
+398. Could not save giveaway
+399. CylixStudio - Giveaway Wheel
+400. Entries are captured automatically from every connected chat.
+401. Entries closed
+402. Entries open
+403. Generating link…
+404. Giveaway
+405. Giveaway settings saved
+406. h-10 rounded-xl border-zinc-800 bg-zinc-900
+407. How viewers enter
+408. inline-flex items-center gap-2 rounded-full bg-[#bee1fc] px-5 py-2.5 text-sm font-semibold text-[#0a0a0a] transition-opacity hover:opacity-90 disabled:opacity-40
+409. inline-flex items-center gap-2 rounded-full border border-red-400/40 bg-red-500/15 px-5 py-2.5 text-sm font-semibold text-red-300 transition-colors hover:bg-red-500/25
+410. Live participants
+411. Live stage
+412. mb-1.5 block text-[0.68rem] font-medium uppercase tracking-wide text-muted-foreground
+413. No participants yet
+414. OBS browser source
+415. Overlay URL copied
+416. Paid subs only
+417. Participant list cleared
+418. Pick winner
+419. rounded-xl border-zinc-800 bg-zinc-900
+420. Run keyword giveaways across Kick, Twitch, YouTube and TikTok chat, then spin the wheel to pick a winner live.
+421. Set the spin and claim window, then launch when the list is ready.
+422. Spin duration
+423. Subscriber multiplier
+424. Viewers join by typing the keyword in Kick or Twitch chat. Open entries, wait for names, then draw.
+425. w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-foreground outline-none focus:border-zinc-600
+
+## /index
+--------------------------------------------------------------------------------
+
+[src/routes/index.tsx]
+426. Checking your session…
+427. CylixStudio
+428. Multi-platform streaming studio: Twitch, Kick, YouTube and TikTok widgets, commands and overlays.
+429. Sign in to pick Free or Pro and run your multi-platform stream tools.
+
+## /link-in-bio
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/link-in-bio.tsx]
+430. CylixStudio - Link in Bio
+431. Set up a public page for socials, streams, and custom links.
+
+## /live-counter
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/live-counter.tsx]
+432. · Live
+433. Add
+434. Add first account
+435. Add Kick, Twitch, or other channels to sum public follower totals in one live counter.
+436. All Platforms
+437. bg-amber-400/15 text-amber-300
+438. bg-destructive/20 text-destructive
+439. bg-primary text-primary-foreground
+440. bg-violet-600/20 text-violet-100
+441. border-amber-400/60 bg-amber-400/15 text-amber-300
+442. border-border text-muted-foreground hover:text-foreground
+443. Channel Not Found
+444. Channel username
+445. Combined followers
+446. Could not load this channel
+447. Counter
+448. Creator A
+449. Creator A platform
+450. Creator B
+451. Creator B platform
+452. CylixStudio - Counter
+453. Dead heat - both channels are level.
+454. Followers
+455. h-11 w-[9.75rem] shrink-0
+456. h-11 w-full rounded-xl border border-white/10 bg-background px-3 text-sm outline-none focus:border-primary
+457. Kick
+458. Live
+459. Live difference
+460. LIVE POLLING ACTIVE
+461. Loading channel…
+462. Looking up…
+463. Lookup failed
+464. No accounts yet
+465. No matching channels in connected accounts or recent comparisons.
+466. No matching channels in connected accounts, recent comparisons, or Twitch search.
+467. No public count
+468. No public follower totals yet for these accounts.
+469. not found
+470. Offline
+471. Real-time follower counters with saved channels and VS comparison mode.
+472. Search a channel to start tracking.
+473. Searching Twitch…
+474. Single View
+475. Social
+476. Social platform
+477. text-muted-foreground hover:text-foreground
+478. text-slate-100 hover:bg-violet-600/15
+479. Track Live
+480. Track live follower counts for any Kick or Twitch channel, save social accounts, and sum public follower totals.
+481. Twitch
+482. Username or handle
+483. VS Comparison Mode
+484. YouTube
+
+## /login
+--------------------------------------------------------------------------------
+
+[src/routes/login.tsx]
+485. , then redeploy.
+486. Connect Twitch or Kick to control your subathon timer.
+487. Continue with Kick
+488. Continue with TikTok
+489. Continue with Twitch
+490. CylixStudio - Login
+491. h-11 sm:h-12
+492. Production and Build
+493. Sign in to your control room
+494. Sign in with Twitch or Kick to run your subathon timer, rules and overlays.
+495. Sign-in failed. Please try again.
+496. Something went wrong during sign-in.
+497. The sign-in attempt expired. Please try again.
+498. You cancelled the sign-in request.
+
+## /mark-points
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/mark-points.tsx]
+499. !emark or /emark closes the newest open start. Chat stays silent - no URLs or IDs.
+500. !mark clutch play
+501. Apply locally
+502. Clutch play, raid, funny moment…
+503. Copy link
+504. Copy mark link
+505. Could not save the mark.
+506. CylixStudio - Mark Points
+507. Delete this mark?
+508. Edit mark
+509. End mark
+510. Enter a Kick username.
+511. Extra names
+512. How it works
+513. inline-flex size-7 items-center justify-center rounded-md text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 disabled:opacity-40
+514. Kick usernames allowed besides the owner, mods and editors.
+515. Load More
+516. Mark link copied
+517. Mark Points
+518. Mark saved
+519. Mark started
+520. New link
+521. New mark
+522. No extra names yet.
+523. No marks match that search.
+524. No marks yet. Type !mark in Kick chat while live, or start one here.
+525. No open mark to close.
+526. Not a mark command
+527. Offline Kick chat is ignored. Studio can still record an offline mark so it is never faked as live time.
+528. Owner, Kick mods, or allowlisted names type !mark or /mark to open a start at current stream uptime.
+529. Private review link
+530. Private stream highlights. !mark starts, !emark closes - times are stream uptime.
+531. Private stream marks from Kick chat. !mark and !emark record stream uptime. Owner, mods and an allowlist only.
+532. Save mark
+533. Saved as offline - Kick is not live.
+534. Search marks…
+535. Silent Kick marks stored as stream uptime for the channel owner.
+536. Start mark
+537. Test mode writes locally on a test stream clock. Live Kick stays silent.
+538. The saved point will be removed from your list.
+539. Title or note. Start and end are Kick stream uptime, not your PC clock.
+540. Try a chat line
+541. Twitch can be stored as a source later. Live ingest is Kick-first.
+542. w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/80 focus:border-[#bee1fc]/50 focus:ring-1 focus:ring-[#bee1fc]/35
+543. Who can trigger
+544. Would run
+
+## /marks.:token
+--------------------------------------------------------------------------------
+
+[src/routes/marks.$token.tsx]
+545. CylixStudio - Mark Points
+546. Enter your Kick username. The link alone is not enough.
+547. Kick username
+548. Mark Points
+549. No marks yet.
+550. noindex, nofollow
+551. Private review of stream marks. Authorized names only.
+552. That name is not allowed.
+553. This link is not valid.
+
+## /marks.:token.:markId
+--------------------------------------------------------------------------------
+
+[src/routes/marks.$token.$markId.tsx]
+554. All marks
+555. CylixStudio - Mark Points
+556. Enter your Kick username. The link alone is not enough.
+557. Kick username
+558. Mark Points
+559. No recording yet
+560. noindex, nofollow
+561. Private playback of a stream mark. Authorized names only.
+562. Starts at
+563. That name is not allowed.
+564. This link is not valid.
+
+## /media-requests
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/media-requests.tsx]
+565. A lightweight audio bar plays in OBS - no video layouts needed.
+566. Apply moderation rules
+567. Audio Only
+568. Audio only mode
+569. Auto approve
+570. Blocked keywords
+571. Blocked users
+572. Chat and channel points accept YouTube, Spotify, Anghami, and SoundCloud links. OBS plays YouTube and SoundCloud through official embeds. Spotify and Anghami queue title/artist and show their official widget or an open-in-app link - no unofficial streams.
+573. Connect your Kick account in Settings to load rewards.
+574. Copy mod controls link
+575. Could not create reward
+576. Could not queue track
+577. Could not save setup
+578. CylixStudio - Media Requests
+579. Fetch rewards
+580. Kick
+581. Kick channel point reward
+582. Kick channel points, a moderated multi-platform queue, and an OBS-ready player.
+583. Kick session expired - reconnect Kick in Settings.
+584. Links
+585. Live preview - colors follow the current track artwork.
+586. Loading rewards…
+587. Manage Kick connection
+588. Manual review
+589. Media Request
+590. Media Requests
+591. No media requests yet.
+592. No rewards found
+593. Nothing playing
+594. Now playing
+595. OBS mode
+596. Open Settings
+597. overflow-hidden rounded-2xl border border-white/5
+598. Pause requests
+599. Pending
+600. Player layout
+601. Queue action failed
+602. Queue setup
+603. Queue test track
+604. Reconnect Kick in Settings once to grant reward read/write permissions.
+605. Request mode
+606. Reward created
+607. Safety
+608. Save setup
+609. Select a reward
+610. Setup
+611. Setup saved
+612. Skip
+613. spam, offensive
+614. Spiritbox - Halycon
+615. Start audio/video engine
+616. Up Next
+617. Video Box
+618. YouTube, Spotify, Anghami, or SoundCloud URL
+
+## /mod-queue
+--------------------------------------------------------------------------------
+
+[src/routes/mod-queue.tsx]
+619. Approve, skip, reject and pause incoming media requests.
+620. Auto approve
+621. Connection lost - retrying.
+622. CylixStudio - Mod Queue
+623. Manual review
+624. Mod controls
+625. Moderator controls for the CylixStudio media request queue: approve, skip, reject and pause incoming requests.
+626. Moderator queue
+627. Moderator token
+628. Now playing
+629. Paste the moderator link the streamer shared with you.
+630. Pause requests
+631. Pending
+632. Skip
+633. This moderator link is not valid.
+634. Up Next
+
+## /overlay.:publicId
+--------------------------------------------------------------------------------
+
+[src/routes/overlay.$publicId.tsx]
+635. Reconnecting to the widget stream
+636. Transparent live widget for OBS and Streamlabs Desktop.
+637. Transparent OBS browser source rendering live subathon timers, goals, alerts and activity over Server-Sent Events.
+
+## /overlay.giveaway
+--------------------------------------------------------------------------------
+
+[src/routes/overlay.giveaway.tsx]
+638. Transparent giveaway name cloud and winner reveal for OBS.
+
+## /overlay.schedule
+--------------------------------------------------------------------------------
+
+[src/routes/overlay.schedule.tsx]
+639. CylixStudio - Stream Schedule
+640. Local reminder
+641. Monthly stream go-live times.
+642. No streams listed this month.
+
+## /overlay.subathon-timer
+--------------------------------------------------------------------------------
+
+[src/routes/overlay.subathon-timer.tsx]
+643. Transparent live Subathon timer overlay for OBS.
+
+## /overlay.tiktok-tap-goal
+--------------------------------------------------------------------------------
+
+[src/routes/overlay.tiktok-tap-goal.tsx]
+644. Live TikTok tap goal progress bar overlay for OBS and Streamlabs Desktop.
+645. Transparent OBS browser source showing live TikTok tap progress toward a target with confetti on completion.
+
+## /overlay.tiktok-tappers
+--------------------------------------------------------------------------------
+
+[src/routes/overlay.tiktok-tappers.tsx]
+646. Live TikTok tap leaderboard overlay for OBS and Streamlabs Desktop.
+647. Transparent OBS browser source showing the live TikTok top tappers leaderboard with animated ranks.
+
+## /privacy
+--------------------------------------------------------------------------------
+
+[src/routes/privacy.tsx]
+648. !song أسمع هذا https://youtu.be/dQw4w9WgXcQ
+649. . We will process the request as soon as reasonably practicable. Copies in backups or logs may persist for a limited period. Test-mode data must be cleared in your own browser.
+650. Access and refresh tokens for platforms you connect are stored on our servers so widgets can keep reading live channel data after you leave the dashboard. Tokens are used only to operate the product. We do not sell them. Settings backups export connection
+651. Account and sign-in
+652. Analytics aggregates derived from ingested events.
+653. Analytics events
+654. Apply subathon rules, goals, giveaways, commands and media queues.
+655. Authenticate you and keep platform connections alive.
+656. Changes
+657. Chat box, chat spotlight and emote rain layouts and filters.
+658. Chat ingest, webhooks, channel points and clips
+659. Children
+660. Clip command can create or fetch clips on the connected platform and store clip identifiers, titles, durations and playback URLs so you can replay them in studio or on a public clip page.
+661. Coming Soon
+662. Contact
+663. Cookies and local storage
+664. Custom chat commands and clip-command settings.
+665. CylixStudio - Privacy Policy
+666. CylixStudio is aimed at streamers who already have accounts on Twitch, Kick or similar platforms. Those platforms set their own minimum ages. We do not knowingly collect personal information from children in violation of those rules. If you believe we have, contact us and we will delete the account data we hold.
+667. Depending on what you connect, we may also store Streamlabs or StreamElements socket or JWT credentials you paste so donation and tip events can reach overlays. Those credentials stay with your account and are not placed in settings export files.
+668. Direction is
+669. Enforce redeem codes, lifetime flags and feature locks.
+670. Giveaway keywords, entries and winners.
+671. How CylixStudio collects, uses, stores and deletes data from connected streaming accounts, widgets, media requests and analytics.
+672. How we use information
+673. include OAuth tokens.
+674. Information we collect
+675. Languages and encoding
+676. Lifetime Access
+677. Live counter snapshots and favorites you pin in the browser.
+678. Media requests
+679. OAuth tokens and platform connections
+680. only on user-content snippets like the one above. The studio chrome stays left-to-right English.
+681. Privacy Policy
+682. Public overlay and share URLs include unguessable tokens. Anyone with a token can load that overlay or share page. Treat tokens like passwords.
+683. Render OBS / browser overlays and studio control panels.
+684. Retention and deletion
+685. Schedule items and public calendar / ICS tokens.
+686. Scope of this policy
+687. Secure the service, prevent abuse, and respond to deletion requests.
+688. Security
+689. Sharing and third parties
+690. Show activity history and analytics you request.
+691. status
+692. Subathon timer rules, remaining time and awarded events.
+693. Subscriptions and redeem codes
+694. Terms of Service
+695. Test mode
+696. This policy covers the CylixStudio website, control room, public overlay URLs, clip pages, mark-point share links, media-request player, giveaway overlays, schedule feeds, and related APIs. It does not replace the privacy policies of Twitch, Kick, TikTok, YouTube, Spotify, Anghami, SoundCloud, Streamlabs, StreamElements, OBS, or any payment or redeem-code partner you use.
+697. This Privacy Policy explains how CylixStudio handles information when you sign in, connect streaming platforms, run overlays, or use studio tools. It is the platform's policy text - not legal advice about your stream, your audience, or the laws that apply to you. If you need advice for your own situation, consult qualified counsel.
+698. We do not sell personal information. We do not use connected-account data for third-party advertising.
+699. We may update this policy as the product changes. The “Last updated” date at the top will change. Continued use after an update means you accept the revised policy for future use of the service.
+700. We store the configuration and runtime state needed for the tools you enable, including:
+701. We use essential cookies and similar storage to keep you signed in and to protect the OAuth state handshake. We do not use advertising or cross-site tracking cookies.
+702. We use the information above to:
+703. What CylixStudio reads from Twitch, Kick and optional connections, how overlays use it, and how you can delete it.
+704. Who we are
+705. Widgets, overlays and studio tools
+
+## /schedule
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/schedule.tsx]
+706. A monthly calendar of go-live times. Share a public page or export ICS - no fake push alerts.
+707. Add session
+708. Click a day to add a go-live. Recurring weekly slots appear on every matching weekday.
+709. Copy link
+710. Could not read that image. Try a smaller JPG or PNG.
+711. Could not save the session.
+712. Could not store the image locally. Try a smaller file.
+713. CylixStudio - Stream Schedule
+714. Delete this session?
+715. Download ICS
+716. Edit session
+717. Enable channel notifications so you don't miss a go-live.
+718. Enter a session title.
+719. Game / category
+720. Game cover
+721. It will disappear from the public schedule immediately.
+722. Listed publicly
+723. mb-1.5 block text-[0.72rem] font-medium uppercase tracking-wide text-muted-foreground
+724. Monthly go-live calendar with game, title and a shareable viewer schedule plus ICS export.
+725. New session
+726. Public schedule
+727. Public title
+728. Reminder note
+729. Remove image
+730. Repeat every week on this weekday
+731. Shown as a poster under the day's details in the calendar. Images are compressed.
+732. Start time
+733. Stream schedule
+734. Use 24-hour time like 18:00.
+735. Viewers open the public URL. They can add sessions to their own calendar via ICS. Local OS reminders come from that calendar - we do not send push notifications.
+736. w-full border-b border-zinc-800/50 bg-transparent px-0 py-2 text-sm text-foreground outline-none transition-colors focus:border-white/20
+
+## /settings
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/settings.tsx]
+737. bg-primary text-primary-foreground
+738. Connections, profile and account backup in one place.
+739. CylixStudio - Settings
+740. Manage platform connections, your creator profile and account backup.
+741. text-muted-foreground hover:text-foreground
+
+## /subathons.:id.control
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/subathons.$id.control.tsx]
+742. Active rules
+743. Cap
+744. CylixStudio - Timer Control
+745. Edit rules
+746. id, platform, event_type, actor_name, amount, currency, seconds_added, created_at
+747. Live subathon timer control: start, pause, add or subtract time and undo actions.
+748. No cap
+749. No events yet - incoming platform events will appear here instantly.
+750. Overlay stream URL
+751. Recent events
+752. Run your subathon timer live with instant overlay sync.
+753. Server-authoritative timer, streamed live to every overlay.
+754. Timer control
+755. Total events
+756. Total time added
+
+## /subathons.:id.overlay
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/subathons.$id.overlay.tsx]
+757. 0 0, 12px 12px
+758. 24px 24px
+759. Accent
+760. Animation on time added
+761. Background
+762. border-border bg-background hover:border-primary/60
+763. border-primary bg-primary/10 text-primary
+764. Copy URL
+765. Could not create overlay
+766. Could not save overlay
+767. Could not update visibility
+768. Create a public browser source for this subathon to start designing.
+769. Create overlay
+770. Customization
+771. Customize the transparent OBS overlay for your subathon timer.
+772. CylixStudio - Overlay Builder
+773. Design your OBS overlay
+774. Design your OBS subathon overlay: layout, fonts, colors and animations with a live preview and copyable browser source URL.
+775. Enable “Shutdown source when not visible” off so the timer stays connected.
+776. Font
+777. id, name, public_token, is_public, theme
+778. In OBS add a Browser source and paste the URL above.
+779. Label
+780. Layout
+781. Live preview
+782. Loading overlay…
+783. mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary
+784. No overlay exists for this subathon yet.
+785. No overlay yet
+786. OBS browser source
+787. OBS Overlay
+788. Open
+789. Overlay builder
+790. Overlay created
+791. Overlay saved
+792. Reset to defaults
+793. rounded-2xl border border-border bg-card p-5
+794. sample time
+795. Save overlay
+796. Saved - OBS picks it up within 15s.
+797. Set width 1920, height 1080 and leave the background transparent.
+798. Show label
+799. Show timer status
+800. Text
+801. The checkerboard marks transparency - OBS composites your scene there.
+
+## /subathons.:id.rules
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/subathons.$id.rules.tsx]
+802. Add rule
+803. bits / coins
+804. Create rules that convert follows, subs, gift subs, bits and donations into subathon seconds.
+805. currency unit
+806. CylixStudio - Rules Builder
+807. Delete rule
+808. Event
+809. gifted sub
+810. Max / event
+811. Min amount
+812. New rule
+813. No rules yet - add your first conversion above.
+814. none
+815. Per units
+816. Platform
+817. Platform + event + condition → seconds added.
+818. raid viewer
+819. Rules builder
+820. Seconds
+821. tap / like
+822. text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground
+823. Visual rule builder: platform + event + condition to seconds added.
+824. w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary
+
+## /terms
+--------------------------------------------------------------------------------
+
+[src/routes/terms.tsx]
+825. !uptime الرد: احنا لسه مكملين - timer overlays stay in English chrome.
+826. . If you do not agree, do not use the service.
+827. 1. Agreement
+828. 10. Availability
+829. 11. Intellectual property
+830. 12. Disclaimers - not legal advice
+831. 13. Limitation of liability
+832. 14. Termination
+833. 15. Changes
+834. 16. Contact
+835. 2. The service
+836. 3. Accounts and authentication
+837. 4. Subscriptions, redeem codes and lifetime access
+838. 5. Connected platforms and third-party terms
+839. 6. Widgets, overlays and broadcasting software
+840. 7. Media requests
+841. 8. User-generated content
+842. 9. Acceptable use
+843. Acceptable use
+844. Accounts and authentication
+845. Agreement
+846. Availability
+847. Break Twitch, Kick or other platform rules through our widgets.
+848. Changes
+849. Chat box, chat spotlight and emote rain.
+850. Chat, commands, giveaways, marks, schedule
+851. Circumvent subscription locks, redeem-code limits or rate limits.
+852. Coming Soon
+853. Connected platforms
+854. Contact
+855. Custom commands, message timers, giveaway keywords, schedule copy and mark-point notes are your content. Giveaways must follow the laws and platform rules that apply to your stream. Mark-point share links and schedule ICS feeds are public to anyone with the token.
+856. CylixStudio - Terms of Service
+857. CylixStudio provides a control room and browser sources for live streams. Features include, without limitation:
+858. CylixStudio's software, design and documentation remain ours or our licensors'. Platform logos and media you play remain those companies' or the rights holders'. Your widget configs and UGC remain yours, subject to the licence in section 8.
+859. Disclaimers
+860. Do not use the service for illegal content, including copyright infringement, child sexual abuse material, malware, or content that platforms forbid. We may remove content, queues, overlays or accounts when we believe these Terms or the law require it. We are not obligated to monitor all UGC.
+861. Giveaways, custom commands, message timers and clip command.
+862. Goal bars for followers, subscribers, donations or custom targets.
+863. Harass people, scrape other users' data, or attack the service.
+864. Intellectual property
+865. Liability
+866. Lifetime Access
+867. Media requests
+868. Media Requests resolve public metadata and play items through official YouTube, Spotify, Anghami or SoundCloud embeds or widgets. The product is not a download locker, ripper or pirate CDN. You and your viewers must only submit links you are allowed to play on stream.
+869. Official embeds may be region-blocked, age-gated, preview-only, or refused by the platform. Kick channel-point text and chat URLs are stored in the queue so you can moderate them. We may refuse or drop items that look unlawful or that violate a provider's terms.
+870. Overlays are browser pages you add to OBS, Streamlabs Desktop or similar. We do not control your encoder, scene collection, GPU, or network. A widget that works in our preview can still fail in a misconfigured browser source.
+871. Privacy Policy
+872. Rules for using CylixStudio widgets, overlays, media queues and studio tools.
+873. Schedule, mark points, live counter and analytics.
+874. Share overlay tokens publicly if you need them to stay private.
+875. Sign-in is via Twitch or Kick OAuth. TikTok connect may be Coming Soon. You must have the right to authorise the requested scopes. You are responsible for activity under your account and for keeping overlay tokens and dashboard access private.
+876. Subathon timer with configurable rules and a dedicated overlay.
+877. Subathon timers
+878. Subathon timers, live counters, analytics and media queues can lag or reset if events are missed. Lost stream time, donations or revenue are not our responsibility.
+879. Subscriptions and redeem codes
+880. Termination
+881. Terms of Service
+882. Terms of Service for CylixStudio: accounts, overlays, media requests, redeem codes, platform policies and acceptable use.
+883. Test Mode stores demo data in browser localStorage and does not create a full hosted account. Data in Test Mode can be lost if you clear site data.
+884. The service
+885. THE SERVICE IS PROVIDED “AS IS” AND “AS AVAILABLE”. To the fullest extent permitted by law, we disclaim warranties of merchantability, fitness for a particular purpose, and non-infringement.
+886. These Terms of Service are the rules for using CylixStudio. They are the platform's contract text, not legal advice about streaming, copyright, gambling, giveaways or privacy law in your country. You are responsible for your own compliance. If you need advice, consult qualified counsel.
+887. This document is CylixStudio's own policy and terms text. It is not legal advice to streamers about local law, tax, giveaways, music licensing, or platform enforcement. You should consult your own counsel for compliance in the places you stream.
+888. Timer logic follows the rules you configure and the events we successfully ingest. Clock drift, missed webhooks, duplicate events, or a disconnected platform can change the displayed time. We do not guarantee that a subathon clock is a legal record of stream length or of money owed to anyone.
+889. Use media request to traffic in pirated or unlicensed copies.
+890. User-generated content
+891. We may update these Terms as the product changes. The “Last updated” date will change. If you continue to use the service after an update, the new Terms apply to that continued use.
+892. We provide the service on a best-effort basis. We do not guarantee 100% uptime, webhook delivery, token refresh, or that every overlay will stay in sync for an entire stream. Maintenance, provider outages, and your local OBS or browser source can interrupt widgets.
+893. Widgets and overlays
+894. You agree not to:
+895. You may stop using the service and disconnect platforms at any time. We may suspend or terminate accounts that breach these Terms, abuse redeem codes, or create risk for other users or platform partnerships. After termination, overlay URLs and tokens may stop working.
+896. You must comply with each provider's terms and developer policies, including Twitch, Kick, YouTube, Spotify, Anghami, SoundCloud, and Streamlabs or StreamElements if connected, plus any payment or redeem partner. If a provider suspends your app access or changes an API, related widgets may stop without that being a breach by us.
+
+## /u.:slug
+--------------------------------------------------------------------------------
+
+[src/routes/u.$slug.tsx]
+897. Creator links, streams, and socials.
+898. index, follow
+899. Loading page…
+900. Page unavailable
+901. This Link in Bio page is unpublished or does not exist.
+
+## /welcome
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/welcome.tsx]
+902. Choose Free or Pro and start streaming with CylixStudio across Twitch, Kick, YouTube and TikTok.
+903. CylixStudio - Welcome
+904. Multi-platform streaming tools. Pick Free or Pro, or redeem a prepaid code.
+
+## /widgets.:widgetId
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/widgets.$widgetId.tsx]
+905. Activate code
+906. id, type
+907. This widget is included with Pro. Enter your license code to customize it and copy the OBS link.
+
+## /widgets.:widgetId.control
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/widgets.$widgetId.control.tsx]
+908. Could not save
+909. CylixStudio - Timer Control Panel
+910. id, name, type, config, public_token, subathon_id
+911. Loading control panel…
+912. Standalone live Subathon timer controls for streamers.
+913. This control panel is only available for Subathon Timer widgets.
+
+## /widgets.:widgetId.goal
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/widgets.$widgetId.goal.tsx]
+914. Apply
+915. Custom amount
+916. CylixStudio - Goal Control
+917. Goal control
+918. id, name, config, public_token
+919. id, title, unit, target_value, current_value
+920. Live goal control centre: raise the target, log contributions and watch the OBS progress bar update instantly.
+921. Loading goal…
+922. Progress
+923. Reset progress
+924. rounded-lg border border-border px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary disabled:opacity-50
+925. Set target
+926. This widget has no goal attached.
+927. Track and adjust your live stream goal in real time.
+928. Widget settings
+
+## /widgets.:widgetId.index
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/widgets.$widgetId.index.tsx]
+929. ⚙️ Display & badges
+930. 🎯 Tap goal
+931. 🏆 Top tappers
+932. 👑 Broadcaster · 🛡️ Moderator · 💎 Sub/VIP · 🎵 TikTok gifter
+933. Copy OBS browser-source URL
+934. Copy OBS URL
+935. Current
+936. Customise fonts, colours, layout and behaviour for your OBS widget with a live preview.
+937. CylixStudio - Widget Builder
+938. Delete widget
+939. Design layout
+940. Design your overlay widget and copy its OBS browser-source URL.
+941. Enable the widget before copying an OBS URL.
+942. Enable the widget to copy an OBS URL
+943. Font size
+944. Goal control
+945. Goal title
+946. Goal: 50K Taps for Giveaway!
+947. Gradient end
+948. Gradient start
+949. Hides the Twitch / Kick / TikTok tag next to the username
+950. id, name, type, config, state, public_token, is_enabled, subathon_id
+951. id, title, unit, target_value, current_value
+952. Loading widget…
+953. Message layout style
+954. Message spacing
+955. Name
+956. OBS browser source
+957. OBS URL copied
+958. Pulls the live follower count from your connected Twitch or Kick account.
+959. Rules & Logic
+960. Save first so the wheel entries reach the overlay, then spin - the result is broadcast to OBS instantly.
+961. Show account badges
+962. Show percentage
+963. Show platform badge
+964. Show profile pictures
+965. Spin now
+966. Sync Current Followers
+967. Target
+968. Text size
+969. text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground
+970. TikTok overlays are Coming Soon
+971. TikTok overlays are Coming Soon until OAuth is ready.
+972. Unit
+973. w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary
+974. Widget builder
+975. Widget saved
+
+## /widgets.:widgetId.rules
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/widgets.$widgetId.rules.tsx]
+976. CylixStudio - Widget Rules
+977. id, name, type, subathon_id
+978. Loading rules…
+979. Per-widget rules engine: platform + event → seconds and goal increments.
+980. Route Twitch, Kick, StreamElements and Streamlabs events into seconds added or goal progress for this widget.
+981. Widget rules
+
+## /widgets.index
+--------------------------------------------------------------------------------
+
+[src/routes/_authenticated/widgets.index.tsx]
+982. All your browser-source widgets with one-click OBS URLs.
+983. Copy OBS browser-source URL
+984. Create and manage OBS widgets: subathon timers, goal bars, alert boxes, activity feeds and spin wheels.
+985. Create widget
+986. CylixStudio - Widget Hub
+987. Edit
+988. Enable the widget before copying an OBS URL.
+989. Enable the widget to copy an OBS URL
+990. Every widget gets its own OBS browser-source URL.
+991. Loading widgets…
+992. Name
+993. No widgets yet - create your first one above.
+994. OBS URL copied
+995. Quick create
+996. Rules
+997. TikTok overlays are Coming Soon until OAuth is ready.
+998. w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary
+999. Widget hub
+1000. Widget type
+
+## (components / shared UI)
+--------------------------------------------------------------------------------
+
+[src/components/activity/TestEventMenu.tsx]
+1001. disabled:pointer-events-none disabled:opacity-60
+1002. focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20
+1003. inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-zinc-900 px-4 py-2.5
+1004. Platform
+1005. text-sm font-medium text-white
+1006. transition-colors hover:bg-zinc-800 hover:border-white/15
+
+[src/components/activity/TestEventPlatformTabs.tsx]
+1007. border-0 border-b border-transparent shadow-none ring-0 outline-none
+1008. border-b-foreground/70 text-foreground
+1009. flex flex-col items-center gap-1 bg-transparent px-2.5 pb-1.5 pt-0.5
+1010. hover:text-foreground focus-visible:text-foreground
+1011. Test event platforms
+1012. text-center text-[0.68rem] font-medium leading-none tracking-tight
+1013. transition-colors duration-150 ease-out
+
+[src/components/brand/BrandLogo.tsx]
+1014. CylixStudio
+1015. shrink-0 rounded-lg object-contain
+1016. truncate font-semibold tracking-tight text-foreground
+1017. w-auto max-w-full object-contain object-center
+
+[src/components/brand/SaudiBusinessSeal.tsx]
+1018. , fontWeight:
+1019. noopener noreferrer
+
+[src/components/clips/ClipPlayer.tsx]
+1020. Could not play this clip in-browser.
+
+[src/components/commands/CommandVariables.tsx]
+1021. API REQUEST
+1022. Argument after the command, or an @mentioned user.
+1023. Fetch a value from a URL when the engine supports it.
+1024. Live now
+1025. Live stream info when the platform provides it.
+1026. Pick a number range or one of the listed items.
+1027. TAGGED USER / PARAM
+1028. The channel the command ran in.
+1029. The viewer who typed the command.
+1030. Variables
+1031. w-full shrink-0 space-y-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 sm:w-64
+
+[src/components/hub/HubPlatformDot.tsx]
+1032. inline-block h-1.5 w-1.5 shrink-0 rounded-full
+
+[src/components/hub/QuickAnalyticsOverview.tsx]
+1033. rounded-full px-2.5 py-1 text-[0.68rem] transition-colors
+1034. text-muted-foreground hover:text-foreground
+
+[src/components/hub/ToolCard.tsx]
+1035. Delete widget
+1036. pointer-events-none opacity-60
+1037. pointer-events-none scale-95 opacity-0
+1038. scale-100 opacity-100
+1039. Subscription required
+1040. text-muted-foreground hover:opacity-80
+
+[src/components/hub/previews.tsx]
+1041. · lo-fi
+1042. 1. kira
+1043. 2. mox
+1044. 3. ari
+1045. 42 / 50 subs
+1046. 720 / 1000 subs
+1047. 850 / 1,000 followers
+1048. animate-pulse text-rose-400
+1049. Arena Drop
+1050. CoolCat
+1051. Custom goal
+1052. Donation goal
+1053. Followers
+1054. Goal: 50K taps
+1055. Jebaited
+1056. Just Chatting
+1057. Kappa
+1058. KappaPride
+1059. Kreygasm
+1060. Lo-fi Keys
+1061. Main Game
+1062. Midnight Drive
+1063. New sub · Tier 1
+1064. NotLikeThis
+1065. nova_stream just subscribed
+1066. ON STREAM
+1067. one more gift
+1068. Pinned message on stream
+1069. PogChamp
+1070. Sub goal
+1071. Subscribers
+1072. that clutch though
+1073. That play was insane
+1074. Tier 1
+1075. timer just popped
+1076. UP NEXT
+1077. Viewer Games
+
+[src/components/layout/AppShell.tsx]
+1078. absolute z-50 min-w-44 rounded-xl border p-1.5
+1079. Activity
+1080. Analytics
+1081. Beta
+1082. border-[#bee1fc]/50 bg-[#bee1fc]/20 text-foreground
+1083. Chat Commands
+1084. Clip Command
+1085. Collapse sidebar
+1086. Counter
+1087. CylixStudio home
+1088. Expand sidebar
+1089. flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-start text-[0.8rem] transition-colors
+1090. flex w-full items-center rounded-xl transition-colors hover:bg-white/5
+1091. gap-2.5 px-2 py-1.5
+1092. gap-3 px-3 py-2.5
+1093. Giveaway
+1094. group relative flex w-full items-center rounded-xl border text-[0.82rem] transition-colors
+1095. Home
+1096. justify-center p-1
+1097. justify-center px-0 py-2.5
+1098. Link in Bio
+1099. Mark Points
+1100. px-1.5 py-0.5 text-[0.58rem] font-semibold uppercase leading-none tracking-[0.14em]
+1101. Schedule
+1102. shrink-0 rounded-md border border-primary/35 bg-primary/10
+1103. start-0 bottom-full mb-2
+1104. start-full bottom-0 ms-2
+
+[src/components/layout/EmptyState.tsx]
+1105. grid place-items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-6 py-12 text-center
+
+[src/components/layout/ErrorFallback.tsx]
+1106. Unknown error
+
+[src/components/layout/HowItWorks.tsx]
+1107. How it works
+
+[src/components/layout/StudioPageTabs.tsx]
+1108. bg-zinc-800 text-foreground shadow-sm shadow-black/30 ring-1 ring-white/8
+1109. mb-6 inline-flex flex-wrap gap-1 rounded-xl border border-border/60 bg-secondary/40 p-1
+1110. rounded-lg px-3.5 py-1.5 text-[0.82rem] font-medium tracking-tight
+1111. text-muted-foreground hover:bg-white/[0.04] hover:text-foreground
+1112. transition-[color,background-color,box-shadow,transform] duration-200 ease-out
+
+[src/components/legal/LegalDocument.tsx]
+1113. -18% 0px -68% 0px
+1114. 12 September 2026
+1115. border-foreground/40 bg-white/[0.04] text-foreground lg:bg-transparent
+1116. border-transparent text-muted-foreground hover:text-foreground
+1117. Legal
+1118. Legal documents
+1119. On this page
+1120. Privacy
+1121. rounded-lg px-3 py-1.5 text-sm transition-colors lg:rounded-none lg:border-s lg:px-3 lg:py-2
+1122. Table of contents
+1123. Terms
+
+[src/components/link-in-bio/LinkInBioAmbient.tsx]
+1124. Promise
+
+[src/components/link-in-bio/LinkInBioBento.tsx]
+1125. bg-white text-black
+1126. cursor-grab active:cursor-grabbing
+1127. grid-cols-2 @min-[36rem]:grid-cols-4 @min-[60rem]:grid-cols-6 [grid-auto-flow:dense]
+1128. relative grid w-full
+1129. relative isolate overflow-hidden rounded-[28px] outline-none transition-transform
+1130. ring-2 ring-violet-400/75 ring-offset-2 ring-offset-transparent
+1131. rounded-full px-2.5 py-1 text-[0.62rem] font-medium
+1132. text-white/75 hover:bg-white/10
+
+[src/components/link-in-bio/LinkInBioDashboard.tsx]
+1133. Ambient
+1134. Avatar
+1135. Bento grid
+1136. bg-primary text-primary-foreground
+1137. bg-white/5 text-muted-foreground
+1138. Bio
+1139. Column
+1140. Columns
+1141. Copy Link
+1142. Could not copy link
+1143. Could not read that image.
+1144. Could not save.
+1145. Countdown
+1146. Create a schedule first.
+1147. Custom
+1148. Custom font name
+1149. Custom font URL
+1150. Dark Theme stays a quiet charcoal - no glow or pointer effects.
+1151. Display name
+1152. Drag tiles to move. Drag edges or corners to resize.
+1153. Flat
+1154. Font
+1155. Gallery
+1156. Glass
+1157. Glow
+1158. Grid is empty
+1159. Header image
+1160. Image banner
+1161. Interactive ambient
+1162. Invalid username.
+1163. Layout
+1164. Link copied
+1165. Links your public schedule.
+1166. mb-1.5 block text-[0.72rem] font-medium uppercase tracking-wide text-muted-foreground
+1167. Photos
+1168. Public path /u/…
+1169. rounded-lg px-2.5 py-1 text-xs
+1170. Row
+1171. Rows
+1172. Satoshi
+1173. Select a tile to change size, position, or gallery photos.
+1174. Set a username before copying your page link.
+1175. Size
+1176. Stream schedule
+1177. Surface
+1178. Tap an icon. URLs are built for you except Link.
+1179. Title
+1180. Username
+1181. Usernames can only be changed once every 30 days.
+
+[src/components/link-in-bio/LinkInBioGallery.tsx]
+1182. Gallery slides
+1183. opacity 800ms ease, transform 900ms ease
+1184. width 280ms ease, background-color 280ms ease
+
+[src/components/link-in-bio/LinkInBioPage.tsx]
+1185. @container relative mx-auto flex w-full flex-col
+1186. 1px solid transparent
+1187. absolute bottom-0 left-1/2 z-20 -translate-x-1/2 translate-y-1/2
+1188. active:scale-[0.98] touch-manipulation
+1189. backdrop-blur-md transition-[transform,background-color,border-color] duration-200
+1190. Copy page link
+1191. inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-medium
+1192. No end time set.
+1193. No links yet
+1194. The countdown has ended.
+1195. w-full max-w-full px-3 py-6 sm:px-4
+1196. Your page
+
+[src/components/link-in-bio/LinkInBioStreamCard.tsx]
+1197. Currently offline
+1198. this page
+
+[src/components/link-in-bio/LinkInBioStudio.tsx]
+1199. Your public page. Click the preview or Replay setup to go through the guided flow again.
+
+[src/components/link-in-bio/LinkInBioText.tsx]
+1200. whitespace-pre-wrap break-words [overflow-wrap:anywhere] [unicode-bidi:plaintext]
+
+[src/components/link-in-bio/PlatformHandleDock.tsx]
+1201. @you or instagram.com/p/…
+1202. @you or snapchat.com/add/…
+1203. @you or tiktok.com/@you/video/…
+1204. @you or x.com/you/status/…
+1205. border-white/12 bg-white/[0.06]
+1206. Community or group invite link - not a phone number
+1207. Enter a valid handle or profile URL.
+1208. Enter a valid https:// URL.
+1209. flex min-h-11 min-w-11 shrink-0 flex-col items-center justify-center gap-1.5 rounded-xl border-0 bg-transparent p-1.5 shadow-none touch-manipulation
+1210. h-11 transition-[border-color,box-shadow] duration-200
+1211. hover:bg-transparent focus-visible:bg-white/5 focus-visible:outline-none
+1212. Link looks good
+1213. min-h-10 min-w-10
+1214. opacity-75 hover:scale-105 hover:opacity-100
+1215. Platforms
+1216. rounded-[1.35rem] border p-4 backdrop-blur-xl transition-[border-color,box-shadow] duration-300 sm:p-5
+1217. rounded-xl p-4
+1218. scale-110 opacity-100
+1219. size-1.5 rounded-full transition-colors duration-200
+1220. transition-[transform,opacity] duration-200 ease-out
+1221. Use a WhatsApp community or channel invite link.
+1222. Use chat.whatsapp.com/… or whatsapp.com/channel/…
+
+[src/components/link-in-bio/PlatformLivePreview.tsx]
+1223. Can't load preview
+1224. Invite looks valid
+1225. mt-3 overflow-hidden rounded-2xl border border-white/10
+1226. mt-3 overflow-hidden rounded-xl border border-border/60
+
+[src/components/link-in-bio/wizard/WizardProvider.tsx]
+1227. Published - opening studio.
+1228. Setup saved.
+1229. useWizard must be used inside WizardProvider
+
+[src/components/link-in-bio/wizard/WizardShell.tsx]
+1230. Add a username to publish
+1231. Back
+1232. Back to studio
+1233. CylixStudio · Link in Bio
+1234. Drag to move. Drag edges or corners to resize, then publish.
+1235. Enter studio
+1236. flex h-full min-h-0 min-w-0 flex-col overflow-hidden
+1237. flex h-full min-h-0 min-w-0 overflow-hidden lg:sticky lg:top-0
+1238. h-1 flex-1 rounded-full
+1239. Next
+1240. order-1 lg:order-2
+1241. order-2 lg:order-1
+1242. Publish
+1243. Skip
+
+[src/components/link-in-bio/wizard/steps/ArrangeStep.tsx]
+1244. Click a tile on the page to select it.
+1245. No platforms yet. Go back to add them, or publish a blank page from the dock.
+
+[src/components/link-in-bio/wizard/steps/AtmosphereStep.tsx]
+1246. Bento colors
+1247. border-[#bee1fc]/50 bg-[#bee1fc]/10
+1248. Card fill
+1249. flex h-[5.75rem] min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border px-2 text-center
+1250. Icon accent
+1251. Load a stylesheet, then type a family name to preview.
+1252. rounded-xl border px-2.5 py-2.5 text-start transition-colors
+1253. Sync with logo
+1254. Tint accent and glow from your avatar.
+1255. Type a family name to preview it here.
+1256. Upload a logo on Profile first.
+
+[src/components/link-in-bio/wizard/steps/PlatformsStep.tsx]
+1257. A timer to a drop, launch, or next stream.
+1258. A wide promo image between your bio and tiles.
+1259. Banner added - it shows in the preview.
+1260. Create a schedule first to enable it here.
+1261. Pin your public calendar on the page.
+
+[src/components/link-in-bio/wizard/steps/ProfileStep.tsx]
+1262. Checking availability…
+1263. Realtime check against saved usernames.
+1264. That username is taken.
+1265. This username is available.
+1266. Use lowercase letters, numbers, and dashes.
+1267. your-name
+
+[src/components/link-in-bio/wizard/wizardTokens.ts]
+1268. Arrange, review, publish
+1269. grid size-10 shrink-0 place-items-center rounded-2xl bg-white/[0.06]
+1270. Handles in one tab. Schedule, banner, and countdown in the other.
+1271. mb-2 block text-[0.68rem] font-medium uppercase tracking-[0.16em] text-white/40
+1272. mb-3 text-[0.68rem] font-medium uppercase tracking-[0.16em] text-white/38
+1273. mt-1.5 text-xs leading-relaxed text-white/40
+1274. mt-4 min-h-0 flex-1 overflow-y-auto outline-none
+1275. Page background and typography - the rest stays at the theme defaults.
+1276. Platforms and extras
+1277. Set the atmosphere
+1278. text-[0.72rem] leading-relaxed text-white/42
+1279. Username, name, bio, and a face for the page.
+1280. Who should they meet?
+1281. Work on the page itself. Publish when it feels like you.
+
+[src/components/link-in-bio/wizard/wizardUi.tsx]
+1282. rounded-2xl border p-4 text-start transition-colors
+
+[src/components/media/MediaRequestPlayer.tsx]
+1283. size-full border-0
+1284. the app
+
+[src/components/media/MediaSourceBadge.tsx]
+1285. M12.2 5.2 6.4 18.2h2.2l1.2-2.8h4.5l1.2 2.8h2.2L12.2 5.2Zm.1 3.5 1.6 3.7h-3.2l1.6-3.7Z
+
+[src/components/onboarding/GatewayPage.tsx]
+1286. bg-emerald-500/15 text-emerald-400
+1287. bg-primary text-primary-foreground shadow-sm
+1288. bg-rose-500/10 text-rose-400/80
+1289. border-primary/50 bg-primary/15 text-zinc-50
+1290. border-zinc-800 bg-zinc-950/70 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200
+1291. flex flex-col items-start gap-1 rounded-lg border px-2.5 py-2 text-start transition-colors
+1292. Kick
+1293. mt-0.5 grid size-4 shrink-0 place-items-center rounded-full
+1294. rounded-md px-1.5 py-1.5 text-[0.68rem] font-semibold transition-colors sm:text-[0.72rem]
+1295. text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100
+1296. TikTok
+1297. to you
+1298. Twitch
+1299. YouTube
+
+[src/components/onboarding/PlanCompareDialog.tsx]
+1300. border-b border-white/[0.04]
+1301. Included
+1302. Not included
+
+[src/components/onboarding/RedeemCodeSection.tsx]
+1303. border-emerald-500/35 bg-emerald-500/10 text-emerald-400
+1304. border-red-500/35 bg-red-500/10 text-red-400
+1305. flex items-start gap-2 rounded-xl border text-[0.8rem]
+1306. flex-1 border-zinc-700 bg-zinc-900/60 text-center font-mono tracking-[0.18em]
+1307. font-semibold tracking-tight text-zinc-50
+1308. grid shrink-0 place-items-center border border-primary/30 bg-primary/10 text-primary
+1309. h-11 px-6 text-sm
+1310. h-11 text-[0.95rem]
+1311. h-9 px-4 text-[0.82rem]
+1312. h-9 text-[0.82rem]
+1313. mt-2 px-3 py-2 text-[0.72rem]
+1314. mt-4 px-3.5 py-2.5
+1315. p-6 sm:p-7
+1316. rounded-2xl border border-zinc-800 bg-zinc-950/90
+1317. rounded-xl p-3.5 sm:p-4
+1318. shrink-0 font-semibold sm:min-w-[9rem]
+1319. size-10 rounded-xl
+1320. size-8 rounded-lg
+1321. XXXX - XXXX - XXXX - XXXX
+
+[src/components/overlay/OverlayView.tsx]
+1322. JetBrains Mono
+1323. stroke-dashoffset 0.35s ease
+1324. Timer progress
+
+[src/components/schedule/MonthCalendar.tsx]
+1325. bg-[#bee1fc]/10 ring-1 ring-inset ring-[#bee1fc]/25
+1326. bg-[#bee1fc]/20 font-semibold text-[#bee1fc]
+1327. block break-words rounded-xl bg-white/[0.05] px-2 py-1.5 text-[0.78rem] font-medium leading-snug sm:text-[0.82rem]
+1328. cursor-pointer hover:bg-white/[0.05]
+1329. font-medium text-muted-foreground
+1330. mb-1 inline-flex size-7 items-center justify-center rounded-full text-[0.78rem] tabular-nums
+1331. min-h-[11rem] rounded-2xl p-1.5 transition-colors sm:min-h-[13.5rem] sm:p-2
+1332. Next month
+1333. Previous month
+
+[src/components/settings/AdminCodesPanel.tsx]
+1334. 30 Days
+1335. 365 Days
+1336. 60 Days
+1337. 90 Days
+1338. Activation code generator
+1339. All
+1340. Available
+1341. Code copied to clipboard
+1342. Code deactivated
+1343. Code deleted
+1344. Code reactivated
+1345. Codes management
+1346. Copy code
+1347. Could not generate a code.
+1348. Could not revoke this code.
+1349. Custom days
+1350. Custom Days…
+1351. Delete code?
+1352. e.g. Customer #104
+1353. Enter a day count between 1 and 36500.
+1354. Export CSV
+1355. Generate 16-char code
+1356. Lifetime ♾️
+1357. New code generated
+1358. No available codes to export.
+1359. No codes to show.
+1360. Redeemed
+1361. Revoke now
+1362. Revoke Subscription
+1363. Revoke subscription?
+1364. Revoked
+1365. rounded-full bg-amber-500/10 px-2 py-0.5 text-amber-400
+1366. rounded-full bg-emerald-500/10 px-2 py-0.5 text-emerald-400
+1367. rounded-full bg-red-500/10 px-2 py-0.5 text-red-400
+1368. rounded-full bg-sky-500/10 px-2 py-0.5 text-sky-300
+1369. Subscription revoked
+1370. The linked account is downgraded to Free immediately and this code can never be used again.
+1371. This code is deleted permanently and can never be redeemed.
+1372. Validity duration
+
+[src/components/settings/ConnectionsPanel.tsx]
+1373. animate-pulse bg-emerald-400
+1374. bg-[#FE2C55] text-white
+1375. bg-kick text-kick-foreground
+1376. bg-twitch text-twitch-foreground
+1377. bg-white/[0.04] text-muted-foreground
+1378. h-8 rounded-lg border border-white/5 px-3 text-[0.75rem] font-medium text-destructive transition-colors hover:bg-destructive/10
+1379. h-8 rounded-lg border border-white/5 px-3 text-[0.75rem] font-medium text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground
+1380. h-9 min-w-[12rem] flex-1 rounded-lg border border-white/5 bg-background px-3 pe-9 font-mono text-xs outline-none focus:border-primary
+1381. StreamElements
+1382. Streamlabs
+
+[src/components/settings/EventTestPanel.tsx]
+1383. TestViewer
+
+[src/components/settings/SettingsBackupPanel.tsx]
+1384. inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/5 px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground disabled:opacity-50
+
+[src/components/subscription/RedeemCodeModal.tsx]
+1385. Activate code
+1386. Activate your subscription
+1387. Activated! Lifetime Access ♾️
+1388. Activation failed.
+1389. border-emerald-500/40 bg-emerald-500/10 text-emerald-400
+1390. border-red-500/40 bg-red-500/10 text-red-400
+1391. Enter your 16-character license code to unlock all streaming widgets and tools.
+1392. Invalid or already used code.
+1393. License code
+1394. This code has expired.
+
+[src/components/ui/alert-dialog.tsx]
+1395. , React.ComponentPropsWithoutRef
+
+[src/components/ui/button.tsx]
+1396. , VariantProps
+1397. bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90
+1398. bg-primary text-primary-foreground shadow hover:bg-primary/90 hover:shadow-md
+1399. bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80
+1400. border border-input bg-background shadow-sm hover:border-primary/35 hover:bg-accent/10 hover:text-accent-foreground
+1401. h-10 rounded-xl px-8
+1402. h-8 rounded-xl px-3 text-xs
+1403. h-9 px-4 py-2
+1404. h-9 w-9
+1405. hover:bg-accent/15 hover:text-accent-foreground
+1406. text-primary underline-offset-4 hover:underline
+
+[src/components/ui/chart.tsx]
+1407. & Pick
+1408. & React.ComponentProps
+1409. flex flex-1 justify-between leading-none
+1410. flex items-center justify-center gap-4
+1411. grid min-w-[8rem] items-start gap-1.5 rounded-xl border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl
+1412. h-2.5 w-2.5
+1413. w-0 border-[1.5px] border-dashed bg-transparent
+
+[src/components/ui/collapsible.tsx]
+1414. use client
+
+[src/components/ui/dialog.tsx]
+1415. Close
+
+[src/components/ui/dropdown-menu.tsx]
+1416. relative flex cursor-default select-none items-center rounded-xl py-1.5 ps-8 pe-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50
+
+[src/components/ui/input.tsx]
+1417. disabled:cursor-not-allowed disabled:opacity-50 md:text-sm
+1418. file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground
+1419. flex h-9 w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-1 text-base text-foreground shadow-sm transition-[border-color,box-shadow,background-color] duration-200
+1420. focus-visible:outline-none focus-visible:border-[#bee1fc]/50 focus-visible:ring-1 focus-visible:ring-[#bee1fc]/40
+
+[src/components/ui/separator.tsx]
+1421. h-[1px] w-full
+1422. h-full w-[1px]
+1423. shrink-0 bg-border
+
+[src/components/ui/sonner.tsx]
+1424. !rounded-full !bg-[#bee1fc] !text-[#0a0a0a] !font-semibold
+1425. !rounded-full !bg-zinc-800 !text-zinc-300
+1426. group-[.toaster]:!border-[#bee1fc]/35 [&_[data-icon]]:!text-[#bee1fc]
+1427. group-[.toaster]:!border-red-400/40 [&_[data-icon]]:!text-red-300
+
+[src/components/ui/tabs.tsx]
+1428. inline-flex h-9 items-center justify-center rounded-xl bg-muted p-1 text-muted-foreground
+1429. mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+
+[src/components/ui/textarea.tsx]
+1430. flex min-h-[60px] w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-base text-foreground shadow-sm
+
+[src/components/widgets/DeleteWidgetDialog.tsx]
+1431. Are you sure you want to remove this widget? This will disable its active OBS source link.
+1432. Delete widget?
+
+[src/components/widgets/GiveawayDisplay.tsx]
+1433. bg-kick animate-pulse
+1434. Close expanded giveaway display
+1435. Confirmed - the winner replied in chat
+1436. Expand giveaway display
+1437. h-full w-full
+1438. h-full w-full bg-transparent
+1439. Last winner
+1440. Live entries
+1441. min-h-[280px] flex-1
+1442. Winner selected
+
+[src/components/widgets/RoleBadgeIcon.tsx]
+1443. Global Admin
+1444. Global Moderator
+1445. M10.3 16.8l-4.2-4.2 1.8-1.8 2.4 2.4 5.8-5.8 1.8 1.8-7.6 7.6z
+1446. M11.1 15.1l-3-3 1.5-1.5 1.5 1.5 3.9-3.9 1.5 1.5-5.4 5.4z
+1447. M12 3.2l7 2.6v6c0 4.3-2.9 7.6-7 9-4.1-1.4-7-4.7-7-9v-6l7-2.6z
+1448. M12 3.4l2.6 5.6 6 .8-4.4 4.2 1.1 6L12 17.2 6.7 20l1.1-6L3.4 9.8l6-.8L12 3.4z
+1449. M12 3.4l6.8 2.5v5.9c0 4.2-2.8 7.4-6.8 8.8-4-1.4-6.8-4.6-6.8-8.8V5.9L12 3.4z
+1450. M12 3.6l8 6.2L12 20.4 4 9.8l8-6.2z
+1451. M13 6.4v11.2h-2.3V9.4l-2.1.9V7.8L11.8 6.4H13z
+1452. M13.2 3.2L6.4 13.4h4.3l-1 7.4 7.9-10.6h-4.5l1.1-7z
+1453. M14.8 10.6l4.2-2.6c.6-.4 1.3.05 1.3.75v6.5c0 .7-.7 1.15-1.3.75l-4.2-2.6v-2.8z
+1454. M14.8 10.6l4.2-2.6c.6-.4 1.4.05 1.4.75v6.5c0 .7-.8 1.15-1.4.75l-4.2-2.6v-2.8z
+1455. M15.5 6.4a2.1 2.1 0 1 0-3.2-2.5l-.6.9 1.9.9c.7.3 1.4.2 1.9-.7z
+1456. M17.6 3.6l2.8 2.8-8.9 8.9-2.8-2.8 8.9-8.9z
+1457. M3.6 17.6l2.5-2.5 2.8 2.8-2.5 2.5-2.8-2.8z
+1458. M4 9.8h16
+1459. M7.5 13.7l2.8 2.8-1.4 1.4-2.8-2.8 1.4-1.4z
+1460. M8.5 6.4a2.1 2.1 0 1 1 3.2-2.5l.6.9-1.9.9c-.7.3-1.4.2-1.9-.7z
+
+[src/components/widgets/SpotlightControlPanel.tsx]
+1461. Action failed
+1462. Auto-hide timer
+1463. Clear / unpin
+1464. Currently pinned
+1465. Live chat feed
+1466. No message is pinned right now.
+1467. Pin / highlight control
+1468. Pin a message manually…
+1469. Pin message
+1470. Waiting for Twitch / Kick chat messages…
+
+[src/components/widgets/StreamEventsScheduleCard.tsx]
+1471. hub-spotlight-card rounded-xl border border-white/10 bg-white/[0.05] backdrop-blur-md
+1472. min-w-0 flex-1 truncate font-bold
+1473. mt-2 font-mono font-bold tabular-nums tracking-wide transition-colors
+1474. Next event
+1475. Previous event
+1476. px-3 py-2.5
+1477. px-3.5 py-3
+1478. Schedule complete
+1479. size-1.5 rounded-full
+1480. Waiting for stream…
+
+[src/components/widgets/StreamEventsScheduleControlPanel.tsx]
+1481. Add at least one event
+1482. border-border bg-muted/20
+1483. border-primary/30 bg-primary/10
+1484. border-primary/40 bg-primary/10
+1485. Delete event
+1486. Duration minutes
+1487. font-mono text-lg font-bold tabular-nums
+1488. grid grid-cols-[auto_1fr_5.5rem_auto] items-center gap-2 rounded-lg border px-2 py-2
+1489. Minutes
+1490. New segment
+1491. rounded-xl border px-3 py-3
+1492. Save schedule
+1493. Schedule saved
+1494. Skip to next event
+
+[src/components/widgets/SubathonElementControlPanel.tsx]
+1495. +1 hour
+1496. +1 min
+1497. +10 min
+1498. −1 hour
+1499. −1 min
+1500. −10 min
+1501. Click the digits to set the time manually
+1502. Element Control Panel
+1503. Open control panel in separate window
+1504. Open in separate window
+1505. Reset Timer
+1506. Reset timer?
+1507. Set Time
+1508. This stops the timer and restores its original duration. This action is not automatically reversible.
+1509. w-full rounded-md bg-transparent text-center font-mono text-4xl font-bold tabular-nums text-foreground outline-none transition focus:bg-primary/10 focus:ring-1 focus:ring-primary sm:text-5xl
+
+[src/components/widgets/SubathonTimerSidebar.tsx]
+1510. Accent
+1511. Background
+1512. Background opacity
+1513. bg-popover text-popover-foreground
+1514. border border-transparent text-muted-foreground hover:text-foreground
+1515. Controls & Actions
+1516. Copy OBS URL
+1517. Font size
+1518. General & Layout
+1519. Hides the SUBATHON text label next to the timer in the OBS preview
+1520. OBS browser source
+1521. Rules & Logic
+1522. Shows only the timer text and icons on a fully transparent background
+1523. Subathon settings
+1524. Test & Integration
+1525. Text
+1526. text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground
+1527. w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary
+
+[src/components/widgets/TestSimulatePanel.tsx]
+1528. 🧪 Test & Simulate
+1529. Create a subathon first so rules can apply.
+1530. Enable Twitch live events
+1531. Every button runs the real ingest pipeline and broadcasts instantly to OBS.
+1532. flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5 text-xs font-semibold transition-colors hover:border-primary/50 hover:bg-primary/10 disabled:opacity-50
+1533. Kick sub sent ✅
+1534. Message sent ✅
+1535. Send Test Chat Message
+1536. Simulate Kick Sub
+1537. Simulate Twitch Follow
+1538. Taps sent ✅
+1539. Test chat message sent ✅
+1540. Twitch follow sent ✅
+1541. Twitch live events enabled ✅
+1542. Type a test message…
+
+[src/components/widgets/TimerControls.tsx]
+1543. bg-destructive/20 text-destructive
+1544. bg-primary/20 text-primary
+1545. bg-secondary text-secondary-foreground
+1546. no public overlay
+1547. rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50
+1548. rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium transition-colors hover:border-primary hover:text-primary disabled:opacity-50
+
+[src/components/widgets/WidgetRenderer.tsx]
+1549. 0 0 10px
+1550. 0 14px
+1551. 0 4px
+1552. 10px 12px
+1553. 10px solid transparent
+1554. 14px 14px 6px 6px
+1555. 1px 8px
+1556. 8px 0
+1557. 8px 12px
+1558. 8px 18px
+1559. flex w-full min-w-[380px] max-w-[520px] flex-col items-start overflow-visible rounded-2xl bg-transparent p-0
+1560. flex w-full min-w-[380px] max-w-[520px] flex-col overflow-hidden rounded-xl bg-slate-900/70 p-5 backdrop-blur-lg border border-white/10 shadow-2xl
+1561. GOAL REACHED 🎉
+1562. overlay-anim-fade items-baseline
+1563. tapgoal-badge 1.8s ease-in-out infinite
+1564. tapgoal-glow 1.6s ease-in-out infinite
+1565. tapgoal-glow 3.2s ease-in-out infinite
+1566. tapgoal-pop 420ms ease-out
+1567. tapgoal-shine 2.4s linear infinite
+1568. tapper-pulse 2.2s ease-in-out infinite
+1569. This message is featured on stream ✨
+1570. Waiting for chat…
+
+[src/components/widgets/WidgetRulesPanel.tsx]
+1571. ⚙️ Manual
+1572. 🎵 TikTok
+1573. 🎵 TikTok Gift +5s
+1574. 🔹 StreamElements
+1575. 🧪 Streamlabs
+1576. 🧪 Streamlabs Tip $1 +60s
+1577. 🟢 Kick
+1578. 🟢 Kick Sub +300s
+1579. 🟣 Twitch
+1580. 🟣 Twitch Follow +60s
+1581. 🟣 Twitch Raid +30s
+1582. Add rule
+1583. Bits / Coins
+1584. border-blue-500/40 bg-blue-500/10 text-blue-300
+1585. border-border bg-secondary/40 text-muted-foreground
+1586. border-emerald-500/40 bg-emerald-500/10 text-emerald-300
+1587. border-pink-500/40 bg-pink-500/10 text-pink-300
+1588. border-red-500/40 bg-red-500/10 text-red-300
+1589. border-teal-500/40 bg-teal-500/10 text-teal-300
+1590. border-violet-500/40 bg-violet-500/10 text-violet-300
+1591. border-zinc-400/40 bg-zinc-400/10 text-zinc-200
+1592. Delete rule
+1593. Edit rule
+1594. Event
+1595. Follow
+1596. Gift sub
+1597. Goal +
+1598. Link this widget to a subathon first.
+1599. Min amount
+1600. mt-3 grid gap-3
+1601. mt-4 gap-4 lg:grid-cols-6
+1602. New rule
+1603. px-2.5 py-1.5 text-[0.7rem]
+1604. px-4 py-2 text-sm
+1605. Raid
+1606. rounded-2xl border border-border bg-card/70 backdrop-blur
+1607. rounded-2xl border border-border bg-card/70 backdrop-blur transition-colors hover:border-primary/40
+1608. rounded-full border border-border bg-secondary/40 font-medium transition-colors hover:border-primary hover:bg-primary/10 disabled:opacity-50
+1609. Subscribe
+1610. Time added
+1611. Tip / Donation
+1612. Update rule
+
+[src/hooks/useDashboardAnalytics.ts]
+1613. id, event_type, amount, quantity, created_at
+
+[src/hooks/useLinkInBioDraft.ts]
+1614. Choose a valid public username.
+1615. WhatsApp Community
+
+[src/hooks/useLiveChat.ts]
+1616. CAP REQ :twitch.tv/tags twitch.tv/commands
+1617. PASS SCHMOOPIIE
+1618. PONG :tmi.twitch.tv
+
+[src/hooks/useStreamlabsSocket.ts]
+1619. [] | Record
+
+[src/hooks/useSubscription.ts]
+1620. 1 Month
+1621. 1 Year
+1622. 2 Months
+1623. 3 Months
+1624. 6 Months
+1625. id, code, duration_days, is_used, is_active, notes, used_by_user_id, redeemed_by_email, created_at, redeemed_at, is_revoked, revoked_at
+1626. Lifetime Access ♾️
+1627. subscription_status, expires_at, active_code, is_lifetime
+
+[src/hooks/useWidgets.ts]
+1628. id, name, type, config, state, subathon_id, public_token, is_enabled, created_at
+1629. id, widget_id, title, unit, target_value, current_value
+
+[src/hooks/useWorkspace.ts]
+1630. could not find the table
+1631. does not exist
+1632. id, platform, username, is_active, token_expires_at, scopes, platform_user_id, metadata, created_at
+1633. name, email, image, timezone
+1634. schema cache
+1635. Test User
+
+[src/lib/chatSources.server.ts]
+1636. platform, username, metadata
+
+[src/lib/clipCommand.functions.ts]
+1637. enabled, roles, default_length, max_length, response
+1638. id, title, url, share_url, thumbnail_url, duration_seconds, view_count, clipped_by, created_at, platform
+1639. id, title, url, thumbnail_url, duration_seconds, view_count, clipped_by, created_at
+
+[src/lib/clipCommand.server.ts]
+1640. [chat-bot] kick chat send failed
+1641. username, metadata
+
+[src/lib/connections.functions.ts]
+1642. id, metadata
+1643. Token is required
+1644. Unsupported event type
+1645. Unsupported provider
+
+[src/lib/createWidget.ts]
+1646. id, public_token
+1647. TikTok overlays are Coming Soon until OAuth is ready.
+1648. Widget was created but no id was returned.
+1649. You must be signed in to open this tool.
+
+[src/lib/customCommands.functions.ts]
+1650. Could not save the command.
+1651. id, name, prefix, response, enabled, platforms, roles, cooldown_seconds, created_at, updated_at
+
+[src/lib/defaultCommands.functions.ts]
+1652. command_id, enabled, response, fallback_response, platforms, cooldown_seconds, updated_at
+
+[src/lib/defaultCommands.server.ts]
+1653. name, prefix
+
+[src/lib/defaultCommands.ts]
+1654. ", ar: "الاستخدام: !so
+1655. less than a minute
+1656. أقل من دقيقة
+
+[src/lib/email/layout.ts]
+1657. Segoe UI
+1658. Subscription
+1659. Website
+1660. الاشتراك
+1661. الخصوصية
+1662. الشروط
+1663. الموقع
+
+[src/lib/email/templates.ts]
+1664. Activate on CylixStudio
+1665. Activation code
+1666. and paste the code
+1667. Choose
+1668. CylixStudio Pro
+1669. CylixStudio Pro - activation code
+1670. CylixStudio Pro - gift activation code
+1671. CylixStudio Pro - رمز التفعيل
+1672. CylixStudio Pro - رمز هدية
+1673. Do not share this code. It can only be used once.
+1674. Enter activation code
+1675. Gift activation code
+1676. How to activate
+1677. is now active on your account for
+1678. No activation code needed - jump into the studio whenever you're ready.
+1679. Open
+1680. Open dashboard
+1681. Open Settings
+1682. Payment confirmed
+1683. Payment succeeded -
+1684. Pro
+1685. Pro access is ready. Redeem the code below in Settings - Pro stays off until you activate.
+1686. Pro is not active until you redeem this code.
+1687. Pro unlocked
+1688. Redeem at cylixstudio.com
+1689. sent you
+1690. Sign in to CylixStudio
+1691. Someone gifted you Pro
+1692. Thanks for your purchase. Your
+1693. This code works once. Don't share it publicly.
+1694. Valid until
+1695. We received your payment of
+1696. Welcome to CylixStudio
+1697. You're in. Connect Kick or Twitch, build your overlays, and go live with CylixStudio.
+1698. You're on Pro
+1699. You're ready to stream
+1700. Your activation code
+1701. أرسل لك
+1702. أنت الآن على Pro
+1703. إدخال رمز التفعيل
+1704. اختر
+1705. استلمنا دفعتك بمبلغ
+1706. اشتراك
+1707. افتح
+1708. الإعدادات <- الحساب والاشتراك
+1709. التفعيل على cylixstudio.com
+1710. الرمز لمرة واحدة فقط. لا تنشره علناً.
+1711. الفواتير
+1712. تأكيد الدفع
+1713. ترحيب
+1714. تفعيل على CylixStudio
+1715. تم إنشاء حسابك. اربط Kick أو Twitch وابنِ أدواتك المباشرة من لوحة التحكم.
+1716. تم التفعيل
+1717. تم الدفع بنجاح - اشتراك
+1718. جاهز. فعّل الرمز أدناه من الإعدادات - لن يُفعَّل Pro تلقائيًا قبل إدخال الرمز.
+1719. حسابك جاهز للبث
+1720. رمز التفعيل
+1721. رمز تفعيل Pro يُرسل في بريد منفصل ضمن نفس عملية الشراء.
+1722. رمز تفعيل اشتراكك
+1723. رمز هدية التفعيل
+1724. سجّل الدخول إلى CylixStudio
+1725. شكرًا لشرائك. اشتراك
+1726. صالح حتى
+1727. صديقنا
+1728. طريقة التفعيل
+1729. فتح الإعدادات
+1730. فتح لوحة التحكم
+1731. لا تحتاج رمزاً - ادخل الاستوديو مباشرة.
+1732. لا تشارك هذا الرمز مع أحد. يُستخدم مرة واحدة فقط.
+1733. لمدة
+1734. لن يُفعَّل Pro حتى تدخل الرمز يدويًا.
+1735. مرحبًا بك في CylixStudio
+1736. مفعّل الآن على حسابك لمدة
+1737. هدية
+1738. والصق الرمز
+1739. وصلك اشتراك Pro كهدية
+
+[src/lib/error-capture.ts]
+1740. caused by:
+
+[src/lib/error-page.ts]
+1741. An unexpected error occurred while loading this page. You can try again or go back home.
+1742. Go home
+1743. IBM Plex Sans Arabic
+1744. This page didn't load
+1745. Try again
+
+[src/lib/giveaway.functions.ts]
+1746. id, platform, username, entries, is_subscriber, created_at
+1747. keyword, sub_multiplier, subs_only, spin_duration, claim_seconds, is_open, last_winner
+1748. platform, username, entries
+
+[src/lib/giveaway.server.ts]
+1749. keyword, sub_multiplier, subs_only, is_open
+
+[src/lib/goalTypes.ts]
+1750. CUSTOM GOAL
+1751. DONATION GOAL
+1752. Follower goal
+1753. FOLLOWER GOAL
+1754. SUB GOAL
+1755. Subscriber goal
+
+[src/lib/goals.functions.ts]
+1756. Goal not found
+1757. id, user_id, widget_id
+1758. No connected Twitch or Kick account returned a follower count
+1759. platform, platform_user_id, username
+
+[src/lib/kickClip.server.ts]
+1760. Mozilla/5.0 CylixStudio
+1761. slug, variant_url, variant_refreshed_at, segments, updated_at
+
+[src/lib/linkInBio.functions.ts]
+1762. glass_intensity, hairline_borders, glow_strength, gradient_style, font_family, font_custom_name, font_custom_href, palette_bg, palette_fg, palette_accent, palette_muted, surface_style, layout, default_card_size, ambient_enabled, ambient_preset, schedule_enabled, widget_banner_url, countdown_enabled, countdown_label, countdown_ends_at, bento_color_mode, bento_custom_fill, bento_custom_accent
+1763. id, title, url, platform, card_size, sort_order, featured, enabled, kind, grid_x, grid_y, col_span, row_span, gallery_images, created_at, updated_at
+1764. platform, username
+1765. share_token, title
+1766. slug, display_name, bio, avatar_url, header_url, published, published_at, setup_completed, username_changed_at
+1767. slug, published, published_at, username_changed_at
+
+[src/lib/linkInBio.server.ts]
+1768. Last stream
+1769. Latest stream
+1770. Latest video
+1771. user_id, slug, display_name, bio, avatar_url, header_url, published, published_at
+
+[src/lib/linkInBio.ts]
+1772. @you or a post / reel URL
+1773. @you or a post URL
+1774. @you or a video URL
+1775. | ReadonlySet
+1776. 1px solid #cfd4da
+1777. Ambient glow
+1778. Aurora
+1779. Background color only - no motion.
+1780. Banner
+1781. Bento
+1782. Brand Colors
+1783. Classic stacked links
+1784. Compact list
+1785. Custom Palette
+1786. Dark Theme
+1787. Discord
+1788. Equal two-column tiles
+1789. Even grid
+1790. Featured block
+1791. Fraunces
+1792. Frosted glass, translucent cards
+1793. Frosted panels that tilt as you move.
+1794. Glass haze
+1795. Glass-Tinted
+1796. Going live
+1797. Gradient
+1798. Horizon
+1799. IBM Plex Mono
+1800. Immersive header first
+1801. Instagram
+1802. Light page, dark type
+1803. Light Theme
+1804. Link
+1805. Manrope
+1806. Modular tiles you can size and place
+1807. Monochrome Sleek
+1808. Neutral cards, Black/White marks
+1809. None
+1810. One featured card on top
+1811. Orbits
+1812. Quiet charcoal - no glow
+1813. Rings bloom from the pointer.
+1814. Ripple
+1815. Slow circling glass lights around the page.
+1816. Snapchat
+1817. Soft brand wash at the edge
+1818. Soft wash
+1819. Source Sans
+1820. Source Sans 3
+1821. Source Serif
+1822. Source Serif 4
+1823. Spotlight
+1824. Square tile
+1825. Static only
+1826. Syne
+1827. Tall
+1828. Theme accent glow on the surface
+1829. Theme surface, brand hairline and wash
+1830. Two columns
+1831. Two rows
+1832. Wide
+1833. Your color as border, glow, and wash
+
+[src/lib/linkInBioLive.server.ts]
+1834. Connect YouTube API to show the latest video.
+1835. Invite not found
+1836. Last VOD
+1837. No video yet
+1838. Not live
+1839. Paste a Discord invite
+1840. Paste a post or reel URL for a preview.
+1841. Paste a post URL to preview it.
+1842. Paste a video URL to preview a clip.
+1843. Post on X
+
+[src/lib/liveCounter.functions.ts]
+1844. Enter a channel name
+1845. platform, platform_user_id, access_token, username, metadata
+1846. Set X_BEARER_TOKEN to read live follower counts for X handles.
+1847. TikTok live counters are Coming Soon until TikTok OAuth is ready.
+1848. Twitch only shares follower totals with the channel owner - connect this account to see the count.
+1849. YouTube does not offer a public live follower counter yet - track Kick or Twitch instead.
+
+[src/lib/markPoints.functions.ts]
+1850. id, note, uptime_start_seconds, stream_started_at, offline
+1851. id, started_at, ended_at, duration_seconds, uptime_start_seconds, uptime_end_seconds, stream_started_at, offline, status, author, source, note, viewer_is_mod, created_at, updated_at
+1852. share_token, kick_username
+
+[src/lib/markPoints.share.server.ts]
+1853. Bearer
+1854. user_id, share_token, kick_username, cached_staff
+
+[src/lib/markPoints.ts]
+1855. Stream mark
+
+[src/lib/mediaRequests.functions.ts]
+1856. Kick Diagnostic
+1857. Manual Test
+1858. Media Request
+1859. Rejected by moderator
+
+[src/lib/mediaRequests.server.ts]
+1860. Kick viewer
+1861. Paste a YouTube, Spotify, Anghami, or SoundCloud link
+1862. Paste a YouTube, Spotify, Anghami, or SoundCloud link to request a track.
+1863. Requested track
+
+[src/lib/mediaRequests.ts]
+1864. OBS shows Anghami's official widget when it loads. Open Anghami for the full track.
+1865. Plays in OBS through the official SoundCloud widget.
+1866. Plays in OBS through the YouTube player.
+
+[src/lib/messageTimers.functions.ts]
+1867. id, message, interval_minutes, enabled, platforms, last_sent_at, created_at, updated_at
+
+[src/lib/oauth.server.ts]
+1868. Kick authorize URL must use id.kick.com, not api.kick.com
+1869. Kick profile response was empty
+1870. StreamElements profile response was empty
+1871. Streamlabs profile response was empty
+1872. TikTok profile response was empty
+1873. Twitch profile response was empty
+
+[src/lib/oauthHandlers.server.ts]
+1874. Could not resolve auth user
+1875. Unknown provider
+
+[src/lib/overlayStream.server.ts]
+1876. Missing Supabase server environment variables.
+
+[src/lib/overlayTheme.ts]
+1877. Bebas Neue
+1878. Borderless transparent digits only
+1879. Bounce
+1880. Circular Pomodoro
+1881. Circular progress ring with status accents
+1882. Cute Heart
+1883. Dark capsule with a pink heart badge
+1884. Days, Hours, Minutes, Seconds
+1885. Dynamic Island
+1886. Flash
+1887. Four circular rings for days, hours, minutes and seconds
+1888. Glossy black live capsule
+1889. Hours, Minutes, Seconds
+1890. Inter
+1891. Minutes, Seconds
+1892. Multi-Ring Countdown
+1893. Orbitron
+1894. Pulse
+1895. Raw Digits
+1896. Space Grotesk
+1897. System UI
+1898. system-ui, -apple-system, sans-serif
+
+[src/lib/plans.ts]
+1899. /6 months
+1900. Full suite
+1901. Up to 10
+1902. Up to 3
+
+[src/lib/platformTokens.server.ts]
+1903. id, access_token, refresh_token, token_expires_at, scopes
+
+[src/lib/playerPalette.ts]
+1904. Compact slim bar
+1905. Minimalist row
+1906. Vertical info card
+
+[src/lib/proPurchase.server.ts]
+1907. code, duration_days
+1908. expires_at, is_lifetime
+1909. id, activation_code_id, code_delivered_at, purchase_type, activated_at, gift_recipient_email, gift_message, user_id
+1910. id, code
+
+[src/lib/proPurchase.ts]
+1911. 1 month
+1912. 1 year
+1913. 6 months
+
+[src/lib/schedule.functions.ts]
+1914. id, weekday, occurs_on, start_minutes, duration_minutes, game, title, notes, cover_url, enabled, created_at, updated_at
+1915. share_token, timezone, title, reminder_note
+
+[src/lib/schedule.server.ts]
+1916. user_id, share_token, timezone, title, reminder_note
+
+[src/lib/schedule.ts]
+1917. 23 || mins
+
+[src/lib/settingsBackup.functions.ts]
+1918. id, name
+1919. name, prefix, response, enabled, platforms, roles, cooldown_seconds
+1920. platform, username, is_active, platform_user_id
+
+[src/lib/simulate.functions.ts]
+1921. Create a widget first so events have somewhere to land.
+1922. Hello from the CylixStudio test suite! 🎉
+1923. id, user_id
+1924. id, user_id, subathon_id
+1925. Widget not found
+
+[src/lib/spotlight.functions.ts]
+1926. Empty message
+1927. id, user_id, type
+
+[src/lib/streamEventsSchedule.functions.ts]
+1928. id, user_id, type, config, state
+1929. Start the stream clock first
+1930. Wrong widget type
+1931. جدول فعاليات البث
+
+[src/lib/streamEventsSchedule.ts]
+1932. Q&A / Wrap
+
+[src/lib/subscription.server.ts]
+1933. subscription_status, expires_at, is_lifetime
+
+[src/lib/supabase/fetch.ts]
+1934. Bearer sb_
+
+[src/lib/testEvents.ts]
+1935. 100 Bits
+1936. Custom bits
+1937. Custom donation $5
+1938. Custom follow
+1939. Custom gift sub
+1940. Custom raid
+1941. Custom sub
+1942. Donation $10
+1943. Follower
+1944. Gift $2
+1945. Gift Sub
+1946. Keep it up!
+1947. Likes / Taps
+1948. Membership
+1949. Stream Elements
+1950. Sub
+1951. Super Chat $5
+1952. Tip $5
+
+[src/lib/timer.server.ts]
+1953. id, action, metadata, created_at
+1954. id, user_id, max_duration_seconds, initial_seconds, is_active, created_at
+
+[src/lib/webhooks/ingest.server.ts]
+1955. user_id, access_token
+1956. user_id, access_token, platform_user_id, metadata
+1957. widget_id, goal_increment, unit_amount, min_amount, platform
+
+[src/lib/widgetThemes.ts]
+1958. 4px solid #F5D90A
+1959. Clean Minimalist
+1960. Cyan & pink dual glow
+1961. Dark Glass
+1962. Frosted dark panel, glowing border
+1963. Fully transparent, bold text with shadow
+1964. Neon Cyberpunk
+1965. Pixel borders, blocky arcade look
+1966. Press Start 2P
+1967. Retro 8-Bit Arcade
+
+[src/lib/widgets.ts]
+1968. +10 minutes
+1969. +5 minutes
+1970. 🏝️ Dynamic Island Messages
+1971. 👻 Pure Transparent
+1972. 💬 Speech Bubbles
+1973. 🧊 Full Glass Container
+1974. Activity feed
+1975. Chat spotlight
+1976. Compact floating pill
+1977. Continuous chat panel window
+1978. Each message a floating capsule
+1979. Emote rain
+1980. Emotes rain down on every incoming event
+1981. gifted subs
+1982. Glassmorphic card
+1983. Goal bar
+1984. Hide after 10s
+1985. Hide after 15s
+1986. Hide after 30s
+1987. Horizontal shelf
+1988. Live countdown driven by rules
+1989. Live TikTok tap leaderboard with animated ranks
+1990. Minimal grid
+1991. No container, text straight over video
+1992. Pin one chat message to a featured glass card
+1993. Progress bar toward a total TikTok tap target
+1994. Progress toward a donation/sub goal
+1995. Random picker you trigger from the dashboard
+1996. Rolling list of the latest events
+1997. Rounded bubbles with offset corner
+1998. sent an event
+1999. SPIN THE WHEEL
+2000. Spin wheel
+2001. Standard bar
+2002. Stay until cleared
+2003. Stream events schedule
+2004. Subathon timer
+2005. TAP GOAL
+2006. Ticker / marquee banner
+2007. TikTok tap goal overlay
+2008. Timed on-stream segments with live countdown on OBS
+2009. TOP TAPPERS
+2010. Top tappers overlay
+2011. Vertical list
+2012. Vertical pillar
+
+================================================================================
+Total: 2012
+

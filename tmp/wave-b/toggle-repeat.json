@@ -1,0 +1,43 @@
+{
+  "clicks": [
+    {
+      "before": "false",
+      "checked": "true",
+      "uiMs": 20,
+      "serverMs": 36,
+      "posts": 1,
+      "status": 200
+    },
+    {
+      "before": "true",
+      "checked": "false",
+      "uiMs": 15.6,
+      "serverMs": 42,
+      "posts": 1,
+      "status": 200
+    },
+    {
+      "before": "false",
+      "checked": "true",
+      "uiMs": 352.9,
+      "serverMs": 41,
+      "posts": 1,
+      "status": 200
+    }
+  ],
+  "uiMedian": 20,
+  "serverMedian": 41,
+  "finalChecked": "true",
+  "reloaded": "true",
+  "persisted": true,
+  "failure": {
+    "before": "true",
+    "seen": [],
+    "after": {
+      "checked": "true",
+      "success": false,
+      "error": true
+    }
+  },
+  "doublePosts": 1
+}

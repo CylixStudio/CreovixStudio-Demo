@@ -1,0 +1,122 @@
+{
+  "shown": {
+    "themes": [
+      "royal-compact"
+    ],
+    "royal": 4,
+    "arcs": 4,
+    "fills": 4,
+    "bubbleArcs": 0,
+    "bubbleFills": 0,
+    "avatars": 4,
+    "badges": 16,
+    "selected": "true"
+  },
+  "avatarBefore": "true",
+  "avatarOff": {
+    "themes": [
+      "royal-compact"
+    ],
+    "royal": 4,
+    "arcs": 4,
+    "fills": 4,
+    "bubbleArcs": 0,
+    "bubbleFills": 0,
+    "avatars": 0,
+    "badges": 12,
+    "selected": "true"
+  },
+  "badgesOff": {
+    "themes": [
+      "royal-compact"
+    ],
+    "royal": 4,
+    "arcs": 4,
+    "fills": 4,
+    "bubbleArcs": 0,
+    "bubbleFills": 0,
+    "avatars": 4,
+    "badges": 16,
+    "selected": "true"
+  },
+  "saved": {
+    "keys": [
+      "widgets",
+      "goals",
+      "messages",
+      "frames"
+    ],
+    "chat": {
+      "type": "CHAT_BOX",
+      "token": "demo-dff48feb-fec6-408c-8134-d1c6999cd662",
+      "config": {
+        "fontFamily": "'Space Grotesk', system-ui, sans-serif",
+        "fontSize": 22,
+        "textColor": "#FFFFFF",
+        "backgroundColor": "#1A1B23",
+        "backgroundOpacity": 80,
+        "accentColor": "#7C3AED",
+        "maxMessages": 8,
+        "showPlatform": true,
+        "showBadges": true,
+        "chatLayout": "glass",
+        "messageGap": 8,
+        "themeId": "royal-compact",
+        "kickDefaultSubscriberBadge": true,
+        "royalCompact": {
+          "showAvatar": true,
+          "density": "compact",
+          "fontSize": 14,
+          "bubbleOpacity": 88,
+          "messageGap": 7,
+          "avatarSize": 38
+        }
+      }
+    }
+  },
+  "afterRefresh": {
+    "themes": [
+      "royal-compact"
+    ],
+    "royal": 4,
+    "arcs": 4,
+    "fills": 4,
+    "bubbleArcs": 0,
+    "bubbleFills": 0,
+    "avatars": 4,
+    "badges": 16,
+    "selected": "true"
+  },
+  "bubble": {
+    "theme": "bubble",
+    "arc": true,
+    "fill": true,
+    "royalArc": 0,
+    "path": "M15 2 Q 2 20 15 38"
+  },
+  "back": {
+    "themes": [
+      "royal-compact"
+    ],
+    "royal": 4,
+    "arcs": 4,
+    "fills": 4,
+    "bubbleArcs": 0,
+    "bubbleFills": 0,
+    "avatars": 4,
+    "badges": 16,
+    "selected": "true"
+  },
+  "overlayUrl": "http://localhost:3001/overlay/demo-dff48feb-fec6-408c-8134-d1c6999cd662",
+  "overlay": {
+    "themes": [
+      "royal-compact",
+      "royal-compact",
+      "royal-compact",
+      "royal-compact"
+    ],
+    "arcs": 4,
+    "fills": 4,
+    "bubble": 0
+  }
+}

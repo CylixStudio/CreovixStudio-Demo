@@ -1,0 +1,15 @@
+{
+  "editorUrl": "http://localhost:3001/widgets/04785800-c320-4540-86b2-b3f04ffa8808",
+  "overlayUrl": "http://localhost:3001/overlay/demo-dff48feb-fec6-408c-8134-d1c6999cd662",
+  "blocked": [],
+  "hosts": [
+    "",
+    "badges.twitch.tv",
+    "eauthenticate.saudibusiness.gov.sa",
+    "fonts.googleapis.com",
+    "fonts.gstatic.com",
+    "localhost:3001",
+    "static-cdn.jtvnw.net"
+  ],
+  "notes": []
+}

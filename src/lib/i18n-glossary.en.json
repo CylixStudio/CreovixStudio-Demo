@@ -1,0 +1,1830 @@
+{
+  "_meta": {
+    "purpose": "English source catalog for the owner to write Arabic. Values are EN only — do not treat this file as live translations. Live AR copy stays in src/lib/i18n.tsx and per-page maps.",
+    "defaultLanguage": "ar",
+    "storageKey": "creovix.lang",
+    "tKeyCount": 208,
+    "namespaceCount": 13,
+    "hardcodedCount": 279
+  },
+  "t": {
+    "nav": {
+      "home": "Home",
+      "analytics": "Analytics",
+      "schedule": "Schedule",
+      "settings": "Settings",
+      "search": "Search widgets",
+      "notifications": "Notifications",
+      "signOut": "Sign out",
+      "language": "Switch language",
+      "profile": "Profile menu"
+    },
+    "lang": {
+      "arabic": "العربية",
+      "english": "English"
+    },
+    "home": {
+      "title": "Streaming tools, built for your stream.",
+      "subtitle": "Everything you need to build, customize, and control your stream.",
+      "searchPlaceholder": "Search widgets...",
+      "count": "tools available",
+      "empty": "No tools match your search.",
+      "delete": "Delete widget",
+      "viewMore": "View more widgets",
+      "viewLess": "Show less",
+      "loadMore": "Load More",
+      "platformFilter": "Filter tools by platform",
+      "filterAll": "All",
+      "filterKick": "Kick",
+      "filterTwitch": "Twitch",
+      "filterYouTube": "YouTube",
+      "filterTikTok": "TikTok",
+      "comingSoon": "Coming Soon"
+    },
+    "analytics": {
+      "title": "Analytics",
+      "subtitle": "Followers, subs, tips and bits over a range you choose."
+    },
+    "dash": {
+      "analytics": "Analytics",
+      "analyticsHint": "Last 7 days",
+      "analyticsHint30": "Last 30 days",
+      "analyticsHintCustom": "Custom range",
+      "range": {
+        "7": "7 days",
+        "30": "30 days",
+        "custom": "Custom"
+      },
+      "rangeFrom": "From",
+      "rangeTo": "To",
+      "followers": "New followers",
+      "followersHint": "In this period",
+      "followersEmpty": "None in this period",
+      "chat": "Chat engagement",
+      "chatEmpty": "Chat messages aren't stored yet.",
+      "chatMessages": "chat messages",
+      "commandsUsed": "commands used",
+      "support": "Recent support",
+      "subs": "Total subs",
+      "subsHint": "Subs and gifted subs",
+      "subsEmpty": "No subscriptions in this period",
+      "tips": "Tips / donations",
+      "tipsHint": "Donations in this period",
+      "tipsEmpty": "No tips in this period",
+      "bits": "Bits / gifts",
+      "bitsHint": "Cheers in this period",
+      "bitsEmpty": "No bits or gifts in this period",
+      "chartTitle": "Trend",
+      "chartTitle7": "7-day trend",
+      "chartTitle30": "30-day trend",
+      "chartTitleCustom": "Custom range",
+      "chartActivity": "Activity trend",
+      "chartHint": "Each line is scaled to its own range.",
+      "chartFilter": "Chart series",
+      "chartEmpty": "No activity in this period yet.",
+      "loadError": "Couldn't load analytics.",
+      "demo": "Demo data",
+      "back": "Back",
+      "modalEmpty": "Nothing recorded in this period yet."
+    },
+    "cat": {
+      "All": "All",
+      "Subathon": "Subathon",
+      "Goals": "Goals",
+      "Alerts": "Alerts",
+      "Chat": "Chat",
+      "Utilities": "Utilities"
+    },
+    "connections": {
+      "openStreamElements": "Open StreamElements channels & API token"
+    },
+    "settings": {
+      "title": "Settings",
+      "subtitle": "Connections, account and backup.",
+      "tab": {
+        "profile": "Profile",
+        "connections": "Connections",
+        "admin": "Admin — Redeem codes",
+        "test": "Test events"
+      },
+      "profile": {
+        "heading": "Account & subscription",
+        "name": "Name",
+        "email": "Email",
+        "login": "Sign-in",
+        "loginHint": "Your account is linked through your streaming platform login.",
+        "subscription": "Subscription",
+        "expires": "Expires",
+        "renew": "Renew subscription",
+        "expired": "Expired",
+        "inactive": "Inactive"
+      },
+      "connections": {
+        "heading": "Platforms",
+        "hint": "Connect the services that power alerts, chat events and overlays.",
+        "connected": "Connected",
+        "paused": "Paused",
+        "disconnected": "Disconnected",
+        "connect": "Connect",
+        "reconnect": "Reconnect",
+        "pause": "Pause",
+        "resume": "Resume",
+        "disconnect": "Disconnect",
+        "saveConnect": "Save & connect",
+        "account": "Account",
+        "jwtPlaceholder": "JWT token",
+        "socketPlaceholder": "Socket API token",
+        "showToken": "Show token",
+        "hideToken": "Hide token",
+        "apiSettings": "API settings",
+        "jwtHelp": "Where is my JWT?",
+        "seInvalid": "Invalid StreamElements token. Please check and try again.",
+        "slInvalid": "Invalid Socket API token. Copy the full token from Streamlabs settings.",
+        "twitchHint": "Follows, subs, gift subs and bits via EventSub.",
+        "kickHint": "Follows, subscriptions and gift subs via Kick webhooks.",
+        "tiktokHint": "Profile, avatar and live follower stats via Login Kit.",
+        "slHint": "Paste your Socket API token to receive tips, subs and raids live.",
+        "seHint": "Enter your account JWT token to sync donations and alerts.",
+        "toast": {
+          "generic": "Account connected successfully!",
+          "tiktok": "TikTok account connected successfully!",
+          "twitch": "Twitch account connected successfully!",
+          "kick": "Kick account connected successfully!",
+          "se": "StreamElements connected",
+          "sl": "Streamlabs connected via Socket API"
+        }
+      },
+      "test": {
+        "title": "Test events",
+        "heading": "Simulate platform events",
+        "body": "Each button sends one real event through the live pipeline, so your widgets and the Activity Feed update exactly as they would for a real viewer.",
+        "sender": "Sender name (optional)",
+        "sending": "Sending…"
+      },
+      "backup": {
+        "heading": "Export & import",
+        "body": "Download a JSON backup of your commands and preferences, or restore one on this account.",
+        "secretsHint": "OAuth tokens, API keys and webhook secrets are never included.",
+        "export": "Export Settings",
+        "import": "Import Settings",
+        "exportOk": "Settings exported.",
+        "exportFail": "Could not export settings.",
+        "importOk": "Settings imported.",
+        "importFail": "Could not import settings.",
+        "invalid": "This file is not a CylixStudio settings backup.",
+        "unsupported": "This backup file version is not supported.",
+        "confirmTitle": "Import these settings?",
+        "confirmBody": "Review what the file contains before applying it to this account.",
+        "summaryCommands": "Custom chat commands",
+        "summaryPrefix": "Default command trigger",
+        "summaryLanguage": "Language",
+        "summaryClip": "Clip command settings",
+        "summaryConnections": "Connected platforms (reference only)",
+        "included": "Included",
+        "none": "None",
+        "modeLegend": "Custom commands",
+        "mergeLabel": "Merge (default)",
+        "mergeHint": "Matching command names are updated. New names are added. Commands not in the file are kept.",
+        "replaceLabel": "Replace",
+        "replaceHint": "The file becomes the full command list. Commands missing from the file are deleted.",
+        "prefsHint": "Language, clip command and other simple preferences are replaced from the file.",
+        "connectionsHint": "Platform connections are listed for reference only and are not restored.",
+        "cancel": "Cancel",
+        "apply": "Import",
+        "applying": "Importing…"
+      }
+    },
+    "activity": {
+      "title": "Activity Feed",
+      "subtitle": "Your complete historical log of follows, subs, gifts, bits, raids and tips.",
+      "testEvent": "Test Event",
+      "test": {
+        "follower": "New follower",
+        "donation": "Tip / Donation",
+        "subscriber": "Subscriber",
+        "bits": "Bits"
+      },
+      "filter": {
+        "_": "Filter",
+        "twitch": "Twitch Events",
+        "kick": "Kick Events",
+        "tiktok": "TikTok Events",
+        "youtube": "YouTube Events",
+        "x": "X (Twitter) Events",
+        "streamlabs": "Streamlabs Events",
+        "streamelements": "StreamElements Events",
+        "other": "Other Sources"
+      },
+      "allPlatforms": "All Platforms",
+      "events": "events",
+      "event": "event",
+      "loading": "Loading your activity history…",
+      "empty": "No activity yet — events from your connected platforms will show up here.",
+      "paused": "Feed paused due to scroll",
+      "scrollTop": "Scroll to top",
+      "justNow": "Just now",
+      "followers": "New Followers",
+      "subs": "Total Subs",
+      "tips": "Tips / Revenue",
+      "bitsMetric": "Bits / Gifts",
+      "type": {
+        "FOLLOW": "New Follow",
+        "SUBSCRIPTION": "New Subscription",
+        "GIFT_SUB": "Gifted Sub",
+        "BITS": "Bits / Cheer",
+        "DONATION": "New Donation",
+        "RAID": "Raid / Host"
+      },
+      "anonymous": "Anonymous",
+      "analyticsBack": "Back to Activity Feed",
+      "range": {
+        "7": "7 Days",
+        "30": "30 Days",
+        "90": "90 Days",
+        "all": "All Time",
+        "custom": "Custom"
+      },
+      "chat": {
+        "FOLLOW": "just followed",
+        "DONATION": "just tipped",
+        "SUBSCRIPTION": "just subscribed",
+        "BITS": "just cheered"
+      }
+    },
+    "error": {
+      "title": "This page didn't load",
+      "body": "An unexpected error occurred while loading this page. You can try again or go back home.",
+      "retry": "Try again",
+      "home": "Go home",
+      "devDetails": "Developer details"
+    },
+    "login": {
+      "testMode": "Continue without login (Test Mode)",
+      "testOpening": "Opening…"
+    }
+  },
+  "namespaces": {
+    "navSidebar": {
+      "home": "Home",
+      "analytics": "Analytics",
+      "activity": "Activity",
+      "liveCounter": "Counter",
+      "giveaway": "Giveaway",
+      "chatCommands": "Chat Commands",
+      "clipCommand": "Clip Command",
+      "schedule": "Schedule",
+      "markPoints": "Mark Points",
+      "collapseSidebar": "Collapse sidebar",
+      "expandSidebar": "Expand sidebar"
+    },
+    "clips": {
+      "title": "Channel clips",
+      "subtitle": "Browse and watch clips created by the community.",
+      "search": "Search by title or username",
+      "pick": "Select a clip",
+      "loading": "Loading clips…",
+      "empty": "No clips yet. Clips created on your channel will appear here.",
+      "noneMatch": "No clips match that search.",
+      "clippedBy": "Clipped by",
+      "views": "{n} views",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "share": "Share",
+      "download": "Download",
+      "delete": "Delete",
+      "open": "Open original",
+      "play": "Play",
+      "sorts": {
+        "recent": "Most recent",
+        "views": "Most viewed",
+        "today": "Top today",
+        "all_time": "Top all time"
+      }
+    },
+    "giveaway": {
+      "title": "Giveaway",
+      "subtitle": "Collect chat entries with a keyword, then pick a winner live on stream.",
+      "how": "Viewers join by typing the keyword in Kick or Twitch chat. Open entries, wait for names, then draw.",
+      "entryTitle": "How viewers enter",
+      "entryHint": "Entries are captured automatically from every connected chat.",
+      "keyword": "Keyword",
+      "entriesOpen": "Entries open",
+      "entriesClosed": "Entries closed",
+      "subsOnly": "Paid subs only",
+      "multiplier": "Subscriber multiplier",
+      "multiplierOff": "Off",
+      "multiplierN": "×{n} entries",
+      "drawTitle": "Draw",
+      "drawHint": "Set the spin and claim window, then launch when the list is ready.",
+      "spin": "Spin duration",
+      "seconds": "{n} seconds",
+      "claim": "Claim window",
+      "minutes": "{n} minutes",
+      "pick": "Pick winner",
+      "clear": "Clear list",
+      "stageTitle": "Live stage",
+      "overlayTitle": "OBS browser source",
+      "overlayHint": "Add this link as a Browser Source in OBS (1920×1080, transparent) to show the name cloud, winner reveal and claim countdown on stream.",
+      "overlayPlaceholder": "Generating link…",
+      "copy": "Copy",
+      "copied": "Overlay URL copied",
+      "saved": "Giveaway settings saved",
+      "cleared": "Participant list cleared",
+      "noParticipants": "No participants yet",
+      "peopleTitle": "Live participants",
+      "peopleEmpty": "Nobody has entered yet. Viewers join by typing {keyword} in chat.",
+      "entriesCount": "{people} · {entries} entries"
+    },
+    "giveawayDisplay": {
+      "shuffling": "Shuffling",
+      "revealing": "Revealing",
+      "winnerSelected": "Winner selected",
+      "liveEntries": "Live entries",
+      "expand": "Expand giveaway display",
+      "collapse": "Close expanded giveaway display",
+      "joinHint": "Viewers join by typing {keyword} in chat.",
+      "from": "From",
+      "claimHint": "Re-type ({keyword}) in chat to claim the prize",
+      "confirmed": "Confirmed — the winner replied in chat",
+      "reroll": "Re-roll",
+      "lastWinner": "Last winner"
+    },
+    "markPoints": {
+      "title": "Mark Points",
+      "subtitle": "Private stream highlights. !mark starts, !emark closes — times are stream uptime.",
+      "search": "Search marks…",
+      "add": "New mark",
+      "start": "Start mark",
+      "end": "End mark",
+      "empty": "No marks yet. Type !mark in Kick chat while live, or start one here.",
+      "noneMatch": "No marks match that search.",
+      "open": "open",
+      "offline": "offline",
+      "startLabel": "Start",
+      "endLabel": "End",
+      "duration": "Duration",
+      "note": "Note",
+      "notePlaceholder": "Clutch play, raid, funny moment…",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "save": "Save mark",
+      "modalCreate": "New mark",
+      "modalEdit": "Edit mark",
+      "modalHint": "Title or note. Start and end are Kick stream uptime, not your PC clock.",
+      "deleteTitle": "Delete this mark?",
+      "deleteBody": "The saved point will be removed from your list.",
+      "testerTitle": "Try a chat line",
+      "testerHint": "Test mode writes locally on a test stream clock. Live Kick stays silent.",
+      "testerPlaceholder": "!mark clutch play",
+      "testerHit": "Would run",
+      "testerMiss": "Not a mark command",
+      "testerApply": "Apply locally",
+      "howTitle": "How it works",
+      "how": [
+        "Owner, Kick mods, or allowlisted names type !mark or /mark to open a start at current stream uptime.",
+        "!emark or /emark closes the newest open start. Chat stays silent — no URLs or IDs.",
+        "Offline Kick chat is ignored. Studio can still record an offline mark so it is never faked as live time."
+      ],
+      "whoTitle": "Who can trigger",
+      "who": "Kick accepts !mark / !emark from the channel owner, moderators, editors (Kick staff badges), and Kick usernames you add below. The private review link is gated the same way — never posted in chat.",
+      "twitchNote": "Twitch can be stored as a source later. Live ingest is Kick-first.",
+      "allowTitle": "Extra names",
+      "allowHint": "Kick usernames allowed besides the owner, mods and editors.",
+      "shareTitle": "Private review link",
+      "shareHint": "Unlisted. Token plus Kick username (or your Studio login). Never send this in public chat.",
+      "shareCopy": "Copy link",
+      "shareCopied": "Copied",
+      "shareRotate": "New link",
+      "shareMark": "Copy mark link",
+      "shareMarkCopied": "Mark link copied",
+      "status": "Status",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "allowPlaceholder": "kick_username",
+      "allowAdd": "Add",
+      "allowEmpty": "No extra names yet.",
+      "saved": "Saved",
+      "started": "Mark started",
+      "closed": "Mark saved",
+      "startedOffline": "Saved as offline — Kick is not live.",
+      "noOpen": "No open mark to close.",
+      "errSave": "Could not save the mark.",
+      "errName": "Enter a Kick username.",
+      "loadMore": "Load More",
+      "streamMarkFallback": "Stream mark"
+    },
+    "sharedMarks": {
+      "title": "Mark Points",
+      "gateHint": "Enter your Kick username. The link alone is not enough.",
+      "username": "Kick username",
+      "enter": "Enter",
+      "denied": "That name is not allowed.",
+      "missing": "This link is not valid.",
+      "empty": "No marks yet.",
+      "watch": "Watch",
+      "start": "Start",
+      "end": "End",
+      "duration": "Duration",
+      "status": "Status",
+      "stream": "Stream",
+      "open": "open",
+      "offline": "offline",
+      "note": "Note",
+      "back": "All marks",
+      "emptyVod": "No recording yet",
+      "seekHint": "Starts at"
+    },
+    "customCommands": {
+      "title": "Custom Chat Commands",
+      "subtitle": "Create chat triggers and automatic replies for your stream.",
+      "prefixTitle": "Command trigger",
+      "prefixHint": "Choose how viewers fire commands: a symbol before the word (!hello), a question mark after it (hello? or سؤال؟), or the word alone.",
+      "none": "No symbol (direct)",
+      "prefixGroup": "Symbol at the start",
+      "suffixGroup": "Question mark at the end",
+      "custom": "Custom symbol",
+      "savePrefix": "Save trigger",
+      "add": "Add command",
+      "empty": "No commands yet. Add one to start auto-replies in chat.",
+      "name": "Command",
+      "reply": "Auto-reply",
+      "platform": "Platforms",
+      "status": "Status",
+      "on": "On",
+      "off": "Off",
+      "edit": "Edit",
+      "delete": "Delete",
+      "modalCreate": "New command",
+      "modalEdit": "Edit command",
+      "modalHint": "Viewers type the trigger in chat and the bot sends your reply.",
+      "nameLabel": "Command name",
+      "namePlaceholder": "discord",
+      "prefixLabel": "Where the symbol goes",
+      "inherit": "Use default",
+      "prefixAtStart": "Before the word",
+      "suffixAuto": "Arabic letters use ؟ and English letters use ? automatically.",
+      "livePreview": "Viewers will type",
+      "testerPlaceholder": "hello?",
+      "responseLabel": "Bot reply",
+      "responsePlaceholder": "Join Discord: discord.gg/your-server",
+      "vars": "Variables: {user}  {command}",
+      "platformsLabel": "Platforms",
+      "rolesLabel": "Who can use it",
+      "cooldown": "Cooldown (seconds)",
+      "enabled": "Enabled",
+      "cancel": "Cancel",
+      "save": "Save command",
+      "deleteTitle": "Delete this command?",
+      "deleteBody": "The chat trigger will stop working immediately.",
+      "previewTitle": "Trigger preview",
+      "testerTitle": "Try a chat line",
+      "testerHint": "Type what a viewer would send. Matching is local and does not post to chat.",
+      "testerHit": "Would reply",
+      "testerMiss": "No matching command",
+      "howTitle": "How it works",
+      "how": [
+        "Pick a start symbol (! or #), an ending question mark (? ؟), or no symbol.",
+        "Add a command name and the message the bot should send.",
+        "Choose Kick, Twitch, or both, then enable the command."
+      ],
+      "errName": "Enter a command name.",
+      "errReply": "Enter a reply message.",
+      "errDup": "That command name already exists.",
+      "errSave": "Could not save the command.",
+      "saved": "Saved",
+      "prefixSaved": "Default trigger saved",
+      "search": "Search commands…",
+      "filters": "Filters",
+      "filterAll": "All",
+      "filterDisabled": "Disabled",
+      "filterNone": "No commands match.",
+      "loadMore": "Load More",
+      "tabDefaults": "Default Commands",
+      "tabCommands": "Custom Commands",
+      "tabTimers": "Message Timers",
+      "defaultSubtitle": "Built-in Kick chat commands. Edit the reply — the trigger stays reserved.",
+      "defaultHint": "Customize the bot reply. The trigger name cannot be changed.",
+      "defaultVars": "Variables: {user}  {command}  {target}  {list}  {followage}",
+      "defaultHowTitle": "How it works",
+      "defaultHow": [
+        "These five commands are always listed. Enable the ones you want in Kick chat.",
+        "Edit the reply template. The trigger (!commands, !lurk, …) cannot be renamed.",
+        "Kick sends the reply. Twitch is stored as a flag only. !clip is never taken."
+      ],
+      "defaultSave": "Save command",
+      "fallbackLabel": "Fallback reply",
+      "errReserved": "That name is reserved for a default command.",
+      "timerSubtitle": "Repeating Kick chat messages on an interval.",
+      "addTimer": "Add timer",
+      "timerEmpty": "No timers yet. Add one to post a repeating Kick chat message.",
+      "timerModalCreate": "New timer",
+      "timerModalEdit": "Edit timer",
+      "timerHint": "The bot posts this message on Kick every N minutes while Studio stays open.",
+      "timerMessage": "Message",
+      "timerMessagePlaceholder": "Follow the stream and drink water.",
+      "timerInterval": "Interval (minutes)",
+      "timerEveryPrefix": "every",
+      "timerMinutesUnit": "min",
+      "timerSave": "Save timer",
+      "timerDeleteTitle": "Delete this timer?",
+      "timerDeleteBody": "The repeating message will stop immediately.",
+      "errTimerMessage": "Enter a message.",
+      "errTimerSave": "Could not save the timer.",
+      "timerHowTitle": "How it works",
+      "timerHow": [
+        "Write the message and how often it should post (minutes).",
+        "Enable it. The bot sends to Kick while this Studio page is open.",
+        "There is no server cron and Twitch is not sent."
+      ]
+    },
+    "defaultCommands": {
+      "commands": {
+        "response": "Commands: {list}"
+      },
+      "followage": {
+        "response": "{user} has followed for {followage}.",
+        "fallback": "Kick does not share how long {user} has followed this channel."
+      },
+      "lurk": {
+        "response": "{user} is lurking. Enjoy the stream!"
+      },
+      "so": {
+        "response": "Check out {target}! https://kick.com/{target}",
+        "fallback": "Usage: !so <user>"
+      },
+      "welcome": {
+        "response": "Welcome to the stream, {user}!"
+      },
+      "followDuration": {
+        "days": "{n} days",
+        "hours": "{n} hours",
+        "minutes": "{n} minutes",
+        "lessThanMinute": "less than a minute"
+      }
+    },
+    "schedule": {
+      "title": "Stream schedule",
+      "subtitle": "A monthly calendar of go-live times. Share a public page or export ICS — no fake push alerts.",
+      "timezone": "Timezone",
+      "calendarTitle": "Public title",
+      "reminder": "Reminder note",
+      "reminderHint": "Shown on the public page (e.g. “Turn on channel notifications”). Not a push system.",
+      "reminderPlaceholder": "Enable channel notifications so you don’t miss a go-live.",
+      "share": "Public schedule",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "ics": "Download ICS",
+      "add": "Add session",
+      "empty": "Click a day to add a go-live. Recurring weekly slots appear on every matching weekday.",
+      "modalCreate": "New session",
+      "modalEdit": "Edit session",
+      "date": "Date",
+      "repeat": "Repeat every week on this weekday",
+      "cover": "Game cover",
+      "coverHint": "Shown as a poster under the day’s details in the calendar. Images are compressed.",
+      "coverRemove": "Remove image",
+      "day": "Day",
+      "time": "Start time",
+      "duration": "Duration (minutes)",
+      "sessionTitle": "Title",
+      "game": "Game / category",
+      "notes": "Notes",
+      "enabled": "Listed publicly",
+      "cancel": "Cancel",
+      "save": "Save",
+      "delete": "Delete",
+      "deleteTitle": "Delete this session?",
+      "deleteBody": "It will disappear from the public schedule immediately.",
+      "saved": "Saved",
+      "errTitle": "Enter a session title.",
+      "errTime": "Use 24-hour time like 18:00.",
+      "errSave": "Could not save the session.",
+      "errCover": "Could not read that image. Try a smaller JPG or PNG.",
+      "errStorage": "Could not store the image locally. Try a smaller file.",
+      "howTitle": "Sharing",
+      "how": "Viewers open the public URL. They can add sessions to their own calendar via ICS. Local OS reminders come from that calendar — we do not send push notifications.",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "weekdays": [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+      ],
+      "weekdaysShort": [
+        "Sun",
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat"
+      ]
+    },
+    "publicSchedule": {
+      "empty": "No streams listed this month.",
+      "reminder": "Local reminder",
+      "ics": "Add to calendar (ICS)",
+      "tz": "Timezone"
+    },
+    "hubTools": {
+      "chatBox": {
+        "name": "Chat box",
+        "description": "Live platform chat with Dynamic Island, speech bubble or transparent layouts."
+      },
+      "subathonTimer": {
+        "name": "Subathon timer",
+        "description": "Visual timer editor with a dedicated Rules & Logic sub-tab."
+      },
+      "goalBar": {
+        "name": "Goal bar",
+        "description": "Progress goals for followers, subscribers, donations or custom targets."
+      },
+      "chatSpotlight": {
+        "name": "Chat spotlight",
+        "description": "Pin one chat message to a premium glass card on your OBS overlay."
+      },
+      "tiktokTappers": {
+        "name": "Top Tappers Overlay",
+        "description": "Live TikTok tap leaderboard with animated ranks and instant reordering."
+      },
+      "tiktokTapGoal": {
+        "name": "TikTok Tap Goal Overlay",
+        "description": "Progress bar toward a total tap target with live percentage and confetti."
+      },
+      "mediaRequests": {
+        "name": "Media Requests",
+        "description": "Channel-point song requests from YouTube, Spotify, Anghami and SoundCloud with a moderated queue and OBS player."
+      },
+      "emoteRain": {
+        "name": "Emote rain",
+        "description": "Falling emotes triggered by chat spam, gifts and hype events."
+      }
+    },
+    "goalTypes": {
+      "DONATION": {
+        "label": "Donation goal",
+        "title": "Donation goal",
+        "overlayLabel": "DONATION GOAL",
+        "unit": "USD"
+      },
+      "FOLLOWER": {
+        "label": "Follower goal",
+        "title": "Follower goal",
+        "overlayLabel": "FOLLOWER GOAL",
+        "unit": "followers"
+      },
+      "SUBSCRIBER": {
+        "label": "Subscriber goal",
+        "title": "Subscriber goal",
+        "overlayLabel": "SUB GOAL",
+        "unit": "subs"
+      },
+      "CUSTOM": {
+        "label": "Custom goal",
+        "title": "Custom goal",
+        "overlayLabel": "CUSTOM GOAL",
+        "unit": "points"
+      }
+    },
+    "subscription": {
+      "lifetime": "Lifetime ♾️",
+      "lifetimeAccess": "Lifetime Access ♾️",
+      "year": "1 Year",
+      "months6": "6 Months",
+      "months3": "3 Months",
+      "months2": "2 Months",
+      "month1": "1 Month",
+      "days": "{n} Days",
+      "expired": "Expired",
+      "remaining": "{parts} Remaining",
+      "daysLeft": "{n} Days Left",
+      "yearUnit": "{n} Years",
+      "monthUnit": "{n} Months",
+      "dayUnit": "{n} Days"
+    }
+  },
+  "HARDCODED": [
+    {
+      "file": "src/components/hub/previews.tsx",
+      "en": "Goal: 50K taps"
+    },
+    {
+      "file": "src/components/hub/previews.tsx",
+      "en": "New sub · Tier 1"
+    },
+    {
+      "file": "src/components/hub/previews.tsx",
+      "en": "Now playing · YouTube · Spotify"
+    },
+    {
+      "file": "src/components/overlay/OverlayView.tsx",
+      "en": "Timer progress"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Actions"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Activation code generator"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Code"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Code copied to clipboard"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Code deleted"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Codes management"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Copy code"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Created"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Custom days"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "e.g. Customer #104"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Enter a day count between 1 and 36500."
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Export CSV"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "New code generated"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "No available codes to export."
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "No codes to show."
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Notes / reference (optional)"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Redeemed by"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Revoke Subscription"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Subscription revoked"
+    },
+    {
+      "file": "src/components/settings/AdminCodesPanel.tsx",
+      "en": "Validity duration"
+    },
+    {
+      "file": "src/components/subscription/RedeemCodeModal.tsx",
+      "en": "Activate your subscription"
+    },
+    {
+      "file": "src/components/subscription/RedeemCodeModal.tsx",
+      "en": "Activation failed."
+    },
+    {
+      "file": "src/components/subscription/RedeemCodeModal.tsx",
+      "en": "Close"
+    },
+    {
+      "file": "src/components/subscription/RedeemCodeModal.tsx",
+      "en": "License code"
+    },
+    {
+      "file": "src/components/subscription/RedeemCodeModal.tsx",
+      "en": "XXXX - XXXX - XXXX - XXXX"
+    },
+    {
+      "file": "src/components/widgets/DeleteWidgetDialog.tsx",
+      "en": "Delete widget?"
+    },
+    {
+      "file": "src/components/widgets/DeleteWidgetDialog.tsx",
+      "en": "Deleting…"
+    },
+    {
+      "file": "src/components/widgets/GlobalSimulator.tsx",
+      "en": "🧪 Live Unified Simulator"
+    },
+    {
+      "file": "src/components/widgets/GlobalSimulator.tsx",
+      "en": "Kick sub sent ✅"
+    },
+    {
+      "file": "src/components/widgets/GlobalSimulator.tsx",
+      "en": "Send Test Chat Message"
+    },
+    {
+      "file": "src/components/widgets/GlobalSimulator.tsx",
+      "en": "Simulate Kick Sub"
+    },
+    {
+      "file": "src/components/widgets/GlobalSimulator.tsx",
+      "en": "Simulate TikTok Gift"
+    },
+    {
+      "file": "src/components/widgets/GlobalSimulator.tsx",
+      "en": "Simulate Twitch Follow"
+    },
+    {
+      "file": "src/components/widgets/GlobalSimulator.tsx",
+      "en": "Target overlay"
+    },
+    {
+      "file": "src/components/widgets/GlobalSimulator.tsx",
+      "en": "Test chat message sent ✅"
+    },
+    {
+      "file": "src/components/widgets/GlobalSimulator.tsx",
+      "en": "TikTok gift sent ✅"
+    },
+    {
+      "file": "src/components/widgets/GlobalSimulator.tsx",
+      "en": "Twitch follow sent ✅"
+    },
+    {
+      "file": "src/components/widgets/GlobalSimulator.tsx",
+      "en": "Twitch live events enabled ✅"
+    },
+    {
+      "file": "src/components/widgets/SpotlightControlPanel.tsx",
+      "en": "Auto-hide timer"
+    },
+    {
+      "file": "src/components/widgets/SpotlightControlPanel.tsx",
+      "en": "Clear / unpin"
+    },
+    {
+      "file": "src/components/widgets/SpotlightControlPanel.tsx",
+      "en": "Currently pinned"
+    },
+    {
+      "file": "src/components/widgets/SpotlightControlPanel.tsx",
+      "en": "Live chat feed"
+    },
+    {
+      "file": "src/components/widgets/SpotlightControlPanel.tsx",
+      "en": "No message is pinned right now."
+    },
+    {
+      "file": "src/components/widgets/SpotlightControlPanel.tsx",
+      "en": "Pin / highlight control"
+    },
+    {
+      "file": "src/components/widgets/SpotlightControlPanel.tsx",
+      "en": "Pin a message manually…"
+    },
+    {
+      "file": "src/components/widgets/SpotlightControlPanel.tsx",
+      "en": "Pin message"
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "Change Duration"
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "Click the digits to set the time manually"
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "Element Control Panel"
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "Hours"
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "Minutes"
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "Need to reset timer?"
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "Open control panel in separate window"
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "Open in separate window"
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "Reset Timer"
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "Reset timer?"
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "Seconds"
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "Set Time"
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "Subathon Timer"
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "The timer returns to its original duration."
+    },
+    {
+      "file": "src/components/widgets/SubathonElementControlPanel.tsx",
+      "en": "This stops the timer and restores its original duration. This action is not automatically reversible."
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "Accent"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "accentColor"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "Background"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "Background opacity"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "controls"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "Controls & Actions"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "Copy OBS URL"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "Font size"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "general"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "General & Layout"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "Hide background container"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "Layout Style"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "Show Title"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "test"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "Test & Integration"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "Text"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "textColor"
+    },
+    {
+      "file": "src/components/widgets/SubathonTimerSidebar.tsx",
+      "en": "Time format"
+    },
+    {
+      "file": "src/components/widgets/TestSimulatePanel.tsx",
+      "en": "🧪 Test & Simulate"
+    },
+    {
+      "file": "src/components/widgets/TestSimulatePanel.tsx",
+      "en": "Kick sub sent ✅"
+    },
+    {
+      "file": "src/components/widgets/TestSimulatePanel.tsx",
+      "en": "Message sent ✅"
+    },
+    {
+      "file": "src/components/widgets/TestSimulatePanel.tsx",
+      "en": "Send Test Chat Message"
+    },
+    {
+      "file": "src/components/widgets/TestSimulatePanel.tsx",
+      "en": "Simulate Kick Sub"
+    },
+    {
+      "file": "src/components/widgets/TestSimulatePanel.tsx",
+      "en": "Taps sent ✅"
+    },
+    {
+      "file": "src/components/widgets/TestSimulatePanel.tsx",
+      "en": "Test chat message sent ✅"
+    },
+    {
+      "file": "src/components/widgets/TestSimulatePanel.tsx",
+      "en": "Twitch follow sent ✅"
+    },
+    {
+      "file": "src/components/widgets/TestSimulatePanel.tsx",
+      "en": "Twitch live events enabled ✅"
+    },
+    {
+      "file": "src/components/widgets/TestSimulatePanel.tsx",
+      "en": "Type a test message…"
+    },
+    {
+      "file": "src/components/widgets/TimerControlPanel.tsx",
+      "en": "!Number.isFinite(part) || part"
+    },
+    {
+      "file": "src/components/widgets/TimerControlPanel.tsx",
+      "en": "Apply"
+    },
+    {
+      "file": "src/components/widgets/TimerControlPanel.tsx",
+      "en": "HH:MM:SS or minutes"
+    },
+    {
+      "file": "src/components/widgets/TimerControlPanel.tsx",
+      "en": "Invalid time format"
+    },
+    {
+      "file": "src/components/widgets/TimerControlPanel.tsx",
+      "en": "Manual timer controls"
+    },
+    {
+      "file": "src/components/widgets/TimerControlPanel.tsx",
+      "en": "Reset"
+    },
+    {
+      "file": "src/components/widgets/TimerControlPanel.tsx",
+      "en": "Set Manual Time"
+    },
+    {
+      "file": "src/components/widgets/TimerControls.tsx",
+      "en": "Set exact time (HH:MM:SS or seconds)"
+    },
+    {
+      "file": "src/components/widgets/WidgetRenderer.tsx",
+      "en": "GOAL REACHED 🎉"
+    },
+    {
+      "file": "src/components/widgets/WidgetRenderer.tsx",
+      "en": "Waiting for chat…"
+    },
+    {
+      "file": "src/routes/__root.tsx",
+      "en": "Page not found"
+    },
+    {
+      "file": "src/routes/__root.tsx",
+      "en": "The page you're looking for doesn't exist or has been moved."
+    },
+    {
+      "file": "src/routes/_authenticated/clip-command.tsx",
+      "en": "Command Settings"
+    },
+    {
+      "file": "src/routes/_authenticated/clip-command.tsx",
+      "en": "Copy clip URL"
+    },
+    {
+      "file": "src/routes/_authenticated/clip-command.tsx",
+      "en": "Created Clips"
+    },
+    {
+      "file": "src/routes/_authenticated/clip-command.tsx",
+      "en": "CylixStudio:"
+    },
+    {
+      "file": "src/routes/_authenticated/clip-command.tsx",
+      "en": "Custom response"
+    },
+    {
+      "file": "src/routes/_authenticated/clip-command.tsx",
+      "en": "Default length"
+    },
+    {
+      "file": "src/routes/_authenticated/clip-command.tsx",
+      "en": "Download clip"
+    },
+    {
+      "file": "src/routes/_authenticated/clip-command.tsx",
+      "en": "Enable clip command"
+    },
+    {
+      "file": "src/routes/_authenticated/clip-command.tsx",
+      "en": "Let viewers instantly create clips by typing !clip in chat"
+    },
+    {
+      "file": "src/routes/_authenticated/clip-command.tsx",
+      "en": "Maximum length"
+    },
+    {
+      "file": "src/routes/_authenticated/clip-command.tsx",
+      "en": "Play clip"
+    },
+    {
+      "file": "src/routes/_authenticated/clip-command.tsx",
+      "en": "Your clips"
+    },
+    {
+      "file": "src/routes/_authenticated/custom-commands.tsx",
+      "en": "CylixStudio:"
+    },
+    {
+      "file": "src/routes/_authenticated/dashboard.tsx",
+      "en": "Activate code"
+    },
+    {
+      "file": "src/routes/_authenticated/dashboard.tsx",
+      "en": "Customize custom goal"
+    },
+    {
+      "file": "src/routes/_authenticated/dashboard.tsx",
+      "en": "Subscription required"
+    },
+    {
+      "file": "src/routes/_authenticated/dashboard.tsx",
+      "en": "Target"
+    },
+    {
+      "file": "src/routes/_authenticated/dashboard.tsx",
+      "en": "Triggers"
+    },
+    {
+      "file": "src/routes/_authenticated/live-counter.tsx",
+      "en": "Dead heat — both channels are level."
+    },
+    {
+      "file": "src/routes/_authenticated/live-counter.tsx",
+      "en": "Live difference"
+    },
+    {
+      "file": "src/routes/_authenticated/live-counter.tsx",
+      "en": "Offline"
+    },
+    {
+      "file": "src/routes/_authenticated/live-counter.tsx",
+      "en": "Platform"
+    },
+    {
+      "file": "src/routes/_authenticated/live-counter.tsx",
+      "en": "Track live follower counts, save your favourite creators and run head-to-head comparisons."
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "}Create reward"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "}Queue test track"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "A lightweight audio bar plays in OBS — no video layouts needed."
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Apply moderation rules"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Audio only mode"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Chat and channel points accept YouTube, Spotify, Anghami, and SoundCloud links. OBS plays YouTube and SoundCloud through official embeds. Spotify and Anghami queue title/artist and show their official widget or an open-in-app link — no unofficial streams."
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Copy mod controls link"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Fetch rewards"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Kick channel points, a moderated multi-platform queue, and an OBS-ready player."
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Links"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Live preview — colors follow the current track artwork."
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Loading rewards…"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Manage Kick connection"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "No media requests yet."
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Nothing playing"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Now playing"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Open Settings"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Queue setup"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Queue test track"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Reconnect Kick in Settings once to grant reward read/write permissions."
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Safety"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Save setup"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Setup"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Skip"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "spam, offensive"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Start audio/video engine"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "Up Next"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "void;track:React.ComponentProps"
+    },
+    {
+      "file": "src/routes/_authenticated/media-requests.tsx",
+      "en": "YouTube, Spotify, Anghami, or SoundCloud URL"
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.control.tsx",
+      "en": "Server-authoritative timer, streamed live to every overlay."
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.overlay.tsx",
+      "en": "Enable “Shutdown source when not visible” off so the timer stays connected."
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.overlay.tsx",
+      "en": "In OBS add a Browser source and paste the URL above."
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.overlay.tsx",
+      "en": "Layout"
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.overlay.tsx",
+      "en": "Loading overlay…"
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.overlay.tsx",
+      "en": "No overlay yet"
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.overlay.tsx",
+      "en": "Overlay builder"
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.overlay.tsx",
+      "en": "Saved — OBS picks it up within 15s."
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.overlay.tsx",
+      "en": "Set width 1920, height 1080 and leave the background transparent."
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.rules.tsx",
+      "en": "Delete rule"
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.rules.tsx",
+      "en": "Event"
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.rules.tsx",
+      "en": "Max / event"
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.rules.tsx",
+      "en": "Min amount"
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.rules.tsx",
+      "en": "none"
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.rules.tsx",
+      "en": "Per units"
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.rules.tsx",
+      "en": "Platform"
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.rules.tsx",
+      "en": "Platform + event + condition → seconds added."
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.rules.tsx",
+      "en": "Rules builder"
+    },
+    {
+      "file": "src/routes/_authenticated/subathons.$id.rules.tsx",
+      "en": "Seconds"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.control.tsx",
+      "en": "Loading control panel…"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.control.tsx",
+      "en": "This control panel is only available for Subathon Timer widgets."
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.goal.tsx",
+      "en": "Custom amount"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.goal.tsx",
+      "en": "Server-side goal math; every change is pushed to OBS instantly."
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "⚙️ Display & badges"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "🎯 Tap goal"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "🏆 Top tappers"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Copy OBS URL"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Current"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Design layout"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Emotes (comma separated)"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Font size"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Goal target (taps)"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Goal title"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Goal: 50K Taps for Giveaway!"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Gradient end"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Gradient start"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Layout"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Loading widget…"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Message layout style"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Message spacing"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Show account badges"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Show percentage"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Show platform badge"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Show profile pictures"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Target"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Text size"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Top limit"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Unit"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.index.tsx",
+      "en": "Wheel entries (one per line)"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.rules.tsx",
+      "en": "Delete rule"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.rules.tsx",
+      "en": "Edit rule"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.rules.tsx",
+      "en": "Event"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.rules.tsx",
+      "en": "Goal +"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.rules.tsx",
+      "en": "Min amount"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.rules.tsx",
+      "en": "Platform"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.rules.tsx",
+      "en": "Time added"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.tsx",
+      "en": "Activate code"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.$widgetId.tsx",
+      "en": "Subscription required"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.index.tsx",
+      "en": "Every widget gets its own OBS browser-source URL."
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.index.tsx",
+      "en": "Loading widgets…"
+    },
+    {
+      "file": "src/routes/_authenticated/widgets.index.tsx",
+      "en": "Widget hub"
+    },
+    {
+      "file": "src/routes/clip.$id.tsx",
+      "en": "Captured with CylixStudio"
+    },
+    {
+      "file": "src/routes/index.tsx",
+      "en": "Checking your session…"
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "By continuing you allow this app to read your channel events so the timer can award time according to your rules."
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "Connect a streaming account. Your tokens are stored securely and used to track follows, subs, gifts, bits and donations."
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "Continue with Kick"
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "Continue with TikTok"
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "Continue with Twitch"
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "Kick login isn't configured yet. Add the Kick app credentials."
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "Redirecting…"
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "Sign in to your control room"
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "Sign-in failed. Please try again."
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "Something went wrong during sign-in."
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "Subathon Timer"
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "The provider did not return an authorization code."
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "The sign-in attempt expired. Please try again."
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "Twitch login isn't configured yet. Add the Twitch app credentials."
+    },
+    {
+      "file": "src/routes/login.tsx",
+      "en": "You cancelled the sign-in request."
+    },
+    {
+      "file": "src/routes/mod-queue.tsx",
+      "en": "Mod controls"
+    },
+    {
+      "file": "src/routes/mod-queue.tsx",
+      "en": "Moderator queue"
+    },
+    {
+      "file": "src/routes/mod-queue.tsx",
+      "en": "Moderator token"
+    },
+    {
+      "file": "src/routes/mod-queue.tsx",
+      "en": "Now playing"
+    },
+    {
+      "file": "src/routes/mod-queue.tsx",
+      "en": "Paste the moderator link the streamer shared with you."
+    },
+    {
+      "file": "src/routes/mod-queue.tsx",
+      "en": "Skip"
+    },
+    {
+      "file": "src/routes/mod-queue.tsx",
+      "en": "Up Next"
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "Access and refresh tokens for the platforms you connect, stored so widgets can keep reading live data."
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "Account basics: email address, display name and avatar."
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "Connected platform data you authorise: public profile (open id, username, avatar), follower and channel statistics, and channel events such as follows, subscriptions, gifts, cheers and donations."
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "Cookies"
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "CylixStudio is a live stream overlay tool for creators. Contact: store@creovix.com"
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "Data is stored in an access-controlled database where every record is restricted to its owner. Tokens are only read by our servers, never exposed in the browser."
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "Data we collect"
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "Deleting your data"
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "Disconnect a platform in Settings to revoke access and remove its stored tokens. To delete your whole account and all related data, email store@creovix.com and we will remove it."
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "How we use it"
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "Last updated: 4 September 2026"
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "Only to operate the product: render your overlays, count follower and goal progress, drive the subathon timer, and show your activity history. We do not sell your data or use it for advertising."
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "Privacy Policy"
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "Storage and security"
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "TikTok data"
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "We use only essential cookies needed to keep you signed in and to secure the sign-in flow. No tracking or advertising cookies."
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "Who we are"
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "Widget settings and the events shown in your activity feed."
+    },
+    {
+      "file": "src/routes/privacy.tsx",
+      "en": "With the scopes you approve (user.info.basic, user.info.profile, user.info.stats) we read your TikTok display name, avatar, profile link and follower count. This is shown only to you inside your dashboard and in the overlays you choose to display. It is never shared with third parties."
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "1. The service"
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "2. Accounts"
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "3. Connected platforms"
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "4. Acceptable use"
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "5. Licences and access"
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "6. Availability"
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "7. Termination"
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "8. Contact"
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "CylixStudio provides live stream overlay widgets (subathon timer, goals, chat box, chat spotlight, emote rain and related tools) that creators embed into their broadcasting software."
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "Do not use the service to break the rules of any streaming platform, to harass others, to distribute unlawful content, or to attempt to access other users' data."
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "Last updated: 4 September 2026"
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "Questions about these terms: store@creovix.com"
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "Some features require an activation code. Codes begin their validity when redeemed and may be revoked if obtained or used improperly."
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "Terms of Service"
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "The service is provided “as is”. We work to keep it online but cannot guarantee uninterrupted availability, and we are not liable for lost stream revenue or other indirect damages."
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "When you connect a platform you authorise CylixStudio to read the channel data you approved (profile details, follower statistics and channel events) so the widgets can display live information. You can disconnect any platform at any time from Settings, and we stop reading its data immediately."
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "You may stop using the service and delete your connections at any time. We may suspend accounts that breach these terms."
+    },
+    {
+      "file": "src/routes/terms.tsx",
+      "en": "You sign in with a streaming account (Twitch, Kick, TikTok and similar). You are responsible for activity on your account and for keeping your access tokens private."
+    }
+  ]
+}

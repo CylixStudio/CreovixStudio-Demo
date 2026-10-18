@@ -1,0 +1,168 @@
+{
+  "html": {
+    "creovix": {
+      "length": 20308,
+      "discord": true,
+      "fixture": false,
+      "fixtureLabel": false,
+      "fixtureCount": 0,
+      "forbidden": []
+    },
+    "other": {
+      "length": 20303,
+      "discord": true,
+      "fixture": false,
+      "fixtureLabel": false,
+      "fixtureCount": 0,
+      "forbidden": []
+    },
+    "fixture": {
+      "length": 26114,
+      "discord": false,
+      "fixture": true,
+      "fixtureLabel": true,
+      "fixtureCount": 128,
+      "forbidden": []
+    },
+    "otherName": true,
+    "creovixHasFixture": false,
+    "fixtureHasDiscord": false,
+    "otherHasCreovixName": false
+  },
+  "commandsSamples": [
+    {
+      "contentMs": 69.8,
+      "ttfb": 53.9,
+      "load": 0,
+      "columns": 1,
+      "cardH": "",
+      "pages": [
+        "",
+        "1",
+        "2",
+        ""
+      ],
+      "hydration": []
+    },
+    {
+      "contentMs": 107.7,
+      "ttfb": 94.9,
+      "load": 0,
+      "columns": 6,
+      "cardH": "170px",
+      "pages": [
+        "",
+        "1",
+        "2",
+        ""
+      ],
+      "hydration": []
+    },
+    {
+      "contentMs": 377.5,
+      "ttfb": 362.6,
+      "load": 0,
+      "columns": 6,
+      "cardH": "170px",
+      "pages": [
+        "",
+        "1",
+        "2",
+        ""
+      ],
+      "hydration": []
+    }
+  ],
+  "commandsMedian": {
+    "ttfb": 94.9,
+    "contentMs": 107.7
+  },
+  "fixtureLoad": {
+    "contentMs": 38.1,
+    "ttfb": 25.7,
+    "load": 0,
+    "columns": 6,
+    "cardH": "170px",
+    "pages": [
+      "",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      ""
+    ],
+    "hydration": []
+  },
+  "fixtureInteraction": {
+    "afterSearch": true,
+    "page2": false,
+    "cards": 18
+  },
+  "fixturePage2": true,
+  "cacheLeak": {
+    "fixture": true,
+    "discord": false,
+    "name": true
+  },
+  "toggleClicks": [
+    {
+      "ok": false,
+      "uiMs": null,
+      "serverMs": null,
+      "postCount": 0,
+      "postStatus": null
+    },
+    {
+      "ok": true,
+      "before": "true",
+      "trigger": "!addcom",
+      "uiMs": null,
+      "serverMs": 44,
+      "postCount": 1,
+      "postStatus": 200
+    },
+    {
+      "ok": true,
+      "before": "false",
+      "trigger": "!addcom",
+      "uiMs": null,
+      "serverMs": 45,
+      "postCount": 1,
+      "postStatus": 200
+    }
+  ],
+  "toggleMedian": {
+    "uiMs": null,
+    "serverMs": 44.5
+  },
+  "toggleReload": {
+    "beforeReload": "true",
+    "afterReload": {
+      "checked": "true",
+      "trigger": "!addcom"
+    }
+  },
+  "toggleFailure": {
+    "checked": "true",
+    "successToast": false,
+    "errorVisible": true,
+    "before": "true"
+  },
+  "doubleClickPosts": 1,
+  "seal": {
+    "firstSeal": {
+      "requests": 1,
+      "waitedMs": 807,
+      "link": true
+    },
+    "second": {
+      "requests": 0,
+      "waitedMs": 461,
+      "link": true
+    },
+    "keys": [
+      "cylix.sbc-certificate-href:00000000-0000-4000-a000-0000000000d1"
+    ]
+  }
+}

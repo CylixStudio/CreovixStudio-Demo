@@ -1,0 +1,6 @@
+ليست id مولّدة سيئة).
+
+**إصلاح Demo (لم يُدمَج إلى Main / لم يُنشر):**
+- تمرير `receiptSession` صراحةً إلى مسار الإرسال + مراحل سجل آمنة.
+- `finalizeKickReceiptAfterCommand` يغلق الحالات الصامتة/غير المتتبَّعة.
+- اختبارات `scripts/kick-commands-receipt-fix.ts` نجحت؛ `npm run buil
