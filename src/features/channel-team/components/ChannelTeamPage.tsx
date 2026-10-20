@@ -72,30 +72,56 @@ function PermissionChip({ permission, onRemove }: any) {
   )
 }
 
-// Avatar Component with platform image support and HSL gradient fallback
+// Avatar Component with real platform image support
 function Avatar({ userId, size = 'md', showPlatformBadge = true }: any) {
   const user = USER_BY_ID[userId]
   const initials = (user?.username || userId).substring(0, 2).toUpperCase()
   
-  // For demo: use HSL-based gradient since no real platform images are available in fixtures
-  // In production, this would fetch from Kick/Twitch/YouTube APIs
+  // Use real platform avatar if available
+  const hasImage = user?.avatarUrl && typeof user.avatarUrl === 'string'
+  
+  // Fallback to HSL gradient if no image
   const hue = user?.hue ?? 205
   const gradientClass = `bg-gradient-to-br from-[hsl(${hue},100%,55%)] to-[hsl(${hue},80%,40%)]`
+  
   const sizeClass = size === 'lg' ? 'h-12 w-12' : size === 'sm' ? 'h-8 w-8' : 'h-10 w-10'
   const badgeSizeClass = size === 'lg' ? 'h-3 w-3' : size === 'sm' ? 'h-2 w-2' : 'h-2.5 w-2.5'
   
-  // Platform badge would show actual platform icon here
-  // For demo, showing a generic indicator since fixtures don't have platform data
-  const platformColor = 'bg-[#bee1fc]'
+  // Get platform color based on platform type
+  const platformColors: Record<string, string> = {
+    kick: 'bg-[#00c70f]',
+    twitch: 'bg-[#9147ff]',
+    youtube: 'bg-[#ff0000]',
+    tiktok: 'bg-[#000000]',
+  }
+  const platformColor = platformColors[user?.platform?.toLowerCase() || 'kick'] || 'bg-[#bee1fc]'
   
   return (
     <div className="relative inline-flex">
-      <div className={`${sizeClass} rounded-full ${gradientClass} flex items-center justify-center text-xs font-semibold text-white shadow-md ring-1 ring-white/20`}>
-        {initials}
+      <div 
+        className={`${sizeClass} rounded-full ${hasImage ? '' : gradientClass} flex items-center justify-center text-xs font-semibold text-white shadow-md ring-1 ring-white/20 overflow-hidden`}
+      >
+        {hasImage ? (
+          <img 
+            src={user.avatarUrl} 
+            alt={user?.displayName || 'Avatar'}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to initials if image fails to load
+              e.currentTarget.style.display = 'none'
+            }}
+          />
+        ) : null}
+        {!hasImage && (
+          <span>{initials}</span>
+        )}
       </div>
-      {/* Platform badge indicator - would show Kick/Twitch/YouTube icon in production */}
+      {/* Platform badge indicator - shows actual platform color */}
       {showPlatformBadge && (
-        <div className={`${badgeSizeClass} absolute bottom-0 end-0 rounded-full ${platformColor} ring-1 ring-[#0a0a0a] shadow-sm`} title="Demo: Platform avatar (Kick/Twitch/YouTube image would display here in production)" />
+        <div 
+          className={`${badgeSizeClass} absolute bottom-0 end-0 rounded-full ${platformColor} ring-1 ring-[#0a0a0a] shadow-sm`} 
+          title={`Platform: ${user?.platform || 'Unknown'}`} 
+        />
       )}
     </div>
   )

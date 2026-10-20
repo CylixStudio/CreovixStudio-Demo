@@ -26,6 +26,10 @@ export type TeamUser = {
   displayName: string;
   /** Hue (0-360) used to generate the avatar. */
   hue: number;
+  /** Optional platform profile image URL (Kick/Twitch/YouTube). Demo data may use placeholder URLs. */
+  avatarUrl?: string | null;
+  /** Platform identifier if known (kick, twitch, youtube, tiktok, etc.). */
+  platform?: string | null;
 };
 
 export type TeamChannel = {

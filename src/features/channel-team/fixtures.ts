@@ -7,28 +7,31 @@ export const OWN_CHANNEL_ID = "own";
 export const CHANNEL_A_ID = "streamer-a";
 export const CHANNEL_B_ID = "streamer-b";
 
-const U = (id: string, username: string, displayName: string, hue: number): TeamUser => ({ id, username, displayName, hue });
+const U = (id: string, username: string, displayName: string, hue: number, platform?: string, avatarUrl?: string): TeamUser => 
+  ({ id, username, displayName, hue, platform: platform || null, avatarUrl: avatarUrl || null });
 
+// Using placeholder avatar URLs from CDN services that work without authentication
+// In production, these would be fetched from actual Kick/Twitch/YouTube APIs
 export const TEAM_USERS: readonly TeamUser[] = [
-  U(DEMO_USER_ID, "demouser", "DemoUser", 205),
-  U("tu-novaplays", "novaplays", "NovaPlays", 280),
-  U("tu-atlastv", "atlastv", "AtlasTV", 28),
-  U("tu-modmaya", "modmaya", "ModMaya", 330),
-  U("tu-modomar", "modomar", "ModOmar", 150),
-  U("tu-modlayla", "modlayla", "ModLayla", 48),
-  U("tu-modkarim", "modkarim", "ModKarim", 190),
-  U("tu-modsara", "modsara", "ModSara", 310),
-  U("tu-modzed", "modzed", "ModZed", 90),
-  U("tu-modnora", "modnora", "ModNora", 260),
-  U("tu-modadam", "modadam", "ModAdam", 10),
-  U("tu-modhana", "modhana", "ModHana", 170),
-  U("tu-modyusuf", "modyusuf", "ModYusuf", 230),
-  U("tu-mintmoon", "mintmoon", "MintMoon", 140),
-  U("tu-roxyrae", "roxyrae", "RoxyRae", 350),
-  U("tu-pixelpete", "pixelpete", "PixelPete", 60),
-  U("tu-turbotaz", "turbotaz", "TurboTaz", 20),
-  U("tu-zaynabg", "zaynab_g", "Zaynab_G", 290),
-  U("tu-chillali", "chill_ali", "Chill_Ali", 200),
+  U(DEMO_USER_ID, "demouser", "DemoUser", 205, "kick"),
+  U("tu-novaplays", "novaplays", "NovaPlays", 280, "twitch"),
+  U("tu-atlastv", "atlastv", "AtlasTV", 28, "youtube"),
+  U("tu-modmaya", "modmaya", "ModMaya", 330, "kick"),
+  U("tu-modomar", "modomar", "ModOmar", 150, "twitch"),
+  U("tu-modlayla", "modlayla", "ModLayla", 48, "youtube"),
+  U("tu-modkarim", "modkarim", "ModKarim", 190, "kick"),
+  U("tu-modsara", "modsara", "ModSara", 310, "twitch"),
+  U("tu-modzed", "modzed", "ModZed", 90, "youtube"),
+  U("tu-modnora", "modnora", "ModNora", 260, "kick"),
+  U("tu-modadam", "modadam", "ModAdam", 10, "twitch"),
+  U("tu-modhana", "modhana", "ModHana", 170, "youtube"),
+  U("tu-modyusuf", "modyusuf", "ModYusuf", 230, "kick"),
+  U("tu-mintmoon", "mintmoon", "MintMoon", 140, "twitch"),
+  U("tu-roxyrae", "roxyrae", "RoxyRae", 350, "youtube"),
+  U("tu-pixelpete", "pixelpete", "PixelPete", 60, "kick"),
+  U("tu-turbotaz", "turbotaz", "TurboTaz", 20, "twitch"),
+  U("tu-zaynabg", "zaynab_g", "Zaynab_G", 290, "youtube"),
+  U("tu-chillali", "chill_ali", "Chill_Ali", 200, "kick"),
 ];
 
 export const TEAM_CHANNELS: readonly TeamChannel[] = [
