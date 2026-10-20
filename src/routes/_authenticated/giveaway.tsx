@@ -8,8 +8,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/layout/AppShell";
 import { DarkSelect } from "@/components/ui/dark-select";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { GiveawayDisplay, type DrawPhase } from "@/components/widgets/GiveawayDisplay";
-import { PlatformIcon } from "@/components/widgets/PlatformIcon";
+import { GiveawayDisplay, ParticipantAvatar, type DrawPhase } from "@/components/widgets/GiveawayDisplay";
 import { ProFeatureGate } from "@/components/subscription/ProLockedScreen";
 import { notePlanError } from "@/components/subscription/upgradePlan";
 import { useLiveChat } from "@/hooks/useLiveChat";
@@ -73,6 +72,9 @@ const SPIN_DURATIONS = [3, 5, 8, 10, 15];
 const CLAIM_WINDOWS = [60, 120, 300, 600];
 const MULTIPLIERS = [1, 2, 3, 5, 10];
 
+const avatarKey = (platform: string, username: string) =>
+  `${platform.toUpperCase()}:${username.toLowerCase()}`;
+
 function formatEntered(iso: string, lang: string) {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
@@ -132,7 +134,15 @@ function GiveawayPage() {
     }
   }, [state.data]);
 
-  const participants = state.data?.participants ?? [];
+  const [avatars, setAvatars] = useState<Record<string, string>>({});
+  const participants = useMemo(
+    () =>
+      (state.data?.participants ?? []).map((row) => ({
+        ...row,
+        avatarUrl: avatars[avatarKey(row.platform, row.username)] ?? null,
+      })),
+    [state.data?.participants, avatars],
+  );
   const totalEntries = useMemo(
     () => participants.reduce((sum, p) => sum + p.entries, 0),
     [participants],
@@ -204,6 +214,11 @@ function GiveawayPage() {
       : null,
     30,
     (message) => {
+      if (message.avatarUrl) {
+        const url = message.avatarUrl;
+        const key = avatarKey(message.platform, message.author);
+        setAvatars((prev) => (prev[key] === url ? prev : { ...prev, [key]: url }));
+      }
       const keyword = (form.keyword || "+1").trim().toLowerCase();
       const text = message.text.trim().toLowerCase();
       if (keyword && text === keyword && message.platform !== "TEST") {
@@ -474,7 +489,13 @@ function GiveawayPage() {
                     key={participant.id}
                     className="flex items-center gap-2.5 border-b border-zinc-800 py-2.5 last:border-b-0"
                   >
-                    <PlatformIcon platform={participant.platform} size={16} />
+                    <ParticipantAvatar
+                      username={participant.username}
+                      platform={participant.platform}
+                      avatarUrl={participant.avatarUrl}
+                      size={36}
+                      ringWidth={2}
+                    />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm" dir="auto">{participant.username}</p>
                       {participant.createdAt ? (

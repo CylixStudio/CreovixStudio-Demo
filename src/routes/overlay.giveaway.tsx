@@ -7,13 +7,13 @@ type Payload = {
   keyword: string;
   draw: {
     phase: DrawPhase;
-    winner: { username: string; platform: string } | null;
+    winner: { username: string; platform: string; avatarUrl?: string | null } | null;
     claimState: ClaimState;
     claimUntil: string | null;
     overlayLayout?: "glass" | "direct" | "bold";
   } | null;
   lastWinner: { username: string; platform: string } | null;
-  participants: Array<{ id: string; platform: string; username: string }>;
+  participants: Array<{ id: string; platform: string; username: string; avatarUrl?: string | null }>;
 };
 
 export const Route = createFileRoute("/overlay/giveaway")({
@@ -74,7 +74,7 @@ function GiveawayOverlay() {
         : (draw?.claimState ?? "pending");
 
   return (
-    <main className="h-screen w-screen bg-transparent">
+    <main className="fixed inset-0 overflow-hidden bg-transparent">
       <GiveawayDisplay
         participants={data?.participants ?? []}
         winner={draw?.winner ?? null}
