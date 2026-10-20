@@ -173,6 +173,18 @@
   --sidebar-ring: oklch(0.893 0.052 241.4);
   --surface: oklch(0.195 0 0);
   --elevated: oklch(0.22 0 0);
+  /* Shared card tokens. The reference is the Widget hub card (glass-3d). */
+  --card-surface: linear-gradient(
+    155deg,
+    oklch(1 0 0 / 0.055),
+    oklch(1 0 0 / 0.018) 46%,
+    oklch(1 0 0 / 0.03)
+  );
+  --card-surface-inset: oklch(1 0 0 / 0.035);
+  --card-border: oklch(1 0 0 / 0.08);
+  --card-radius: 1rem;
+  --card-padding: 1rem;
+  --card-gap: 0.75rem;
   --cyan: oklch(0.893 0.052 241.4);
   --gradient-glow: radial-gradient(
     circle at 50% 0%,
@@ -654,6 +666,25 @@ footer.saudi-identity-footer * {
   background: color-mix(in oklab, var(--surface) 82%, transparent);
   border: 1px solid var(--border);
   backdrop-filter: blur(18px);
+}
+
+/*
+ * Unified dashboard card. Use for every card/section/table container instead of ad-hoc
+ * bg-[#...] / bg-zinc-* / navy values. `surface-card-flat` drops the blur and shadow for
+ * long lists and tables; `surface-inset` is for a nested well inside a card.
+ */
+@utility surface-card {
+  background: var(--card-surface), var(--background);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+@utility surface-card-pad {
+  padding: var(--card-padding);
+}
+@utility surface-inset {
+  background: var(--card-surface-inset);
+  border: 1px solid var(--card-border);
+  border-radius: calc(var(--card-radius) - 0.25rem);
 }
 
 @utility surface-glass {

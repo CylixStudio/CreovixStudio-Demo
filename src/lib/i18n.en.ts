@@ -1,7 +1,19 @@
 import { ALERTS_EN } from "@/lib/i18n.alerts";
+import { BUILDER_EN } from "@/lib/i18n.builder";
+import { OVERLAYS_EN } from "@/lib/i18n.overlays";
+import { RULES_EN } from "@/lib/i18n.rules";
+import { STORE_EN } from "@/lib/i18n.store";
+import { TEAM_EN } from "@/lib/i18n.team";
+import { UI_EN } from "@/lib/i18n.ui";
 import { DOCS_EN } from "@/lib/i18n.docs";
 export const EN = {
   ...ALERTS_EN,
+  ...BUILDER_EN,
+  ...OVERLAYS_EN,
+  ...RULES_EN,
+  ...STORE_EN,
+  ...TEAM_EN,
+  ...UI_EN,
   ...DOCS_EN,
   "nav.sections.home": "Home",
   "nav.sections.streamTools": "Stream Tools",

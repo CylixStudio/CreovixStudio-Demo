@@ -1,4 +1,10 @@
 import { ALERTS_AR } from "@/lib/i18n.alerts";
+import { BUILDER_AR } from "@/lib/i18n.builder";
+import { OVERLAYS_AR } from "@/lib/i18n.overlays";
+import { RULES_AR } from "@/lib/i18n.rules";
+import { STORE_AR } from "@/lib/i18n.store";
+import { TEAM_AR } from "@/lib/i18n.team";
+import { UI_AR } from "@/lib/i18n.ui";
 import { DOCS_AR } from "@/lib/i18n.docs";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
 
@@ -13,6 +19,12 @@ export const LANG_STORAGE_KEY = "creovix.lang";
 
 const DICT = {
   ...ALERTS_AR,
+  ...BUILDER_AR,
+  ...OVERLAYS_AR,
+  ...RULES_AR,
+  ...STORE_AR,
+  ...TEAM_AR,
+  ...UI_AR,
   ...DOCS_AR,
   "nav.sections.home": "الرئيسية",
   "nav.sections.streamTools": "أدوات البث",
