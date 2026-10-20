@@ -11,6 +11,7 @@ import {
   Eye,
   EyeOff,
   Layers,
+  LoaderCircle,
   Pencil,
   Play,
   Plus,
@@ -28,6 +29,7 @@ import {
   saveAlertStudio,
 } from "@/components/alerts/alertApi";
 import { AlertStage, type AlertStageHandle } from "@/components/alerts/AlertStage";
+import { TestAlertPopover } from "@/components/alerts/TestAlertPopover";
 import {
   AlertCodeEditor,
   AlertRow,
@@ -197,62 +199,43 @@ function AlertsPage() {
     }
   };
 
-  const test = async (alertId: AlertKind) => {
+  const test = async (alertId: AlertKind, customValue?: number) => {
     if (!data || !drafts || busy || testPending.current) return;
-    // Validate gift count
-    const rawCount = giftCount.trim();
-    const count = rawCount === "" ? data.simulation.count : Number(rawCount);
-    if (alertId === "gift" && (!Number.isSafeInteger(count) || count < 1 || count > 100000)) {
-      setNotice("alerts.positiveCount");
-      return;
-    }
-    
-    // Validate subscription/resubscription months
-    if ((alertId === "subscription" || alertId === "resubscription") && subscriptionMonths.trim()) {
-      const months = Number(subscriptionMonths.trim());
-      if (!Number.isSafeInteger(months) || months < 1) {
-        setNotice("alerts.positiveCount");
-        return;
-      }
-    }
-    if (alertId === "resubscription" && resubscriptionMonths.trim()) {
-      const months = Number(resubscriptionMonths.trim());
-      if (!Number.isSafeInteger(months) || months < 1) {
-        setNotice("alerts.positiveCount");
-        return;
-      }
-    }
-    
-    // Validate KICKs amount
-    if (alertId === "kicks" && kicksAmount.trim()) {
-      const amount = Number(kicksAmount.trim());
-      if (!Number.isSafeInteger(amount) || amount < 1) {
-        setNotice("alerts.positiveCount");
-        return;
-      }
-    }
     
     testPending.current = true;
     setBusy(true);
     try {
-      if (alertId === "gift") {
-        const saved = await saveAlertStudio({ simulation: { ...data.simulation, count } });
-        queryClient.setQueryData(alertStudioKey, saved);
-      }
-      
-      // Build test values based on alert type and custom inputs
+      // Build test values based on alert type and custom value
       let testCount = 1;
       let testMonths = 0;
       let testAmount = 0;
       
       if (alertId === "gift") {
-        testCount = count;
+        testCount = customValue ?? data.simulation.count;
+        if (!Number.isSafeInteger(testCount) || testCount < 1 || testCount > 100000) {
+          setNotice("alerts.positiveCount");
+          return;
+        }
+        const saved = await saveAlertStudio({ simulation: { ...data.simulation, count: testCount } });
+        queryClient.setQueryData(alertStudioKey, saved);
       } else if (alertId === "subscription") {
-        testMonths = subscriptionMonths.trim() ? Number(subscriptionMonths.trim()) : 1;
+        testMonths = customValue ?? 1;
+        if (!Number.isSafeInteger(testMonths) || testMonths < 1) {
+          setNotice("alerts.positiveCount");
+          return;
+        }
       } else if (alertId === "resubscription") {
-        testMonths = resubscriptionMonths.trim() ? Number(resubscriptionMonths.trim()) : 3;
+        testMonths = customValue ?? 3;
+        if (!Number.isSafeInteger(testMonths) || testMonths < 1) {
+          setNotice("alerts.positiveCount");
+          return;
+        }
       } else if (alertId === "kicks") {
-        testAmount = kicksAmount.trim() ? Number(kicksAmount.trim()) : 40;
+        testAmount = customValue ?? 40;
+        if (!Number.isSafeInteger(testAmount) || testAmount < 1) {
+          setNotice("alerts.positiveCount");
+          return;
+        }
       }
       
       const response = await fetch("/api/demo/alert-studio/test", {
@@ -484,84 +467,64 @@ function AlertsPage() {
             <span className="alert-hint">{t("alerts.savedTest")} </span>
           </div>
           <div className="alert-test-buttons">
-            <label className="alert-gift-count" dir="ltr">
-              <span>{t("alerts.giftCount")}</span>
-              <input
-                aria-label={t("alerts.giftCount")}
-                type="number"
-                min={1}
-                max={100000}
-                step={1}
-                inputMode="numeric"
-                value={giftCount}
-                onChange={(event) => setGiftCount(event.target.value)}
-                onBlur={(event) => {
-                  const raw = event.target.value.trim();
-                  // The field stays optional; only explicit entries are validated.
-                  if (raw === "") return;
-                  const count = Number(raw);
-                  if (!Number.isSafeInteger(count) || count < 1 || count > 100000) {
-                    setNotice("alerts.positiveCount");
-                    return;
-                  }
-                  if (data)
-                    void saveAlertStudio({ simulation: { ...data.simulation, count } })
-                      .then((saved) => queryClient.setQueryData(alertStudioKey, saved))
-                      .catch(reportError);
-                }}
-              />
-            </label>
-            <label className="alert-gift-count" dir="ltr">
-              <span>Subscription Months</span>
-              <input
-                aria-label="Subscription Months"
-                type="number"
-                min={1}
-                max={100}
-                step={1}
-                inputMode="numeric"
-                value={subscriptionMonths}
-                onChange={(event) => setSubscriptionMonths(event.target.value)}
-              />
-            </label>
-            <label className="alert-gift-count" dir="ltr">
-              <span>Re-Subscription Months</span>
-              <input
-                aria-label="Re-Subscription Months"
-                type="number"
-                min={1}
-                max={100}
-                step={1}
-                inputMode="numeric"
-                value={resubscriptionMonths}
-                onChange={(event) => setResubscriptionMonths(event.target.value)}
-              />
-            </label>
-            <label className="alert-gift-count" dir="ltr">
-              <span>KICKs Amount</span>
-              <input
-                aria-label="KICKs Amount"
-                type="number"
-                min={1}
-                max={100000}
-                step={1}
-                inputMode="numeric"
-                value={kicksAmount}
-                onChange={(event) => setKicksAmount(event.target.value)}
-              />
-            </label>
-            {visibleAlertCatalog.map((item) => (
-              <button
-                type="button"
-                className="alert-button test-button"
-                key={item.id}
-                disabled={busy || !data || supportFor(item, platform).level === "unavailable"}
-                onClick={() => void test(item.id)}
-              >
-                <Plus size={17} />
-                {alertName(item.id)}
-              </button>
-            ))}
+            {visibleAlertCatalog.map((item) => {
+              const needsPopover =
+                item.id === "subscription" ||
+                item.id === "resubscription" ||
+                item.id === "gift" ||
+                item.id === "kicks";
+              const isDirectButton = item.id === "follow";
+
+              if (isDirectButton) {
+                return (
+                  <button
+                    type="button"
+                    className="alert-button test-button"
+                    key={item.id}
+                    disabled={busy || !data || supportFor(item, platform).level === "unavailable"}
+                    onClick={() => void test(item.id)}
+                  >
+                    <Plus size={17} />
+                    {alertName(item.id)}
+                  </button>
+                );
+              }
+
+              if (needsPopover) {
+                return (
+                  <TestAlertPopover
+                    key={item.id}
+                    label={alertName(item.id)}
+                    alertId={item.id}
+                    requiresInput={true}
+                    disabled={busy || !data || supportFor(item, platform).level === "unavailable"}
+                    onTest={(customValue) => void test(item.id, customValue)}
+                    defaultValue={
+                      item.id === "subscription"
+                        ? 1
+                        : item.id === "resubscription"
+                          ? 3
+                          : item.id === "kicks"
+                            ? 40
+                            : 5
+                    }
+                  />
+                );
+              }
+
+              return (
+                <button
+                  type="button"
+                  className="alert-button test-button"
+                  key={item.id}
+                  disabled={busy || !data || supportFor(item, platform).level === "unavailable"}
+                  onClick={() => void test(item.id)}
+                >
+                  <Plus size={17} />
+                  {alertName(item.id)}
+                </button>
+              );
+            })}
           </div>
         </section>
         {notice && (
