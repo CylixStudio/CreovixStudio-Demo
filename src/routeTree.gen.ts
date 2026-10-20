@@ -50,6 +50,7 @@ import { Route as AuthenticatedAlertsAlertIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedToolsToolRouteImport } from './routes/_authenticated/tools.$tool'
 import { Route as AuthenticatedWidgetsIndexRouteImport } from './routes/_authenticated/widgets.index'
 import { Route as AuthenticatedWidgetsWidgetIdRouteImport } from './routes/_authenticated/widgets.$widgetId'
+import { Route as ActivityFeedDockTokenRouteImport } from './routes/activity-feed.dock.$token'
 import { Route as ApiLiveCounterLookupRouteImport } from './routes/api/live-counter/lookup'
 import { Route as MarksTokenMarkIdRouteImport } from './routes/marks.$token.$markId'
 import { Route as OverlayDemoAlertsTokenRouteImport } from './routes/overlay.demo-alerts.$token'
@@ -97,8 +98,10 @@ import { Route as ApiPublicScheduleTokenLiveRouteImport } from './routes/api/pub
 import { Route as ApiDemoAlertStudioOverlayTokenAckRouteImport } from './routes/api/demo/alert-studio/overlay/$token/ack'
 import { Route as ApiDemoAlertStudioOverlayTokenClaimRouteImport } from './routes/api/demo/alert-studio/overlay/$token/claim'
 import { Route as ApiDemoAlertStudioOverlayTokenControlRouteImport } from './routes/api/demo/alert-studio/overlay/$token/control'
+import { Route as ApiDemoAlertStudioOverlayTokenFeedRouteImport } from './routes/api/demo/alert-studio/overlay/$token/feed'
 import { Route as ApiDemoAlertStudioOverlayTokenLiveRouteImport } from './routes/api/demo/alert-studio/overlay/$token/live'
 import { Route as ApiDemoAlertStudioOverlayTokenPresenceRouteImport } from './routes/api/demo/alert-studio/overlay/$token/presence'
+import { Route as ApiDemoAlertStudioOverlayTokenReplayRouteImport } from './routes/api/demo/alert-studio/overlay/$token/replay'
 import { Route as ApiDemoAlertStudioOverlayTokenStreamRouteImport } from './routes/api/demo/alert-studio/overlay/$token/stream'
 import { Route as ApiPublicMarksTokenVodMarkIdRouteImport } from './routes/api/public/marks/$token/vod.$markId'
 
@@ -316,6 +319,11 @@ const AuthenticatedWidgetsWidgetIdRoute =
     path: '/widgets/$widgetId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ActivityFeedDockTokenRoute = ActivityFeedDockTokenRouteImport.update({
+  id: '/activity-feed/dock/$token',
+  path: '/activity-feed/dock/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiLiveCounterLookupRoute = ApiLiveCounterLookupRouteImport.update({
   id: '/api/live-counter/lookup',
   path: '/api/live-counter/lookup',
@@ -584,6 +592,12 @@ const ApiDemoAlertStudioOverlayTokenControlRoute =
     path: '/api/demo/alert-studio/overlay/$token/control',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiDemoAlertStudioOverlayTokenFeedRoute =
+  ApiDemoAlertStudioOverlayTokenFeedRouteImport.update({
+    id: '/api/demo/alert-studio/overlay/$token/feed',
+    path: '/api/demo/alert-studio/overlay/$token/feed',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDemoAlertStudioOverlayTokenLiveRoute =
   ApiDemoAlertStudioOverlayTokenLiveRouteImport.update({
     id: '/api/demo/alert-studio/overlay/$token/live',
@@ -594,6 +608,12 @@ const ApiDemoAlertStudioOverlayTokenPresenceRoute =
   ApiDemoAlertStudioOverlayTokenPresenceRouteImport.update({
     id: '/api/demo/alert-studio/overlay/$token/presence',
     path: '/api/demo/alert-studio/overlay/$token/presence',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiDemoAlertStudioOverlayTokenReplayRoute =
+  ApiDemoAlertStudioOverlayTokenReplayRouteImport.update({
+    id: '/api/demo/alert-studio/overlay/$token/replay',
+    path: '/api/demo/alert-studio/overlay/$token/replay',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiDemoAlertStudioOverlayTokenStreamRoute =
@@ -648,6 +668,7 @@ export interface FileRoutesByFullPath {
   '/alerts/$alertId': typeof AuthenticatedAlertsAlertIdRoute
   '/tools/$tool': typeof AuthenticatedToolsToolRoute
   '/widgets/$widgetId': typeof AuthenticatedWidgetsWidgetIdRouteWithChildren
+  '/activity-feed/dock/$token': typeof ActivityFeedDockTokenRoute
   '/api/live-counter/lookup': typeof ApiLiveCounterLookupRoute
   '/marks/$token/$markId': typeof MarksTokenMarkIdRoute
   '/overlay/demo-alerts/$token': typeof OverlayDemoAlertsTokenRoute
@@ -697,8 +718,10 @@ export interface FileRoutesByFullPath {
   '/api/demo/alert-studio/overlay/$token/ack': typeof ApiDemoAlertStudioOverlayTokenAckRoute
   '/api/demo/alert-studio/overlay/$token/claim': typeof ApiDemoAlertStudioOverlayTokenClaimRoute
   '/api/demo/alert-studio/overlay/$token/control': typeof ApiDemoAlertStudioOverlayTokenControlRoute
+  '/api/demo/alert-studio/overlay/$token/feed': typeof ApiDemoAlertStudioOverlayTokenFeedRoute
   '/api/demo/alert-studio/overlay/$token/live': typeof ApiDemoAlertStudioOverlayTokenLiveRoute
   '/api/demo/alert-studio/overlay/$token/presence': typeof ApiDemoAlertStudioOverlayTokenPresenceRoute
+  '/api/demo/alert-studio/overlay/$token/replay': typeof ApiDemoAlertStudioOverlayTokenReplayRoute
   '/api/demo/alert-studio/overlay/$token/stream': typeof ApiDemoAlertStudioOverlayTokenStreamRoute
   '/api/public/marks/$token/vod/$markId': typeof ApiPublicMarksTokenVodMarkIdRoute
 }
@@ -739,6 +762,7 @@ export interface FileRoutesByTo {
   '/u/$slug': typeof USlugRoute
   '/alerts/$alertId': typeof AuthenticatedAlertsAlertIdRoute
   '/tools/$tool': typeof AuthenticatedToolsToolRoute
+  '/activity-feed/dock/$token': typeof ActivityFeedDockTokenRoute
   '/api/live-counter/lookup': typeof ApiLiveCounterLookupRoute
   '/marks/$token/$markId': typeof MarksTokenMarkIdRoute
   '/overlay/demo-alerts/$token': typeof OverlayDemoAlertsTokenRoute
@@ -788,8 +812,10 @@ export interface FileRoutesByTo {
   '/api/demo/alert-studio/overlay/$token/ack': typeof ApiDemoAlertStudioOverlayTokenAckRoute
   '/api/demo/alert-studio/overlay/$token/claim': typeof ApiDemoAlertStudioOverlayTokenClaimRoute
   '/api/demo/alert-studio/overlay/$token/control': typeof ApiDemoAlertStudioOverlayTokenControlRoute
+  '/api/demo/alert-studio/overlay/$token/feed': typeof ApiDemoAlertStudioOverlayTokenFeedRoute
   '/api/demo/alert-studio/overlay/$token/live': typeof ApiDemoAlertStudioOverlayTokenLiveRoute
   '/api/demo/alert-studio/overlay/$token/presence': typeof ApiDemoAlertStudioOverlayTokenPresenceRoute
+  '/api/demo/alert-studio/overlay/$token/replay': typeof ApiDemoAlertStudioOverlayTokenReplayRoute
   '/api/demo/alert-studio/overlay/$token/stream': typeof ApiDemoAlertStudioOverlayTokenStreamRoute
   '/api/public/marks/$token/vod/$markId': typeof ApiPublicMarksTokenVodMarkIdRoute
 }
@@ -834,6 +860,7 @@ export interface FileRoutesById {
   '/_authenticated/alerts/$alertId': typeof AuthenticatedAlertsAlertIdRoute
   '/_authenticated/tools/$tool': typeof AuthenticatedToolsToolRoute
   '/_authenticated/widgets/$widgetId': typeof AuthenticatedWidgetsWidgetIdRouteWithChildren
+  '/activity-feed/dock/$token': typeof ActivityFeedDockTokenRoute
   '/api/live-counter/lookup': typeof ApiLiveCounterLookupRoute
   '/marks/$token/$markId': typeof MarksTokenMarkIdRoute
   '/overlay/demo-alerts/$token': typeof OverlayDemoAlertsTokenRoute
@@ -883,8 +910,10 @@ export interface FileRoutesById {
   '/api/demo/alert-studio/overlay/$token/ack': typeof ApiDemoAlertStudioOverlayTokenAckRoute
   '/api/demo/alert-studio/overlay/$token/claim': typeof ApiDemoAlertStudioOverlayTokenClaimRoute
   '/api/demo/alert-studio/overlay/$token/control': typeof ApiDemoAlertStudioOverlayTokenControlRoute
+  '/api/demo/alert-studio/overlay/$token/feed': typeof ApiDemoAlertStudioOverlayTokenFeedRoute
   '/api/demo/alert-studio/overlay/$token/live': typeof ApiDemoAlertStudioOverlayTokenLiveRoute
   '/api/demo/alert-studio/overlay/$token/presence': typeof ApiDemoAlertStudioOverlayTokenPresenceRoute
+  '/api/demo/alert-studio/overlay/$token/replay': typeof ApiDemoAlertStudioOverlayTokenReplayRoute
   '/api/demo/alert-studio/overlay/$token/stream': typeof ApiDemoAlertStudioOverlayTokenStreamRoute
   '/api/public/marks/$token/vod/$markId': typeof ApiPublicMarksTokenVodMarkIdRoute
 }
@@ -929,6 +958,7 @@ export interface FileRouteTypes {
     | '/alerts/$alertId'
     | '/tools/$tool'
     | '/widgets/$widgetId'
+    | '/activity-feed/dock/$token'
     | '/api/live-counter/lookup'
     | '/marks/$token/$markId'
     | '/overlay/demo-alerts/$token'
@@ -978,8 +1008,10 @@ export interface FileRouteTypes {
     | '/api/demo/alert-studio/overlay/$token/ack'
     | '/api/demo/alert-studio/overlay/$token/claim'
     | '/api/demo/alert-studio/overlay/$token/control'
+    | '/api/demo/alert-studio/overlay/$token/feed'
     | '/api/demo/alert-studio/overlay/$token/live'
     | '/api/demo/alert-studio/overlay/$token/presence'
+    | '/api/demo/alert-studio/overlay/$token/replay'
     | '/api/demo/alert-studio/overlay/$token/stream'
     | '/api/public/marks/$token/vod/$markId'
   fileRoutesByTo: FileRoutesByTo
@@ -1020,6 +1052,7 @@ export interface FileRouteTypes {
     | '/u/$slug'
     | '/alerts/$alertId'
     | '/tools/$tool'
+    | '/activity-feed/dock/$token'
     | '/api/live-counter/lookup'
     | '/marks/$token/$markId'
     | '/overlay/demo-alerts/$token'
@@ -1069,8 +1102,10 @@ export interface FileRouteTypes {
     | '/api/demo/alert-studio/overlay/$token/ack'
     | '/api/demo/alert-studio/overlay/$token/claim'
     | '/api/demo/alert-studio/overlay/$token/control'
+    | '/api/demo/alert-studio/overlay/$token/feed'
     | '/api/demo/alert-studio/overlay/$token/live'
     | '/api/demo/alert-studio/overlay/$token/presence'
+    | '/api/demo/alert-studio/overlay/$token/replay'
     | '/api/demo/alert-studio/overlay/$token/stream'
     | '/api/public/marks/$token/vod/$markId'
   id:
@@ -1114,6 +1149,7 @@ export interface FileRouteTypes {
     | '/_authenticated/alerts/$alertId'
     | '/_authenticated/tools/$tool'
     | '/_authenticated/widgets/$widgetId'
+    | '/activity-feed/dock/$token'
     | '/api/live-counter/lookup'
     | '/marks/$token/$markId'
     | '/overlay/demo-alerts/$token'
@@ -1163,8 +1199,10 @@ export interface FileRouteTypes {
     | '/api/demo/alert-studio/overlay/$token/ack'
     | '/api/demo/alert-studio/overlay/$token/claim'
     | '/api/demo/alert-studio/overlay/$token/control'
+    | '/api/demo/alert-studio/overlay/$token/feed'
     | '/api/demo/alert-studio/overlay/$token/live'
     | '/api/demo/alert-studio/overlay/$token/presence'
+    | '/api/demo/alert-studio/overlay/$token/replay'
     | '/api/demo/alert-studio/overlay/$token/stream'
     | '/api/public/marks/$token/vod/$markId'
   fileRoutesById: FileRoutesById
@@ -1190,6 +1228,7 @@ export interface RootRouteChildren {
   OverlayTiktokTappersRoute: typeof OverlayTiktokTappersRoute
   StoreSlugRoute: typeof StoreSlugRoute
   USlugRoute: typeof USlugRoute
+  ActivityFeedDockTokenRoute: typeof ActivityFeedDockTokenRoute
   ApiLiveCounterLookupRoute: typeof ApiLiveCounterLookupRoute
   OverlayDemoAlertsTokenRoute: typeof OverlayDemoAlertsTokenRoute
   ApiAuthProviderCallbackRoute: typeof ApiAuthProviderCallbackRoute
@@ -1228,8 +1267,10 @@ export interface RootRouteChildren {
   ApiDemoAlertStudioOverlayTokenAckRoute: typeof ApiDemoAlertStudioOverlayTokenAckRoute
   ApiDemoAlertStudioOverlayTokenClaimRoute: typeof ApiDemoAlertStudioOverlayTokenClaimRoute
   ApiDemoAlertStudioOverlayTokenControlRoute: typeof ApiDemoAlertStudioOverlayTokenControlRoute
+  ApiDemoAlertStudioOverlayTokenFeedRoute: typeof ApiDemoAlertStudioOverlayTokenFeedRoute
   ApiDemoAlertStudioOverlayTokenLiveRoute: typeof ApiDemoAlertStudioOverlayTokenLiveRoute
   ApiDemoAlertStudioOverlayTokenPresenceRoute: typeof ApiDemoAlertStudioOverlayTokenPresenceRoute
+  ApiDemoAlertStudioOverlayTokenReplayRoute: typeof ApiDemoAlertStudioOverlayTokenReplayRoute
   ApiDemoAlertStudioOverlayTokenStreamRoute: typeof ApiDemoAlertStudioOverlayTokenStreamRoute
   ApiPublicMarksTokenVodMarkIdRoute: typeof ApiPublicMarksTokenVodMarkIdRoute
 }
@@ -1522,6 +1563,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/widgets/$widgetId'
       preLoaderRoute: typeof AuthenticatedWidgetsWidgetIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/activity-feed/dock/$token': {
+      id: '/activity-feed/dock/$token'
+      path: '/activity-feed/dock/$token'
+      fullPath: '/activity-feed/dock/$token'
+      preLoaderRoute: typeof ActivityFeedDockTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/live-counter/lookup': {
       id: '/api/live-counter/lookup'
@@ -1852,6 +1900,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDemoAlertStudioOverlayTokenControlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/demo/alert-studio/overlay/$token/feed': {
+      id: '/api/demo/alert-studio/overlay/$token/feed'
+      path: '/api/demo/alert-studio/overlay/$token/feed'
+      fullPath: '/api/demo/alert-studio/overlay/$token/feed'
+      preLoaderRoute: typeof ApiDemoAlertStudioOverlayTokenFeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/demo/alert-studio/overlay/$token/live': {
       id: '/api/demo/alert-studio/overlay/$token/live'
       path: '/api/demo/alert-studio/overlay/$token/live'
@@ -1864,6 +1919,13 @@ declare module '@tanstack/react-router' {
       path: '/api/demo/alert-studio/overlay/$token/presence'
       fullPath: '/api/demo/alert-studio/overlay/$token/presence'
       preLoaderRoute: typeof ApiDemoAlertStudioOverlayTokenPresenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/demo/alert-studio/overlay/$token/replay': {
+      id: '/api/demo/alert-studio/overlay/$token/replay'
+      path: '/api/demo/alert-studio/overlay/$token/replay'
+      fullPath: '/api/demo/alert-studio/overlay/$token/replay'
+      preLoaderRoute: typeof ApiDemoAlertStudioOverlayTokenReplayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/demo/alert-studio/overlay/$token/stream': {
@@ -2021,6 +2083,7 @@ const rootRouteChildren: RootRouteChildren = {
   OverlayTiktokTappersRoute: OverlayTiktokTappersRoute,
   StoreSlugRoute: StoreSlugRoute,
   USlugRoute: USlugRoute,
+  ActivityFeedDockTokenRoute: ActivityFeedDockTokenRoute,
   ApiLiveCounterLookupRoute: ApiLiveCounterLookupRoute,
   OverlayDemoAlertsTokenRoute: OverlayDemoAlertsTokenRoute,
   ApiAuthProviderCallbackRoute: ApiAuthProviderCallbackRoute,
@@ -2063,10 +2126,14 @@ const rootRouteChildren: RootRouteChildren = {
     ApiDemoAlertStudioOverlayTokenClaimRoute,
   ApiDemoAlertStudioOverlayTokenControlRoute:
     ApiDemoAlertStudioOverlayTokenControlRoute,
+  ApiDemoAlertStudioOverlayTokenFeedRoute:
+    ApiDemoAlertStudioOverlayTokenFeedRoute,
   ApiDemoAlertStudioOverlayTokenLiveRoute:
     ApiDemoAlertStudioOverlayTokenLiveRoute,
   ApiDemoAlertStudioOverlayTokenPresenceRoute:
     ApiDemoAlertStudioOverlayTokenPresenceRoute,
+  ApiDemoAlertStudioOverlayTokenReplayRoute:
+    ApiDemoAlertStudioOverlayTokenReplayRoute,
   ApiDemoAlertStudioOverlayTokenStreamRoute:
     ApiDemoAlertStudioOverlayTokenStreamRoute,
   ApiPublicMarksTokenVodMarkIdRoute: ApiPublicMarksTokenVodMarkIdRoute,
