@@ -32,3 +32,7 @@ export async function saveAlertStudio(body: {
 export function overlayUrl(origin: string, token: string): string {
   return `${origin}/overlay/demo-alerts/${token}`;
 }
+
+export function dockUrl(origin: string, token: string): string {
+  return `${origin}/activity-feed/dock/${token}`;
+}

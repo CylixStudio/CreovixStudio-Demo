@@ -24,6 +24,7 @@ import {
   alertStudioKey,
   loadAlertStudio,
   overlayUrl,
+  dockUrl,
   saveAlertStudio,
 } from "@/components/alerts/alertApi";
 import { AlertStage, type AlertStageHandle } from "@/components/alerts/AlertStage";
@@ -157,6 +158,9 @@ function AlertsPage() {
   const dirty = Boolean(data && drafts && JSON.stringify(data.alerts) !== JSON.stringify(drafts));
   const link = data
     ? overlayUrl(typeof window === "undefined" ? "" : window.location.origin, data.token)
+    : "";
+  const dockLink = data
+    ? dockUrl(typeof window === "undefined" ? "" : window.location.origin, data.token)
     : "";
   const connected = Boolean(data && data.overlaySeenAt > Date.now() - 12000);
   const patch = (partial: Partial<AlertConfig>) =>
@@ -397,6 +401,51 @@ function AlertsPage() {
               {t("alerts.advanced")}{" "}
             </button>
             <a className="alert-button" href={link || undefined} target="_blank" rel="noreferrer">
+              <ExternalLink size={16} />
+              {t("alerts.openPreview")}{" "}
+            </a>
+          </div>
+          <div className="alert-widget-row">
+            <label htmlFor="alert-dock-url">{t("alerts.dockUrl")} </label>
+            <div className="alert-url-field">
+              <input
+                id="alert-dock-url"
+                dir="ltr"
+                readOnly
+                value={
+                  data
+                    ? hidden
+                      ? dockLink.replace(data.token, "••••••••••••••••")
+                      : dockLink
+                    : t("alerts.loading")
+                }
+              />
+              <button
+                type="button"
+                aria-label={hidden ? t("alerts.showUrl") : t("alerts.hideUrl")}
+                onClick={() => setHidden(!hidden)}
+              >
+                {hidden ? <Eye size={17} /> : <EyeOff size={17} />}
+              </button>
+            </div>
+            <button
+              type="button"
+              className="alert-button primary"
+              disabled={!data}
+              onClick={() => {
+                void navigator.clipboard
+                  .writeText(dockLink)
+                  .then(() => {
+                    setCopied(true);
+                    window.setTimeout(() => setCopied(false), 1500);
+                  })
+                  .catch(() => setNotice("alerts.copyFail"));
+              }}
+            >
+              {copied ? <Check size={16} /> : <Copy size={16} />}
+              {copied ? t("alerts.copied") : t("alerts.copy")}
+            </button>
+            <a className="alert-button" href={dockLink || undefined} target="_blank" rel="noreferrer">
               <ExternalLink size={16} />
               {t("alerts.openPreview")}{" "}
             </a>
