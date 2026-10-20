@@ -1,29 +1,23 @@
 import { useEffect, useState, useMemo } from 'react'
 import {
   Plus,
-  Trash2,
-  Edit2,
   Check,
   X,
   RefreshCw,
   Users,
-  Copy,
-  CheckCheck,
-  Code2,
   Clock,
   AlertCircle,
   Search,
-  MoreVertical,
   Shield,
-  Zap,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { readTeamState, readActiveChannelId, readClientActor, resetTeamStorage } from '../storage'
 import { membershipOf, isOwner } from '../resolver'
-import { SECTIONS } from '../permissions'
-import { inviteByUsername, createInviteCode, acceptInvitation, declineInvitation, updateMemberPermissions, removeMember, revokeInvitation } from '../adapter'
-import { USER_BY_ID } from '../fixtures'
-import type { TeamMember, Invitation, ActorContext, PermissionKey, AuditEntry } from '../types'
+import { SECTIONS, setKey, isPermissionKey, permissionLabel } from '../permissions'
+import { inviteByUsername, createInviteCode, updateMemberPermissions, removeMember, revokeInvitation, type TeamResult } from '../adapter'
+import { USER_BY_ID, TEAM_USERS } from '../fixtures'
+import type { TeamMember, PermissionKey } from '../types'
+import { MemberIdCard, InvitationIdCard, TeamAvatar } from './TeamCards'
 import { useLanguage } from '@/lib/i18n'
 import { Button } from '@/components/ui/button'
 import {
@@ -38,110 +32,21 @@ import {
 } from '@/components/ui/alert-dialog'
 
 const TEAM_EVENT = 'cylixstudio-demo:team-change'
+const INVITE_CODE_HOURS = 168
 
-// Stat Card Component - improved premium styling
-function StatCard({ icon: Icon, label, value, subtitle }: any) {
+// Compact stat tile
+function StatCard({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-[#bee1fc]/20 bg-gradient-to-br from-[#bee1fc]/5 to-transparent p-6 transition-all duration-200 hover:border-[#bee1fc]/40 hover:shadow-lg hover:shadow-[#bee1fc]/10">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-[#bee1fc]/20 to-[#bee1fc]/5 flex items-center justify-center ring-1 ring-[#bee1fc]/30">
-          <Icon className="h-5 w-5 text-[#bee1fc]" />
-        </div>
+    <div className="surface-card flex items-center gap-3 p-3">
+      <span className="surface-inset inline-flex h-9 w-9 shrink-0 items-center justify-center text-[#bee1fc]">
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-[11px] font-medium text-muted-foreground">{label}</p>
+        <p className="text-xl font-semibold leading-tight text-foreground">{value}</p>
       </div>
-      <p className="text-xs text-muted-foreground mb-2 font-medium tracking-wide uppercase">{label}</p>
-      <p className="text-3xl font-bold text-foreground">{value}</p>
-      {subtitle && <p className="text-xs text-muted-foreground mt-3">{subtitle}</p>}
     </div>
   )
-}
-
-// Permission Chip Component - professional tag-style
-function PermissionChip({ permission, onRemove }: any) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-md bg-gradient-to-r from-[#bee1fc]/15 to-[#bee1fc]/10 px-3 py-1.5 text-xs font-medium text-[#bee1fc] border border-[#bee1fc]/25 hover:border-[#bee1fc]/40 transition-all duration-200 whitespace-nowrap">
-      {permission}
-      {onRemove && (
-        <button
-          onClick={onRemove}
-          className="ml-0.5 hover:text-[#bee1fc] transition-colors opacity-70 hover:opacity-100"
-        >
-          <X className="h-3 w-3" />
-        </button>
-      )}
-    </span>
-  )
-}
-
-// Avatar Component with real platform image support
-function Avatar({ userId, size = 'md', showPlatformBadge = true }: any) {
-  const user = USER_BY_ID[userId]
-  const initials = (user?.username || userId).substring(0, 2).toUpperCase()
-  
-  // Use real platform avatar if available
-  const hasImage = user?.avatarUrl && typeof user.avatarUrl === 'string'
-  
-  // Fallback to HSL gradient if no image
-  const hue = user?.hue ?? 205
-  const gradientClass = `bg-gradient-to-br from-[hsl(${hue},100%,55%)] to-[hsl(${hue},80%,40%)]`
-  
-  const sizeClass = size === 'lg' ? 'h-12 w-12' : size === 'sm' ? 'h-8 w-8' : 'h-10 w-10'
-  const badgeSizeClass = size === 'lg' ? 'h-3 w-3' : size === 'sm' ? 'h-2 w-2' : 'h-2.5 w-2.5'
-  
-  // Get platform color based on platform type
-  const platformColors: Record<string, string> = {
-    kick: 'bg-[#00c70f]',
-    twitch: 'bg-[#9147ff]',
-    youtube: 'bg-[#ff0000]',
-    tiktok: 'bg-[#000000]',
-  }
-  const platformColor = platformColors[user?.platform?.toLowerCase() || 'kick'] || 'bg-[#bee1fc]'
-  
-  return (
-    <div className="relative inline-flex">
-      <div 
-        className={`${sizeClass} rounded-full ${hasImage ? '' : gradientClass} flex items-center justify-center text-xs font-semibold text-white shadow-md ring-1 ring-white/20 overflow-hidden`}
-      >
-        {hasImage ? (
-          <img 
-            src={user.avatarUrl} 
-            alt={user?.displayName || 'Avatar'}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              // Fallback to initials if image fails to load
-              e.currentTarget.style.display = 'none'
-            }}
-          />
-        ) : null}
-        {!hasImage && (
-          <span>{initials}</span>
-        )}
-      </div>
-      {/* Platform badge indicator - shows actual platform color */}
-      {showPlatformBadge && (
-        <div 
-          className={`${badgeSizeClass} absolute bottom-0 end-0 rounded-full ${platformColor} ring-1 ring-[#0a0a0a] shadow-sm`} 
-          title={`Platform: ${user?.platform || 'Unknown'}`} 
-        />
-      )}
-    </div>
-  )
-}
-
-// Format permission for display
-function formatPermissionName(perm: PermissionKey): string {
-  const [section, action] = perm.split('.')
-  const sectionDef = SECTIONS.find(s => s.id === section)
-  const permDef = sectionDef?.permissions.find(p => p.key === perm)
-  return permDef?.label.en || perm
-}
-
-// Get top N permissions for display
-function getDisplayPermissions(permissions: PermissionKey[], limit = 3): { shown: string; count: string } {
-  const formattedPerms = permissions.map(formatPermissionName).slice(0, limit)
-  const remaining = Math.max(0, permissions.length - limit)
-  const shown = formattedPerms.join(' | ')
-  const count = remaining > 0 ? ` +${remaining}` : ''
-  return { shown, count }
 }
 
 interface InviteModalState {
@@ -203,7 +108,7 @@ export function ChannelTeamPage() {
   }, [teamState, activeChannelId])
 
   const auditEntries = useMemo(() => {
-    return [...teamState.audit].filter(a => a.channelId === activeChannelId).reverse().slice(0, 100)
+    return teamState.audit.filter(a => a.channelId === activeChannelId).slice(0, 100)
   }, [teamState, activeChannelId])
 
   const filteredMembers = useMemo(() => {
@@ -261,33 +166,47 @@ export function ChannelTeamPage() {
   const handleInvitePermissionChange = (permission: PermissionKey) => {
     setInviteModal(prev => ({
       ...prev,
-      selectedPermissions: prev.selectedPermissions.has(permission)
-        ? new Set([...prev.selectedPermissions].filter(p => p !== permission))
-        : new Set([...prev.selectedPermissions, permission])
+      selectedPermissions: new Set(setKey(Array.from(prev.selectedPermissions), permission, !prev.selectedPermissions.has(permission))),
     }))
   }
 
-  const handleInviteSubmit = async () => {
-    try {
-      const perms = Array.from(inviteModal.selectedPermissions)
-      
-      if (inviteModal.method === 'username') {
-        if (!inviteModal.username.trim()) {
-          toast.error(t('channelTeam.error.noUsername'))
-          return
-        }
-        await inviteByUsername(activeChannelId, inviteModal.username, perms)
-        toast.success(t('channelTeam.success.invited'))
-      } else {
-        await createInviteCode(activeChannelId, perms)
-        toast.success(t('channelTeam.success.codeCreated'))
-      }
-      
-      setShowInviteModal(false)
-    } catch (error) {
-      toast.error(t('channelTeam.error.inviteFailed'))
-      console.error(error)
+  const reportResult = (result: TeamResult<unknown>, successKey: Parameters<typeof t>[0]) => {
+    if (result.ok) {
+      toast.success(t(successKey))
+      return true
     }
+    toast.error(t(`channelTeam.err.${result.error}` as Parameters<typeof t>[0]))
+    return false
+  }
+
+  const auditActionLabel = (action: string) => {
+    const key = `channelTeam.audit.${action}` as Parameters<typeof t>[0]
+    const translated = t(key)
+    if (translated !== key) return translated
+    return isPermissionKey(action) ? permissionLabel(action)[lang] : action
+  }
+
+  const handleInviteSubmit = () => {
+    const perms = Array.from(inviteModal.selectedPermissions)
+
+    if (inviteModal.method === 'username') {
+      const wanted = inviteModal.username.trim().replace(/^@/, '').toLowerCase()
+      if (!wanted) {
+        toast.error(t('channelTeam.error.noUsername'))
+        return
+      }
+      const invitee = TEAM_USERS.find((u) => u.username.toLowerCase() === wanted)
+      if (!invitee) {
+        toast.error(t('channelTeam.err.not_found'))
+        return
+      }
+      if (!reportResult(inviteByUsername(activeChannelId, invitee.id, perms), 'channelTeam.success.invited')) return
+    } else {
+      if (!reportResult(createInviteCode(activeChannelId, perms, INVITE_CODE_HOURS), 'channelTeam.success.codeCreated')) return
+      setTab('invitations')
+    }
+
+    setShowInviteModal(false)
   }
 
   const handleEditMember = (member: TeamMember) => {
@@ -298,63 +217,25 @@ export function ChannelTeamPage() {
     setShowEditModal(true)
   }
 
-  const handleSavePermissions = async () => {
+  const handleSavePermissions = () => {
     if (!editingMember?.member) return
-    try {
-      await updateMemberPermissions(activeChannelId, editingMember.member.userId, Array.from(editingMember.selectedPermissions))
-      toast.success(t('channelTeam.success.permissionsUpdated'))
-      setShowEditModal(false)
-      setEditingMember(null)
-    } catch (error) {
-      toast.error(t('channelTeam.error.updateFailed'))
-      console.error(error)
-    }
+    if (!reportResult(updateMemberPermissions(editingMember.member.id, Array.from(editingMember.selectedPermissions)), 'channelTeam.success.permissionsUpdated')) return
+    setShowEditModal(false)
+    setEditingMember(null)
   }
 
-  const handleRemoveMember = async () => {
+  const handleRemoveMember = () => {
     if (!deletingMemberId) return
-    try {
-      await removeMember(activeChannelId, deletingMemberId)
-      toast.success(t('channelTeam.success.memberRemoved'))
-      setShowDeleteDialog(false)
-      setDeletingMemberId(null)
-    } catch (error) {
-      toast.error(t('channelTeam.error.removeFailed'))
-      console.error(error)
-    }
+    reportResult(removeMember(deletingMemberId), 'channelTeam.success.memberRemoved')
+    setShowDeleteDialog(false)
+    setDeletingMemberId(null)
   }
 
-  const handleRevokeInvitation = async () => {
+  const handleRevokeInvitation = () => {
     if (!revokingInvitationId) return
-    try {
-      await revokeInvitation(revokingInvitationId)
-      toast.success(t('channelTeam.success.invitationRevoked'))
-      setShowRevokeDialog(false)
-      setRevokingInvitationId(null)
-    } catch (error) {
-      toast.error(t('channelTeam.error.revokeFailed'))
-      console.error(error)
-    }
-  }
-
-  const handleAcceptInvitation = async (invitationId: string) => {
-    try {
-      await acceptInvitation(invitationId)
-      toast.success(t('channelTeam.success.inviteAccepted'))
-    } catch (error) {
-      toast.error(t('channelTeam.error.acceptFailed'))
-      console.error(error)
-    }
-  }
-
-  const handleDeclineInvitation = async (invitationId: string) => {
-    try {
-      await declineInvitation(invitationId)
-      toast.success(t('channelTeam.success.inviteDeclined'))
-    } catch (error) {
-      toast.error(t('channelTeam.error.declineFailed'))
-      console.error(error)
-    }
+    reportResult(revokeInvitation(revokingInvitationId), 'channelTeam.success.invitationRevoked')
+    setShowRevokeDialog(false)
+    setRevokingInvitationId(null)
   }
 
   const handleReset = async () => {
@@ -375,29 +256,16 @@ export function ChannelTeamPage() {
     setTimeout(() => setCopiedCode(null), 2000)
   }
 
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { bg: string; text: string }> = {
-      active: { bg: 'bg-emerald-500/15 border border-emerald-500/40', text: 'text-emerald-300' },
-      pending: { bg: 'bg-amber-500/15 border border-amber-500/40', text: 'text-amber-300' },
-      expired: { bg: 'bg-slate-500/15 border border-slate-500/40', text: 'text-slate-300' },
-      revoked: { bg: 'bg-rose-500/15 border border-rose-500/40', text: 'text-rose-300' },
-      declined: { bg: 'bg-rose-500/15 border border-rose-500/40', text: 'text-rose-300' },
-    }
-    const { bg, text } = statusMap[status] || statusMap.pending
-    return { bg, text }
-  }
-
-
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
-      <div className="px-6 py-8">
+      <div className="px-4 py-6 sm:px-6">
         <div className="mx-auto max-w-7xl">
           {/* Header */}
-          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <Users className="h-8 w-8 text-[#bee1fc]" />
-                <h1 className="text-3xl font-bold text-foreground">{t('channelTeam.title')}</h1>
+              <div className="mb-1 flex items-center gap-2.5">
+                <Users className="h-6 w-6 text-[#bee1fc]" />
+                <h1 className="text-2xl font-bold text-foreground">{t('channelTeam.title')}</h1>
               </div>
               <p className="text-sm text-muted-foreground">{t('channelTeam.subtitle')}</p>
             </div>
@@ -413,25 +281,10 @@ export function ChannelTeamPage() {
           </div>
 
           {/* Stats */}
-          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <StatCard
-              icon={Users}
-              label={t('channelTeam.stats.totalMembers')}
-              value={currentMembers.length}
-              subtitle={currentMembers.length === 1 ? '1 team member' : `${currentMembers.length} team members`}
-            />
-            <StatCard
-              icon={Clock}
-              label={t('channelTeam.stats.pendingInvitations')}
-              value={pendingInvitations.length}
-              subtitle={pendingInvitations.length === 1 ? '1 pending' : `${pendingInvitations.length} pending`}
-            />
-            <StatCard
-              icon={Shield}
-              label={t('channelTeam.stats.customRoles')}
-              value={SECTIONS.length}
-              subtitle={`${SECTIONS.length} permission groups`}
-            />
+          <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <StatCard icon={Users} label={t('channelTeam.stats.totalMembers')} value={currentMembers.length} />
+            <StatCard icon={Clock} label={t('channelTeam.stats.pendingInvitations')} value={pendingInvitations.length} />
+            <StatCard icon={Shield} label={t('channelTeam.stats.customRoles')} value={SECTIONS.length} />
           </div>
 
           {/* Tabs */}
@@ -456,19 +309,19 @@ export function ChannelTeamPage() {
           </div>
 
           {/* Content */}
-          <div className="mt-8">
+          <div className="mt-5">
             {/* Members Tab */}
             {tab === 'members' && (
-              <div className="space-y-6">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex-1 relative max-w-sm">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Search className="pointer-events-none absolute start-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <input
                       type="text"
                       placeholder={t('channelTeam.searchMembers')}
                       value={searchMembers}
                       onChange={(e) => setSearchMembers(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 rounded-lg bg-white/[0.05] border border-white/10 text-sm text-foreground placeholder:text-muted-foreground focus:border-[#bee1fc] focus:outline-none transition-colors"
+                      className="w-full ps-9 pe-4 py-2 rounded-lg bg-white/[0.05] border border-white/10 text-sm text-foreground placeholder:text-muted-foreground focus:border-[#bee1fc] focus:outline-none transition-colors"
                     />
                   </div>
                   <Button
@@ -481,60 +334,22 @@ export function ChannelTeamPage() {
                 </div>
 
                 {filteredMembers.length === 0 ? (
-                  <div className="rounded-lg border border-white/10 bg-white/[0.02] p-12 text-center">
-                    <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                  <div className="surface-card p-10 text-center">
+                    <Users className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-50" />
                     <p className="text-sm text-muted-foreground">{t('channelTeam.noMembers')}</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                     {filteredMembers.map((member) => (
-                      <div
+                      <MemberIdCard
                         key={member.id}
-                        className="flex items-center justify-between gap-4 rounded-lg border border-white/10 bg-white/[0.02] p-4 transition-colors hover:border-white/20 hover:bg-white/[0.04]"
-                      >
-                        <div className="flex items-center gap-4 flex-1 min-w-0">
-                          <Avatar userId={member.userId} size="md" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate">{USER_BY_ID[member.userId]?.username || member.userId}</p>
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {member.permissions.length === 0 ? (
-                                <span className="text-xs text-muted-foreground">{t('channelTeam.noPermissions')}</span>
-                              ) : (
-                                <>
-                                  {member.permissions.slice(0, 3).map((perm) => (
-                                    <PermissionChip key={perm} permission={formatPermissionName(perm)} />
-                                  ))}
-                                  {member.permissions.length > 3 && (
-                                    <span className="text-xs text-muted-foreground">+{member.permissions.length - 3} more</span>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditMember(member)}
-                            className="h-9 gap-2"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                            <span className="hidden sm:inline">{t('channelTeam.edit')}</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setDeletingMemberId(member.userId)
-                              setShowDeleteDialog(true)
-                            }}
-                            className="h-9 text-red-500 hover:text-red-400"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
+                        member={member}
+                        onEdit={() => handleEditMember(member)}
+                        onRemove={() => {
+                          setDeletingMemberId(member.id)
+                          setShowDeleteDialog(true)
+                        }}
+                      />
                     ))}
                   </div>
                 )}
@@ -543,97 +358,37 @@ export function ChannelTeamPage() {
 
             {/* Invitations Tab */}
             {tab === 'invitations' && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div className="flex-1 relative max-w-sm">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Search className="pointer-events-none absolute start-3 top-2.5 h-4 w-4 text-muted-foreground" />
                   <input
                     type="text"
                     placeholder={t('channelTeam.searchInvitations')}
                     value={searchInvitations}
                     onChange={(e) => setSearchInvitations(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 rounded-lg bg-white/[0.05] border border-white/10 text-sm text-foreground placeholder:text-muted-foreground focus:border-[#bee1fc] focus:outline-none transition-colors"
+                    className="w-full ps-9 pe-4 py-2 rounded-lg bg-white/[0.05] border border-white/10 text-sm text-foreground placeholder:text-muted-foreground focus:border-[#bee1fc] focus:outline-none transition-colors"
                   />
                 </div>
 
                 {filteredInvitations.length === 0 ? (
-                  <div className="rounded-lg border border-white/10 bg-white/[0.02] p-12 text-center">
-                    <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                  <div className="surface-card p-10 text-center">
+                    <Clock className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-50" />
                     <p className="text-sm text-muted-foreground">{t('channelTeam.noPendingInvitations')}</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {filteredInvitations.map((invitation) => {
-                      const { bg, text } = getStatusBadge(invitation.status)
-                      const isCodeInvite = invitation.method === 'code'
-                      const target = isCodeInvite ? invitation.code : (USER_BY_ID[invitation.inviteeId || '']?.username || invitation.inviteeId)
-                      
-                      return (
-                        <div
-                          key={invitation.id}
-                          className="flex items-center justify-between gap-4 rounded-lg border border-white/10 bg-white/[0.02] p-4 transition-colors hover:border-white/20 hover:bg-white/[0.04]"
-                        >
-                          <div className="flex items-center gap-4 flex-1 min-w-0">
-                            <div className="h-10 w-10 rounded-lg bg-[#bee1fc]/10 flex items-center justify-center flex-shrink-0">
-                              {isCodeInvite ? (
-                                <Code2 className="h-5 w-5 text-[#bee1fc]" />
-                              ) : (
-                                <Users className="h-5 w-5 text-[#bee1fc]" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <p className="text-sm font-semibold text-foreground truncate">{target}</p>
-                                <span className={`text-xs px-2 py-1 rounded-full ${bg} ${text}`}>
-                                  {invitation.status}
-                                </span>
-                              </div>
-                              <div className="flex flex-wrap gap-1">
-                                {invitation.permissions.slice(0, 2).map((perm) => (
-                                  <PermissionChip key={perm} permission={formatPermissionName(perm)} />
-                                ))}
-                                {invitation.permissions.length > 2 && (
-                                  <span className="text-xs text-muted-foreground">+{invitation.permissions.length - 2}</span>
-                                )}
-                              </div>
-                              <p className="text-xs text-muted-foreground mt-2">
-                                {t('channelTeam.created')}: {new Date(invitation.createdAt).toLocaleDateString(lang)}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2 flex-shrink-0">
-                            {isCodeInvite && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => copyInviteCode(invitation.code || '')}
-                                className="h-9"
-                              >
-                                {copiedCode === invitation.code ? (
-                                  <>
-                                    <CheckCheck className="h-4 w-4 text-green-400" />
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy className="h-4 w-4" />
-                                  </>
-                                )}
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setRevokingInvitationId(invitation.id)
-                                setShowRevokeDialog(true)
-                              }}
-                              className="h-9 text-red-500 hover:text-red-400"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      )
-                    })}
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {filteredInvitations.map((invitation) => (
+                      <InvitationIdCard
+                        key={invitation.id}
+                        invitation={invitation}
+                        copied={copiedCode === invitation.code}
+                        onCopy={() => copyInviteCode(invitation.code || '')}
+                        onRevoke={() => {
+                          setRevokingInvitationId(invitation.id)
+                          setShowRevokeDialog(true)
+                        }}
+                      />
+                    ))}
                   </div>
                 )}
               </div>
@@ -643,8 +398,8 @@ export function ChannelTeamPage() {
             {tab === 'audit' && (
               <div className="space-y-4">
                 {auditEntries.length === 0 ? (
-                  <div className="rounded-lg border border-white/10 bg-white/[0.02] p-12 text-center">
-                    <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                  <div className="surface-card p-10 text-center">
+                    <AlertCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-50" />
                     <p className="text-sm text-muted-foreground">{t('channelTeam.noAuditLog')}</p>
                   </div>
                 ) : (
@@ -652,12 +407,12 @@ export function ChannelTeamPage() {
                     {auditEntries.map((entry, index) => {
                       const actor = USER_BY_ID[entry.actorId]
                       return (
-                        <div key={index} className="flex items-start gap-4 rounded-lg border border-white/10 bg-white/[0.02] p-4 transition-colors hover:bg-white/[0.04]">
-                          <Avatar userId={entry.actorId} size="sm" />
+                        <div key={index} className="surface-card flex items-start gap-3 p-3 transition-colors hover:border-white/20">
+                          <TeamAvatar userId={entry.actorId} size={32} />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm text-foreground">
                               <span className="font-semibold">{actor?.username || entry.actorId}</span>
-                              {' '}{t(`channelTeam.audit.${entry.action}`) || entry.action}
+                              {' '}{auditActionLabel(entry.action)}
                               {' '}<span className="text-muted-foreground">{entry.target}</span>
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
@@ -678,7 +433,7 @@ export function ChannelTeamPage() {
       {/* Invite Modal - Step 1: Method Selection */}
       {showInviteModal && inviteModal.step === 'method' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-sm rounded-lg border border-white/10 bg-[#0a0a0a] p-6 shadow-2xl">
+          <div className="surface-card w-full max-w-sm p-6 shadow-2xl">
             <h2 className="mb-6 text-lg font-semibold text-foreground">{t('channelTeam.inviteMember')}</h2>
             <div className="space-y-3">
               <button
@@ -710,7 +465,7 @@ export function ChannelTeamPage() {
       {/* Invite Modal - Step 2: Permissions Selection */}
       {showInviteModal && inviteModal.step === 'permissions' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-2xl max-h-[90vh] rounded-lg border border-white/10 bg-[#0a0a0a] shadow-2xl overflow-hidden flex flex-col">
+          <div className="surface-card w-full max-w-2xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col">
             <div className="flex items-center justify-between border-b border-white/10 p-6">
               <h2 className="text-lg font-semibold text-foreground">{t('channelTeam.selectPermissions')}</h2>
               <button onClick={() => setShowInviteModal(false)}>
@@ -732,11 +487,11 @@ export function ChannelTeamPage() {
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {SECTIONS.map((section) => (
-                <div key={section.id} className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
+                <div key={section.id} className="surface-inset p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <p className="font-semibold text-foreground">{section.label.en}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{section.description.en}</p>
+                      <p className="font-semibold text-foreground">{section.label[lang]}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{section.description[lang]}</p>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -748,7 +503,7 @@ export function ChannelTeamPage() {
                           onChange={() => handleInvitePermissionChange(perm.key)}
                           className="h-4 w-4 rounded border-white/20"
                         />
-                        <span className="text-sm text-foreground">{perm.label.en}</span>
+                        <span className="text-sm text-foreground">{perm.label[lang]}</span>
                       </label>
                     ))}
                   </div>
@@ -780,7 +535,7 @@ export function ChannelTeamPage() {
       {/* Edit Permissions Modal */}
       {showEditModal && editingMember?.member && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-2xl max-h-[90vh] rounded-lg border border-white/10 bg-[#0a0a0a] shadow-2xl overflow-hidden flex flex-col">
+          <div className="surface-card w-full max-w-2xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col">
             <div className="flex items-center justify-between border-b border-white/10 p-6">
               <div>
                 <h2 className="text-lg font-semibold text-foreground">{t('channelTeam.editPermissions')}</h2>
@@ -793,11 +548,11 @@ export function ChannelTeamPage() {
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {SECTIONS.map((section) => (
-                <div key={section.id} className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
+                <div key={section.id} className="surface-inset p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <p className="font-semibold text-foreground">{section.label.en}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{section.description.en}</p>
+                      <p className="font-semibold text-foreground">{section.label[lang]}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{section.description[lang]}</p>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -808,17 +563,12 @@ export function ChannelTeamPage() {
                           checked={editingMember.selectedPermissions.has(perm.key)}
                           onChange={() => setEditingMember(prev => {
                             if (!prev) return prev
-                            const newPerms = new Set(prev.selectedPermissions)
-                            if (newPerms.has(perm.key)) {
-                              newPerms.delete(perm.key)
-                            } else {
-                              newPerms.add(perm.key)
-                            }
-                            return { ...prev, selectedPermissions: newPerms }
+                            const next = setKey(Array.from(prev.selectedPermissions), perm.key, !prev.selectedPermissions.has(perm.key))
+                            return { ...prev, selectedPermissions: new Set(next) }
                           })}
                           className="h-4 w-4 rounded border-white/20"
                         />
-                        <span className="text-sm text-foreground">{perm.label.en}</span>
+                        <span className="text-sm text-foreground">{perm.label[lang]}</span>
                       </label>
                     ))}
                   </div>
@@ -848,7 +598,7 @@ export function ChannelTeamPage() {
 
       {/* Delete Member Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-[#0a0a0a] border-white/10">
+        <AlertDialogContent className="surface-card">
           <AlertDialogHeader>
             <AlertDialogTitle>{t('channelTeam.confirm.remove')}</AlertDialogTitle>
             <AlertDialogDescription>{t('channelTeam.confirm.removeDescription')}</AlertDialogDescription>
@@ -867,7 +617,7 @@ export function ChannelTeamPage() {
 
       {/* Revoke Invitation Dialog */}
       <AlertDialog open={showRevokeDialog} onOpenChange={setShowRevokeDialog}>
-        <AlertDialogContent className="bg-[#0a0a0a] border-white/10">
+        <AlertDialogContent className="surface-card">
           <AlertDialogHeader>
             <AlertDialogTitle>{t('channelTeam.confirm.revokeInvitation')}</AlertDialogTitle>
             <AlertDialogDescription>{t('channelTeam.confirm.revokeInvitationDescription')}</AlertDialogDescription>
