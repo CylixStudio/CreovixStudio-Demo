@@ -188,6 +188,11 @@ function WidgetBuilder() {
   const [goalDraft, setGoalDraft] = useState({ title: "", unit: "USD", target: 0, current: 0 });
   const [goalPane, setGoalPane] = useState<"setup" | "control">("setup");
   const [chatPane, setChatPane] = useState<"layout" | "display" | "extra">("display");
+  const [tapGoalPane, setTapGoalPane] = useState<"layout" | "display" | "extra">("display");
+  const [tappersPane, setTappersPane] = useState<"layout" | "display" | "extra">("display");
+  const [emoteRainPane, setEmoteRainPane] = useState<"layout" | "display" | "extra">("display");
+  const [spotlightPane, setSpotlightPane] = useState<"layout" | "display" | "extra">("display");
+  const [schedulePane, setSchedulePane] = useState<"layout" | "display" | "extra">("display");
   const [goalBump, setGoalBump] = useState("");
   const subathonSeeded = useRef<string | null>(null);
 
@@ -972,222 +977,352 @@ function WidgetBuilder() {
             
 
             {widget.type === "TIKTOK_TAP_GOAL" ? (
-              <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                <p className={labelClass}>
-                  {"🎯 Tap goal"}
-                </p>
-                <label className="block">
-                  <span className={labelClass}>
-                    {"Design layout"}
-                  </span>
-                  <DarkSelect
-                    className="mt-2"
-                    value={parseTapGoalConfig(config).design}
-                    onValueChange={(next) => set("design", next)}
-                    options={TAPGOAL_DESIGNS.map((entry) => ({
-                      value: entry.value,
-                      label: entry.label,
-                    }))}
-                  />
-                </label>
-
-                <label className="block">
-                  <span className={labelClass}>{"Goal title"}</span>
-                  <input
-                    className={`${fieldClass} mt-2`}
-                    value={parseTapGoalConfig(config).title}
-                    onChange={(event) => set("title", event.target.value)}
-                    placeholder="Goal: 50K Taps for Giveaway!"
-                  />
-                </label>
-                <label className="block">
-                  <span className={labelClass}>
-                    {"Goal target (taps)"}
-                  </span>
-                  <input
-                    type="number"
-                    min={1}
-                    step={1000}
-                    className={`${fieldClass} mt-2`}
-                    value={parseTapGoalConfig(config).target}
-                    onChange={(event) => set("target", Number(event.target.value))}
-                  />
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {[10000, 50000, 100000].map((preset) => (
+              <div className="space-y-3">
+                <div
+                  role="tablist"
+                  aria-label="Tap Goal settings"
+                  className="flex gap-1 rounded-xl border border-white/8 bg-black/20 p-1"
+                >
+                  {(
+                    [
+                      ["layout", "Layout"],
+                      ["display", "Display"],
+                      ["extra", "Extra"],
+                    ] as const
+                  ).map(([id, label]) => (
                     <button
-                      key={preset}
+                      key={id}
                       type="button"
-                      onClick={() => set("target", preset)}
-                      className="rounded-lg border border-border px-3 py-1.5 text-xs hover:border-primary hover:text-primary"
+                      role="tab"
+                      aria-selected={tapGoalPane === id}
+                      onClick={() => setTapGoalPane(id)}
+                      className={`flex-1 rounded-lg px-2 py-1.5 text-[0.72rem] font-semibold ${
+                        tapGoalPane === id
+                          ? "bg-primary/15 text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
                     >
-                      {preset.toLocaleString()}
+                      {label}
                     </button>
                   ))}
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="block">
-                    <span className={labelClass}>
-                      {"Gradient start"}
-                    </span>
-                    <input
-                      type="color"
-                      className="mt-2 h-10 w-full rounded-lg border border-border bg-transparent"
-                      value={parseTapGoalConfig(config).gradientFrom}
-                      onChange={(event) => set("gradientFrom", event.target.value)}
+
+                {tapGoalPane === "layout" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <div className="block">
+                      <h3 className="text-sm font-semibold">Design Layout</h3>
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        Choose how the tap goal is presented on the overlay.
+                      </p>
+                      <div className="mt-3">
+                        <label className="block">
+                          <span className={labelClass}>Layout</span>
+                          <DarkSelect
+                            className="mt-2"
+                            value={parseTapGoalConfig(config).design}
+                            onValueChange={(next) => set("design", next)}
+                            options={TAPGOAL_DESIGNS.map((entry) => ({
+                              value: entry.value,
+                              label: entry.label,
+                            }))}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                ) : tapGoalPane === "display" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <label className="block">
+                      <span className={labelClass}>{"Goal title"}</span>
+                      <input
+                        className={`${fieldClass} mt-2`}
+                        value={parseTapGoalConfig(config).title}
+                        onChange={(event) => set("title", event.target.value)}
+                        placeholder="Goal: 50K Taps for Giveaway!"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className={labelClass}>
+                        {"Goal target (taps)"}
+                      </span>
+                      <input
+                        type="number"
+                        min={1}
+                        step={1000}
+                        className={`${fieldClass} mt-2`}
+                        value={parseTapGoalConfig(config).target}
+                        onChange={(event) => set("target", Number(event.target.value))}
+                      />
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {[10000, 50000, 100000].map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => set("target", preset)}
+                          className="rounded-lg border border-border px-3 py-1.5 text-xs hover:border-primary hover:text-primary"
+                        >
+                          {preset.toLocaleString()}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="block">
+                        <span className={labelClass}>
+                          {"Gradient start"}
+                        </span>
+                        <input
+                          type="color"
+                          className="mt-2 h-10 w-full rounded-lg border border-border bg-transparent"
+                          value={parseTapGoalConfig(config).gradientFrom}
+                          onChange={(event) => set("gradientFrom", event.target.value)}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className={labelClass}>
+                          {"Gradient end"}
+                        </span>
+                        <input
+                          type="color"
+                          className="mt-2 h-10 w-full rounded-lg border border-border bg-transparent"
+                          value={parseTapGoalConfig(config).gradientTo}
+                          onChange={(event) => set("gradientTo", event.target.value)}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ) : tapGoalPane === "extra" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <ToggleField
+                      label={"Show percentage"}
+                      checked={parseTapGoalConfig(config).showPercent}
+                      onChange={(next) => set("showPercent", next)}
                     />
-                  </label>
-                  <label className="block">
-                    <span className={labelClass}>
-                      {"Gradient end"}
-                    </span>
-                    <input
-                      type="color"
-                      className="mt-2 h-10 w-full rounded-lg border border-border bg-transparent"
-                      value={parseTapGoalConfig(config).gradientTo}
-                      onChange={(event) => set("gradientTo", event.target.value)}
-                    />
-                  </label>
-                </div>
-                <ToggleField
-                  label={"Show percentage"}
-                  checked={parseTapGoalConfig(config).showPercent}
-                  onChange={(next) => set("showPercent", next)}
-                />
-                <button
-                  type="button"
-                  onClick={() => void copyUrl()}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm hover:border-primary hover:text-primary"
-                >
-                  {copied ? (
-                    <Check className="size-4" aria-hidden />
-                  ) : (
-                    <Copy className="size-4" aria-hidden />
-                  )}
-                  {"Copy OBS URL"}
-                </button>
-                <code className="block break-all text-[0.7rem] text-muted-foreground">
-                  /overlay/tiktok-tap-goal?token={widget.public_token}
-                </code>
+                    <button
+                      type="button"
+                      onClick={() => void copyUrl()}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm hover:border-primary hover:text-primary"
+                    >
+                      {copied ? (
+                        <Check className="size-4" aria-hidden />
+                      ) : (
+                        <Copy className="size-4" aria-hidden />
+                      )}
+                      {"Copy OBS URL"}
+                    </button>
+                    <code className="block break-all text-[0.7rem] text-muted-foreground">
+                      /overlay/tiktok-tap-goal?token={widget.public_token}
+                    </code>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
             {widget.type === "TIKTOK_TAPPERS" ? (
-              <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                <p className={labelClass}>
-                  {"🏆 Top tappers"}
-                </p>
-                <label className="block">
-                  <span className={labelClass}>{"Layout"}</span>
-                  <DarkSelect
-                    className="mt-2"
-                    value={parseTappersConfig(config).layout}
-                    onValueChange={(next) => set("layout", next)}
-                    options={TAPPERS_LAYOUTS.map((entry) => ({
-                      value: entry.value,
-                      label: entry.label,
-                    }))}
-                  />
-                </label>
-                <label className="block">
-                  <span className={labelClass}>{"Top limit"}</span>
-                  <DarkSelect
-                    className="mt-2"
-                    value={String(parseTappersConfig(config).topLimit)}
-                    onValueChange={(next) => set("topLimit", Number(next))}
-                    options={TAPPERS_LIMITS.map((limit) => ({
-                      value: String(limit),
-                      label: `Top ${limit}`,
-                    }))}
-                  />
-                </label>
-                <label className="block">
-                  <span className={labelClass}>{"Title"}</span>
-                  <input
-                    className={`${fieldClass} mt-2`}
-                    value={parseTappersConfig(config).title}
-                    onChange={(event) => set("title", event.target.value)}
-                  />
-                </label>
-                <ToggleField
-                  label={"Show profile pictures"}
-                  checked={parseTappersConfig(config).showAvatars}
-                  onChange={(next) => set("showAvatars", next)}
-                />
-                <button
-                  type="button"
-                  onClick={() => void copyUrl()}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm hover:border-primary hover:text-primary"
+              <div className="space-y-3">
+                <div
+                  role="tablist"
+                  aria-label="Tappers settings"
+                  className="flex gap-1 rounded-xl border border-white/8 bg-black/20 p-1"
                 >
-                  {copied ? (
-                    <Check className="size-4" aria-hidden />
-                  ) : (
-                    <Copy className="size-4" aria-hidden />
-                  )}
-                  {"Copy OBS URL"}
-                </button>
-                <code className="block break-all text-[0.7rem] text-muted-foreground">
-                  /overlay/tiktok-tappers?token={widget.public_token}
-                </code>
+                  {(
+                    [
+                      ["layout", "Layout"],
+                      ["display", "Display"],
+                      ["extra", "Extra"],
+                    ] as const
+                  ).map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      role="tab"
+                      aria-selected={tappersPane === id}
+                      onClick={() => setTappersPane(id)}
+                      className={`flex-1 rounded-lg px-2 py-1.5 text-[0.72rem] font-semibold ${
+                        tappersPane === id
+                          ? "bg-primary/15 text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {tappersPane === "layout" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <div className="block">
+                      <h3 className="text-sm font-semibold">Layout</h3>
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        Choose how the top tappers list is displayed.
+                      </p>
+                      <div className="mt-3">
+                        <label className="block">
+                          <span className={labelClass}>{"Layout"}</span>
+                          <DarkSelect
+                            className="mt-2"
+                            value={parseTappersConfig(config).layout}
+                            onValueChange={(next) => set("layout", next)}
+                            options={TAPPERS_LAYOUTS.map((entry) => ({
+                              value: entry.value,
+                              label: entry.label,
+                            }))}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                ) : tappersPane === "display" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <label className="block">
+                      <span className={labelClass}>{"Title"}</span>
+                      <input
+                        className={`${fieldClass} mt-2`}
+                        value={parseTappersConfig(config).title}
+                        onChange={(event) => set("title", event.target.value)}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className={labelClass}>{"Top limit"}</span>
+                      <DarkSelect
+                        className="mt-2"
+                        value={String(parseTappersConfig(config).topLimit)}
+                        onValueChange={(next) => set("topLimit", Number(next))}
+                        options={TAPPERS_LIMITS.map((limit) => ({
+                          value: String(limit),
+                          label: `Top ${limit}`,
+                        }))}
+                      />
+                    </label>
+                    <ToggleField
+                      label={"Show profile pictures"}
+                      checked={parseTappersConfig(config).showAvatars}
+                      onChange={(next) => set("showAvatars", next)}
+                    />
+                  </div>
+                ) : tappersPane === "extra" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <button
+                      type="button"
+                      onClick={() => void copyUrl()}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm hover:border-primary hover:text-primary"
+                    >
+                      {copied ? (
+                        <Check className="size-4" aria-hidden />
+                      ) : (
+                        <Copy className="size-4" aria-hidden />
+                      )}
+                      {"Copy OBS URL"}
+                    </button>
+                    <code className="block break-all text-[0.7rem] text-muted-foreground">
+                      /overlay/tiktok-tappers?token={widget.public_token}
+                    </code>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
             {widget.type === "EMOTE_RAIN" ? (
-              <div className="space-y-3 rounded-xl border border-border bg-background p-4">
-                <label className="block">
-                  <span className={labelClass}>Emotes (comma separated)</span>
-                  <input
-                    className={`${fieldClass} mt-2`}
-                    value={parseEmoteRainConfig(config).emotes.join(", ")}
-                    onChange={(event) =>
-                      set(
-                        "emotes",
-                        event.target.value.split(",").map((entry) => entry.trim()),
-                      )
-                    }
-                  />
-                </label>
-                <label className="block">
-                  <span className={`${labelClass} inline-flex items-center gap-1.5`}>
-                    Emotes per event ({parseEmoteRainConfig(config).burst})
-                    <InfoTip text={t("tooltips.widget.emoteBurst")} />
-                  </span>
-                  <input
-                    type="range"
-                    min={1}
-                    max={60}
-                    className="mt-3 w-full accent-primary"
-                    value={parseEmoteRainConfig(config).burst}
-                    onChange={(event) => set("burst", Number(event.target.value))}
-                  />
-                </label>
-                <label className="block">
-                  <span className={labelClass}>
-                    Emote size ({parseEmoteRainConfig(config).emoteSize}px)
-                  </span>
-                  <input
-                    type="range"
-                    min={16}
-                    max={160}
-                    className="mt-3 w-full accent-primary"
-                    value={parseEmoteRainConfig(config).emoteSize}
-                    onChange={(event) => set("emoteSize", Number(event.target.value))}
-                  />
-                </label>
-                <label className="block">
-                  <span className={`${labelClass} inline-flex items-center gap-1.5`}>
-                    Fall duration ({Math.round(parseEmoteRainConfig(config).fallMs / 1000)}s)
-                    <InfoTip text={t("tooltips.widget.fallDuration")} />
-                  </span>
-                  <input
-                    type="range"
-                    min={1}
-                    max={15}
-                    className="mt-3 w-full accent-primary"
-                    value={Math.round(parseEmoteRainConfig(config).fallMs / 1000)}
-                    onChange={(event) => set("fallMs", Number(event.target.value) * 1000)}
-                  />
-                </label>
+              <div className="space-y-3">
+                <div
+                  role="tablist"
+                  aria-label="Emote Rain settings"
+                  className="flex gap-1 rounded-xl border border-white/8 bg-black/20 p-1"
+                >
+                  {(
+                    [
+                      ["layout", "Layout"],
+                      ["display", "Display"],
+                      ["extra", "Extra"],
+                    ] as const
+                  ).map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      role="tab"
+                      aria-selected={emoteRainPane === id}
+                      onClick={() => setEmoteRainPane(id)}
+                      className={`flex-1 rounded-lg px-2 py-1.5 text-[0.72rem] font-semibold ${
+                        emoteRainPane === id
+                          ? "bg-primary/15 text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {emoteRainPane === "layout" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <div className="block">
+                      <h3 className="text-sm font-semibold">Layout</h3>
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        Emote rain layout settings.
+                      </p>
+                    </div>
+                  </div>
+                ) : emoteRainPane === "display" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <label className="block">
+                      <span className={labelClass}>Emotes (comma separated)</span>
+                      <input
+                        className={`${fieldClass} mt-2`}
+                        value={parseEmoteRainConfig(config).emotes.join(", ")}
+                        onChange={(event) =>
+                          set(
+                            "emotes",
+                            event.target.value.split(",").map((entry) => entry.trim()),
+                          )
+                        }
+                      />
+                    </label>
+                    <label className="block">
+                      <span className={labelClass}>
+                        Emote size ({parseEmoteRainConfig(config).emoteSize}px)
+                      </span>
+                      <input
+                        type="range"
+                        min={16}
+                        max={160}
+                        className="mt-3 w-full accent-primary"
+                        value={parseEmoteRainConfig(config).emoteSize}
+                        onChange={(event) => set("emoteSize", Number(event.target.value))}
+                      />
+                    </label>
+                  </div>
+                ) : emoteRainPane === "extra" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <label className="block">
+                      <span className={`${labelClass} inline-flex items-center gap-1.5`}>
+                        Emotes per event ({parseEmoteRainConfig(config).burst})
+                        <InfoTip text={t("tooltips.widget.emoteBurst")} />
+                      </span>
+                      <input
+                        type="range"
+                        min={1}
+                        max={60}
+                        className="mt-3 w-full accent-primary"
+                        value={parseEmoteRainConfig(config).burst}
+                        onChange={(event) => set("burst", Number(event.target.value))}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className={`${labelClass} inline-flex items-center gap-1.5`}>
+                        Fall duration ({Math.round(parseEmoteRainConfig(config).fallMs / 1000)}s)
+                        <InfoTip text={t("tooltips.widget.fallDuration")} />
+                      </span>
+                      <input
+                        type="range"
+                        min={1}
+                        max={15}
+                        className="mt-3 w-full accent-primary"
+                        value={Math.round(parseEmoteRainConfig(config).fallMs / 1000)}
+                        onChange={(event) => set("fallMs", Number(event.target.value) * 1000)}
+                      />
+                    </label>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
