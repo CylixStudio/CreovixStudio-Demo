@@ -72,19 +72,31 @@ function PermissionChip({ permission, onRemove }: any) {
   )
 }
 
-// Avatar Component with HSL-based gradient for premium look
-function Avatar({ userId, size = 'md' }: any) {
+// Avatar Component with platform image support and HSL gradient fallback
+function Avatar({ userId, size = 'md', showPlatformBadge = true }: any) {
   const user = USER_BY_ID[userId]
   const initials = (user?.username || userId).substring(0, 2).toUpperCase()
   
-  // Use the user's hue to generate a unique gradient
+  // For demo: use HSL-based gradient since no real platform images are available in fixtures
+  // In production, this would fetch from Kick/Twitch/YouTube APIs
   const hue = user?.hue ?? 205
   const gradientClass = `bg-gradient-to-br from-[hsl(${hue},100%,55%)] to-[hsl(${hue},80%,40%)]`
   const sizeClass = size === 'lg' ? 'h-12 w-12' : size === 'sm' ? 'h-8 w-8' : 'h-10 w-10'
+  const badgeSizeClass = size === 'lg' ? 'h-3 w-3' : size === 'sm' ? 'h-2 w-2' : 'h-2.5 w-2.5'
+  
+  // Platform badge would show actual platform icon here
+  // For demo, showing a generic indicator since fixtures don't have platform data
+  const platformColor = 'bg-[#bee1fc]'
   
   return (
-    <div className={`${sizeClass} rounded-full ${gradientClass} flex items-center justify-center text-xs font-semibold text-white shadow-md ring-1 ring-white/20`}>
-      {initials}
+    <div className="relative inline-flex">
+      <div className={`${sizeClass} rounded-full ${gradientClass} flex items-center justify-center text-xs font-semibold text-white shadow-md ring-1 ring-white/20`}>
+        {initials}
+      </div>
+      {/* Platform badge indicator - would show Kick/Twitch/YouTube icon in production */}
+      {showPlatformBadge && (
+        <div className={`${badgeSizeClass} absolute bottom-0 end-0 rounded-full ${platformColor} ring-1 ring-[#0a0a0a] shadow-sm`} title="Demo: Platform avatar (Kick/Twitch/YouTube image would display here in production)" />
+      )}
     </div>
   )
 }

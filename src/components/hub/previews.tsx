@@ -438,19 +438,6 @@ export function GoalPreview() {
   return <Bar percent={72} label="Sub goal" value="720 / 1000 subs" />;
 }
 
-export function AlertPreview() {
-  return (
-    <div className="grid h-full place-items-center overflow-hidden">
-      <div className="relative w-full max-w-[195px]">
-        <div className="relative rounded-xl border border-[oklch(1_0_0/0.1)] bg-[oklch(1_0_0/0.05)] px-3 py-2.5">
-          <p className="text-[0.6rem] uppercase tracking-[0.24em] text-primary">New sub · Tier 1</p>
-          <p className="mt-1 text-[0.8rem] font-medium">nova_stream just subscribed</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 const CHAT_POOL = [
   {
     who: "مشرف",
