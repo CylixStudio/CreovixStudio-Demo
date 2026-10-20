@@ -89,6 +89,16 @@ function fitLabel(label: string, maxWidth: number, fontSize: number) {
   return "…";
 }
 
+/** Dark or white label ink for a custom slice colour. */
+function inkFor(fill: string) {
+  const raw = fill.replace("#", "");
+  const full = raw.length === 3 ? Array.from(raw, (ch) => ch + ch).join("") : raw;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 150 ? "#18181B" : "#FFFFFF";
+}
+
 function drawSlices(prizes: SpinPrize[]): DrawnSlice[] {
   const saved = prizes.filter((prize) => prize.label.trim().length > 0);
   const placeholder = saved.length === 0;
@@ -96,12 +106,13 @@ function drawSlices(prizes: SpinPrize[]): DrawnSlice[] {
   const span = 360 / count;
   return Array.from({ length: count }, (_, index) => {
     const color = WHEEL_SLICE_COLORS[index % WHEEL_SLICE_COLORS.length]!;
+    const custom = placeholder ? undefined : saved[index]!.color;
     const start = index * span;
     const full = span >= 359.9;
     return {
       label: placeholder ? "" : saved[index]!.label,
-      fill: color.fill,
-      ink: color.ink,
+      fill: custom ?? color.fill,
+      ink: custom ? inkFor(custom) : color.ink,
       start,
       span,
       visualCenter: full ? 0 : start + span / 2,

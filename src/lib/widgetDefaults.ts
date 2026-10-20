@@ -14,6 +14,7 @@ import {
   parseViewerCounterConfig,
   parseEventLabelsConfig,
   parseSplitGoalConfig,
+  seedWheelConfig,
   parsePollConfig,
   parsePredictionConfig,
   type WidgetType,
@@ -35,7 +36,7 @@ export function defaultConfig(type: WidgetType, goalType?: GoalTypeId): Record<s
       };
     }
     case "SPIN_WHEEL":
-      return { ...parseSpinConfig(null) };
+      return seedWheelConfig({ ...parseSpinConfig(null) });
     case "EMOTE_RAIN":
       return { ...parseEmoteRainConfig(null) };
     case "CHAT_SPOTLIGHT":

@@ -27,6 +27,7 @@ import { readReplyMeta } from "@/lib/replyAlert";
 import type { StreamEventsRuntime } from "@/lib/streamEventsSchedule";
 import type { PollRuntime, PredictionRuntime } from "@/lib/interactiveWidgets";
 import type { TimerFrame } from "@/lib/timer";
+import { isDynamicGoalWidget } from "@/lib/widgets";
 import type {
   GoalSnapshot,
   OverlayEvent,
@@ -129,7 +130,7 @@ export function useWidgetStream(publicToken: string | null) {
         return;
       }
       setWidget({ id: found.id, name: found.name, type: found.type as WidgetType, config: found.config });
-      const goalRow = state.goals.find((item) => item.widget_id === found.id);
+      const goalRow = isDynamicGoalWidget(found.type) ? undefined : state.goals.find((item) => item.widget_id === found.id);
       setGoal(
         goalRow
           ? {

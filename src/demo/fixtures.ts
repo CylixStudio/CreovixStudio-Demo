@@ -62,7 +62,10 @@ export function buildDemoWidgets(now: number): { widgets: DemoWidget[]; goals: D
       user_id: DEMO_USER_ID,
       name: seed.name ?? WIDGET_LABEL[seed.type],
       type: seed.type,
-      config: defaultConfig(seed.type, seed.goalType),
+      config:
+        seed.type === "KICKS_GOAL"
+          ? { ...defaultConfig(seed.type), title: "Kicks Goal", target: 1000, current: seed.current ?? 640 }
+          : defaultConfig(seed.type, seed.goalType),
       state: {},
       subathon_id: seed.type === "SUBATHON_TIMER" ? DEMO_SUBATHON_ID : null,
       public_token: demoWidgetToken(seed.type, n),

@@ -150,7 +150,13 @@ export type ChatConfig = BaseStyle & {
   /** Vertical gap between messages, in px. */
   messageGap: number;
 };
-export type SpinPrize = { label: string; weight: number };
+export type SpinPrize = { label: string; weight: number; color?: string };
+
+/** Five numbered demo prizes every new wheel starts with. */
+export const DEFAULT_WHEEL_PRIZES: readonly SpinPrize[] = ["1", "2", "3", "4", "5"].map((label) => ({
+  label,
+  weight: 1,
+}));
 
 export type SpinConfig = BaseStyle & {
   entries: string[];
@@ -258,7 +264,21 @@ function prizeLabel(item: Record<string, unknown>): string {
 /** One stored row, including a blank editor row. Strings and name/text fields count. */
 export function coerceSpinPrize(item: unknown): SpinPrize {
   if (typeof item === "string") return { label: item.slice(0, 40), weight: 1 };
-  return { label: prizeLabel(asRecord(item)), weight: prizeWeight(asRecord(item)["weight"]) };
+  const record = asRecord(item);
+  const color = record["color"];
+  return {
+    label: prizeLabel(record),
+    weight: prizeWeight(record["weight"]),
+    ...(typeof color === "string" && HEX.test(color.trim()) ? { color: color.trim() } : {}),
+  };
+}
+
+/** Wheels saved before default prizes existed get the numbered set once. */
+export function seedWheelConfig(raw: Record<string, unknown>): Record<string, unknown> {
+  if (raw["prizesSeeded"] === true) return raw;
+  if (parseSpinPrizes(raw).length > 0 || draftSpinPrizes(raw).length > 0) return { ...raw, prizesSeeded: true };
+  const prizes = DEFAULT_WHEEL_PRIZES.map((prize) => ({ ...prize }));
+  return { ...raw, prizes, entries: prizes.map((prize) => prize.label), prizesSeeded: true };
 }
 
 function isExplicitBlankPrize(item: unknown): boolean {
@@ -287,7 +307,7 @@ export function parseSpinPrizes(raw: unknown): SpinPrize[] {
   const prizes = rawPrizes
     .slice(0, 24)
     .map((item) => coerceSpinPrize(item))
-    .map((item) => ({ label: item.label.trim(), weight: item.weight }))
+    .map((item) => ({ ...item, label: item.label.trim() }))
     .filter((item) => item.label.length > 0);
   if (prizes.length > 0) return prizes;
   if (rawPrizes.some((item) => isExplicitBlankPrize(item))) return [];

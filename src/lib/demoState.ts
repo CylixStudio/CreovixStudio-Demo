@@ -1,4 +1,5 @@
 import { DEMO_USER_ID } from "@/lib/demoMode";
+import { seedWheelConfig } from "@/lib/widgets";
 
 export type DemoWidget = {
   id: string;
@@ -84,12 +85,14 @@ export function normalizeDemoFile(raw: unknown): DemoFile {
     const id = typeof row["id"] === "string" ? row["id"] : "";
     const token = typeof row["public_token"] === "string" ? row["public_token"] : "";
     if (!id || !token.startsWith("demo-")) continue;
+    const type = typeof row["type"] === "string" ? row["type"] : "CHAT_BOX";
+    const config = asRecord(row["config"]);
     next.widgets.push({
       id,
       user_id: DEMO_USER_ID,
       name: typeof row["name"] === "string" && row["name"].trim() ? row["name"].trim() : "Widget",
-      type: typeof row["type"] === "string" ? row["type"] : "CHAT_BOX",
-      config: asRecord(row["config"]),
+      type,
+      config: type === "SPIN_WHEEL" ? seedWheelConfig(config) : config,
       state: asRecord(row["state"]),
       subathon_id: typeof row["subathon_id"] === "string" ? row["subathon_id"] : null,
       public_token: token,

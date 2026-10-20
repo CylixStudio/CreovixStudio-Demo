@@ -6,12 +6,12 @@ import { WidgetRenderer } from "@/components/widgets/WidgetRenderer";
 import { SessionAwareError } from "@/components/widgets/SessionAwareError";
 import { useLanguage } from "@/lib/i18n";
 import { SIGNED_OUT_ERROR } from "@/lib/supabase/sessionError";
-import { parseSpinConfig, pickWeightedPrize, type SpinState } from "@/lib/widgets";
+import { parseSpinConfig, pickWeightedPrize, seedWheelConfig, type SpinState } from "@/lib/widgets";
 
 /** Local wheel editor for a signed-out visit. Nothing is saved and no token is minted. */
 export function WheelGuestCustomize() {
   const { t } = useLanguage();
-  const [config, setConfig] = useState<Record<string, unknown>>({ prizes: [] });
+  const [config, setConfig] = useState<Record<string, unknown>>(() => seedWheelConfig({ prizes: [] }));
   const [spin, setSpin] = useState<SpinState | null>(null);
   const [spinning, setSpinning] = useState(false);
   const prizes = useMemo(() => parseSpinConfig(config).prizes, [config]);

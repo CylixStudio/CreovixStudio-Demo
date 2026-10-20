@@ -15,12 +15,14 @@ import type { StandaloneTool } from "@/lib/standaloneTools";
 import { SIGNED_OUT_ERROR } from "@/lib/supabase/sessionError";
 import { isTestMode } from "@/lib/testMode";
 import { isSplitGoalKind, parseSplitGoalConfig, type SplitGoalKind } from "@/lib/widgets";
-import { GOAL_LAYOUTS, parseGoalLayout } from "@/lib/widgetLayouts";
-import { LayoutPicker } from "@/components/widgets/LayoutPicker";
+import { parseGoalLayout } from "@/lib/widgetLayouts";
+import { StandaloneWidgetFields } from "@/components/widgets/StandaloneWidgetFields";
 
-const fieldClass =
-  "w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-primary";
-const labelClass = "text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground";
+function initialConfig(kind: SplitGoalKind, raw: unknown): Record<string, unknown> {
+  const stored =
+    raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
+  return { ...stored, ...parseSplitGoalConfig(kind, raw), layout: parseGoalLayout(raw) };
+}
 
 export function GoalKindScreen({ spec, userId }: { spec: StandaloneTool; userId: string }) {
   const kind = spec.type;
@@ -43,15 +45,9 @@ function GoalKindForm({
   const widgets = useWidgets();
   const workspace = useWorkspace(userId);
   const existing = widgets.data?.widgets.find((widget) => widget.type === kind) ?? null;
-  const initial = parseSplitGoalConfig(kind, existing?.config);
-  const [title, setTitle] = useState(initial.title);
-  const [current, setCurrent] = useState(String(initial.current));
-  const [target, setTarget] = useState(String(initial.target));
-  const [unit, setUnit] = useState(initial.unit);
-  const [accent, setAccent] = useState(initial.accentColor);
-  const [track, setTrack] = useState(initial.backgroundColor);
-  const [text, setText] = useState(initial.textColor);
-  const [layout, setLayout] = useState(parseGoalLayout(existing?.config));
+  const [draft, setDraft] = useState<Record<string, unknown>>(() =>
+    initialConfig(kind, existing?.config),
+  );
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [hydratedId, setHydratedId] = useState<string | null>(null);
@@ -59,30 +55,14 @@ function GoalKindForm({
 
   useEffect(() => {
     if (!existing || hydratedId === existing.id) return;
-    const next = parseSplitGoalConfig(kind, existing.config);
-    setTitle(next.title);
-    setCurrent(String(next.current));
-    setTarget(String(next.target));
-    setUnit(next.unit);
-    setAccent(next.accentColor);
-    setTrack(next.backgroundColor);
-    setText(next.textColor);
-    setLayout(parseGoalLayout(existing.config));
+    setDraft(initialConfig(kind, existing.config));
     setHydratedId(existing.id);
   }, [existing, hydratedId, kind]);
 
-  const config = {
-    ...parseSplitGoalConfig(kind, null),
-    title,
-    current: Math.max(0, Number(current) || 0),
-    target: Math.max(1, Number(target) || 1),
-    unit: kind === "DONATION_GOAL" || kind === "CUSTOM_GOAL" ? unit.trim() : "",
-    accentColor: accent,
-    backgroundColor: track,
-    textColor: text,
-    layout,
-  };
-
+  const set = (key: string, value: unknown) => setDraft((prev) => ({ ...prev, [key]: value }));
+  const parsed = parseSplitGoalConfig(kind, draft);
+  const config = { ...draft, ...parsed, layout: parseGoalLayout(draft) };
+  const title = parsed.title;
   const save = async () => {
     if (isTestMode()) {
       setError(SIGNED_OUT_ERROR);
@@ -116,59 +96,14 @@ function GoalKindForm({
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,24rem)_1fr]">
       <form
-        className="space-y-3 rounded-2xl border border-white/10 bg-zinc-950 p-5"
+        className="surface-card surface-card-pad space-y-3"
         onSubmit={(event) => {
           event.preventDefault();
           void save();
         }}
       >
         <SessionAwareError error={error} signedOutLabel={t("tools.signedOut")} />
-        <label className="block">
-          <span className={labelClass}>{t("goal.field.title")}</span>
-          <input className={`${fieldClass} mt-2`} value={title} onChange={(event) => setTitle(event.target.value)} />
-        </label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block">
-            <span className={labelClass}>{t("goal.field.current")}</span>
-            <input
-              className={`${fieldClass} mt-2`}
-              inputMode="numeric"
-              value={current}
-              onChange={(event) => setCurrent(event.target.value)}
-            />
-          </label>
-          <label className="block">
-            <span className={labelClass}>{t("goal.field.target")}</span>
-            <input
-              className={`${fieldClass} mt-2`}
-              inputMode="numeric"
-              value={target}
-              onChange={(event) => setTarget(event.target.value)}
-            />
-          </label>
-        </div>
-        {kind === "DONATION_GOAL" ? (
-          <label className="block">
-            <span className={labelClass}>{t("goal.field.currency")}</span>
-            <input className={`${fieldClass} mt-2`} value={unit} onChange={(event) => setUnit(event.target.value)} />
-          </label>
-        ) : null}
-        {kind === "CUSTOM_GOAL" ? (
-          <label className="block">
-            <span className={labelClass}>{t("goal.field.unit")}</span>
-            <input className={`${fieldClass} mt-2`} value={unit} onChange={(event) => setUnit(event.target.value)} />
-          </label>
-        ) : null}
-        <LayoutPicker
-          value={layout}
-          options={GOAL_LAYOUTS.map((id) => ({ id, label: t(`layout.goal.${id}`) }))}
-          onChange={(id) => setLayout(parseGoalLayout({ layout: id }))}
-        />
-        <div className="flex flex-wrap gap-4">
-          <ColorField label={t("goal.field.accent")} value={accent} onChange={setAccent} />
-          <ColorField label={t("goal.field.track")} value={track} onChange={setTrack} />
-          <ColorField label={t("goal.field.text")} value={text} onChange={setText} />
-        </div>
+        <StandaloneWidgetFields type={kind} config={draft} set={set} />
         <div className="flex gap-2 pt-2">
           <button
             type="button"
@@ -198,28 +133,5 @@ function GoalKindForm({
         />
       </div>
     </div>
-  );
-}
-
-function ColorField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  const safe = /^#([0-9a-f]{6})$/i.test(value) ? value : "#7C3AED";
-  return (
-    <label className="flex items-center gap-2 text-xs text-muted-foreground">
-      <span>{label}</span>
-      <input
-        type="color"
-        value={safe}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-9 w-12 cursor-pointer rounded-lg border border-white/10 bg-zinc-950"
-      />
-    </label>
   );
 }

@@ -166,6 +166,7 @@ export function GoalBarView({
       </div>
 
       <span
+        dir="ltr"
         style={{
           fontSize: `${style.fontSize}px`,
           fontWeight: 700,

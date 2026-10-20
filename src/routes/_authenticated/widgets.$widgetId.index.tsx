@@ -1,3 +1,4 @@
+import { BuilderCard, BuilderTabs, LayoutCards, RangeField } from "@/components/widgets/builderUi";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -36,7 +37,7 @@ import {
   ROYAL_COMPACT_THEME_ID,
   type RoyalCompactSettings,
 } from "@/lib/royalCompact";
-import { parseOverlayTheme } from "@/lib/overlayTheme";
+import { OVERLAY_FONT_STYLESHEET, parseOverlayTheme } from "@/lib/overlayTheme";
 import { useLanguage } from "@/lib/i18n";
 import { ensureWidgetSubathon, widgetErrorText } from "@/lib/createWidget";
 import { isDemoBuild } from "@/lib/demoMode";
@@ -102,6 +103,7 @@ export const Route = createFileRoute("/_authenticated/widgets/$widgetId/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "stylesheet", href: OVERLAY_FONT_STYLESHEET }],
   }),
   component: WidgetBuilder,
 });
@@ -116,7 +118,7 @@ function WidgetBuilder() {
   const signedOutViewer = !isDemoBuild() && (userId.length === 0 || isTestMode());
   const { widgetId } = Route.useParams();
   const queryClient = useQueryClient();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { data: workspace } = useWorkspace(userId);
   const subscription = useSubscription(userId);
   const proActive = isDemoBuild() || subscription.data?.isActive === true;
@@ -186,7 +188,6 @@ function WidgetBuilder() {
   const [name, setName] = useState("");
   const [config, setConfig] = useState<Record<string, unknown>>({});
   const [goalDraft, setGoalDraft] = useState({ title: "", unit: "USD", target: 0, current: 0 });
-  const [goalPane, setGoalPane] = useState<"setup" | "control">("setup");
   const [chatPane, setChatPane] = useState<"layout" | "display" | "extra">("display");
   const [tapGoalPane, setTapGoalPane] = useState<"layout" | "display" | "extra">("display");
   const [tappersPane, setTappersPane] = useState<"layout" | "display" | "extra">("display");
@@ -195,8 +196,8 @@ function WidgetBuilder() {
   const [schedulePane, setSchedulePane] = useState<"layout" | "display" | "extra">("display");
   const [pollPane, setPollPane] = useState<"layout" | "display" | "extra">("display");
   const [predictionPane, setPredictionPane] = useState<"layout" | "display" | "extra">("display");
-  const [goalBump, setGoalBump] = useState("");
   const subathonSeeded = useRef<string | null>(null);
+  const goalHydrated = useRef<string | null>(null);
 
   useEffect(() => {
     if (!widget) return;
@@ -208,6 +209,11 @@ function WidgetBuilder() {
 
   useEffect(() => {
     if (!goalRow) return;
+    if (goalHydrated.current === goalRow.id) {
+      setGoalDraft((prev) => ({ ...prev, current: goalRow.current_value }));
+      return;
+    }
+    goalHydrated.current = goalRow.id;
     setGoalDraft({
       title: goalRow.title,
       unit: goalRow.unit,
@@ -413,12 +419,59 @@ function WidgetBuilder() {
   };
 
   const set = (key: string, value: unknown) => setConfig((prev) => ({ ...prev, [key]: value }));
+  const tabbedStandalone =
+    widget?.type === "GOAL_BAR" ||
+    widget?.type === "KICKS_GOAL" ||
+    widget?.type === "SPIN_WHEEL" ||
+    widget?.type === "VIEWER_COUNTER" ||
+    widget?.type === "EVENT_LABELS";
+  const standaloneTool = widget ? STANDALONE_TOOLS.find((tool) => tool.type === widget.type) : undefined;
   const patchRoyal = (partial: Partial<RoyalCompactSettings>) =>
     setConfig((prev) => ({
       ...prev,
       royalCompact: { ...parseRoyalCompactSettings(prev), ...partial },
     }));
 
+
+  const miniPreview = (override: Record<string, unknown>) =>
+    widget ? (
+      <WidgetRenderer
+        type={widget.type}
+        config={{ ...config, ...override }}
+        frame={stream.frame}
+        remaining={stream.remaining}
+        goal={
+          isDynamicGoalWidget(widget.type)
+            ? null
+            : goalRow
+              ? {
+                  title: goalDraft.title,
+                  unit: goalDraft.unit,
+                  target: goalDraft.target,
+                  current: goalDraft.current,
+                }
+              : stream.goal
+        }
+        events={stream.events}
+        spin={stream.spin}
+        spotlight={stream.spotlight}
+        streamEvents={
+          stream.streamEvents ?? (widget ? parseStreamEventsScheduleState(widget.state) : null)
+        }
+        poll={stream.poll ?? (widget ? parsePollRuntime(widget.state) : null)}
+        prediction={stream.prediction ?? (widget ? parsePredictionRuntime(widget.state) : null)}
+        tappers={stream.tappers}
+        tapGoal={stream.tapGoal}
+        chat={stream.chat}
+        testMessages={stream.testMessages}
+        storedMessages={stream.chatMessages}
+        linkStatus={stream.status}
+        linkSurface="studio"
+        demo
+        publicToken={widget.public_token}
+        spinning={false}
+      />
+    ) : null;
 
   const scheduleStyle =
     widget?.type === "STREAM_EVENTS_SCHEDULE" ? parseStreamEventsScheduleConfig(config) : null;
@@ -446,10 +499,20 @@ function WidgetBuilder() {
             ? t("home.tool.eventLabels.name")
             : widget.type === "KICKS_GOAL" && ["Kicks Goal", "هدف الكيكس"].includes(widget.name)
               ? t("home.tool.kicksGoal.name")
-              : widget.name
+              : widget.type === "SPIN_WHEEL" && ["Wheel of fortune", "عجلة الحظ"].includes(widget.name)
+                ? t("home.tool.wheel.name")
+                : widget.type === "VIEWER_COUNTER" && ["Viewer counter", "عداد المشاهدين"].includes(widget.name)
+                  ? t("home.tool.viewerCounter.name")
+                  : widget.name
           : "Widget builder"
       }
-      subtitle={widget ? WIDGET_LABEL[widget.type] : "Loading…"}
+      subtitle={
+        widget
+          ? standaloneTool && tabbedStandalone
+            ? t(standaloneTool.descriptionKey)
+            : WIDGET_LABEL[widget.type]
+          : "Loading…"
+      }
       actions={
         widget ? (
           <div className="flex flex-wrap gap-2">
@@ -492,7 +555,7 @@ function WidgetBuilder() {
 
       {!widget ? (
         signedOutViewer || isMissingViewerSession(widgetQuery.error) ? (
-          <div className="grid min-h-[420px] place-items-center rounded-2xl border border-border bg-[repeating-conic-gradient(#16171d_0%_25%,#101116_0%_50%)] bg-[length:32px_32px] p-6">
+          <div className="grid min-h-[420px] place-items-center rounded-2xl border border-border bg-[repeating-conic-gradient(#161616_0%_25%,#101010_0%_50%)] bg-[length:32px_32px] p-6">
             <WidgetRenderer
               type="CHAT_BOX"
               config={{}}
@@ -509,8 +572,8 @@ function WidgetBuilder() {
           <p className="text-sm text-muted-foreground">Loading widget…</p>
         )
       ) : (
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,380px)_1fr]">
-          <section className="space-y-4 rounded-2xl border border-border bg-card p-5">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,380px)_1fr]">
+          <section className="min-w-0 space-y-4 surface-card p-5">
             {widget.type === "SUBATHON_TIMER" ? (
               <SubathonTimerSidebar
                 widgetId={widget.id}
@@ -538,193 +601,39 @@ function WidgetBuilder() {
               />
             </label>
 
-            <p className={`${labelClass} pt-1`}>
-              {"⚙️ Display & badges"}
-            </p>
-
-            {widget.type !== "CHAT_BOX" ? (
-              <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                <label className="block">
-                  <span className={`${labelClass} inline-flex items-center gap-1.5`}>
-                    {"Font size"} ({style.fontSize}px)
-                    <InfoTip text={t("tooltips.widget.fontSize")} />
-                  </span>
-                  <input
-                    type="range"
-                    min={12}
-                    max={160}
-                    className="mt-3 w-full accent-primary"
-                    value={style.fontSize}
-                    onChange={(event) => set("fontSize", Number(event.target.value))}
-                  />
-                </label>
-              </div>
-            ) : null}
-
-
-
             {widget.type === "GOAL_BAR" && goalRow ? (
-              <div className="space-y-3">
-                <div role="tablist" aria-label="Goal" className="flex gap-1 rounded-xl border border-white/8 bg-black/20 p-1">
-                  {(
-                    [
-                      ["setup", "الإعدادات"],
-                      ["control", "التحكم بالهدف"],
-                    ] as const
-                  ).map(([id, label]) => (
+              <StandaloneWidgetFields
+                type="GOAL_BAR"
+                config={config}
+                set={set}
+                goal={{
+                  title: goalDraft.title,
+                  unit: goalDraft.unit,
+                  target: goalDraft.target,
+                  current: goalDraft.current,
+                  showUnit: true,
+                  onChange: (patch) => setGoalDraft((prev) => ({ ...prev, ...patch })),
+                  onBump: (delta) => void bumpGoal(delta),
+                }}
+                progressExtra={
+                  <div className="space-y-2">
                     <button
-                      key={id}
                       type="button"
-                      role="tab"
-                      aria-selected={goalPane === id}
-                      onClick={() => setGoalPane(id)}
-                      className={`flex-1 rounded-lg px-2 py-1.5 text-[0.72rem] font-semibold ${
-                        goalPane === id
-                          ? "bg-primary/15 text-primary"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
+                      onClick={() => syncFollowers.mutate()}
+                      disabled={syncFollowers.isPending}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:border-primary hover:text-primary disabled:opacity-60"
                     >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                {goalPane === "setup" ? (
-              <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                <label className="block">
-                  <span className={labelClass}>Goal title</span>
-                  <input
-                    className={`${fieldClass} mt-2`}
-                    value={goalDraft.title}
-                    onChange={(event) =>
-                      setGoalDraft((prev) => ({ ...prev, title: event.target.value }))
-                    }
-                  />
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  <label>
-                    <span className={`${labelClass} inline-flex items-center gap-1.5`}>
-                      Unit
-                      <InfoTip text={t("tooltips.widget.goalUnit")} />
-                    </span>
-                    <input
-                      className={`${fieldClass} mt-2`}
-                      value={goalDraft.unit}
-                      onChange={(event) =>
-                        setGoalDraft((prev) => ({ ...prev, unit: event.target.value }))
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span className={`${labelClass} inline-flex items-center gap-1.5`}>
-                      Target
-                      <InfoTip text={t("tooltips.widget.goalTarget")} />
-                    </span>
-                    <input
-                      type="number"
-                      className={`${fieldClass} mt-2`}
-                      value={goalDraft.target}
-                      onChange={(event) =>
-                        setGoalDraft((prev) => ({ ...prev, target: Number(event.target.value) }))
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span className={`${labelClass} inline-flex items-center gap-1.5`}>
-                      Current
-                      <InfoTip text={t("tooltips.widget.goalCurrent")} />
-                    </span>
-                    <input
-                      type="number"
-                      className={`${fieldClass} mt-2`}
-                      value={goalDraft.current}
-                      onChange={(event) =>
-                        setGoalDraft((prev) => ({ ...prev, current: Number(event.target.value) }))
-                      }
-                    />
-                  </label>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => syncFollowers.mutate()}
-                  disabled={syncFollowers.isPending}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:border-primary hover:text-primary disabled:opacity-60"
-                >
-                  <RefreshCw
-                    className={`size-4 ${syncFollowers.isPending ? "animate-spin" : ""}`}
-                    aria-hidden
-                  />
-                  {syncFollowers.isPending
-                    ? "Syncing…"
-                    : "Sync Current Followers"}
-                </button>
-                <p className="text-[10px] text-muted-foreground">
-                  {"Pulls the live follower count from your connected Twitch or Kick account."}
-                </p>
-              </div>
-                ) : (
-                  <div className="space-y-3 rounded-xl border border-border bg-background p-4">
-                    <p className="font-mono text-2xl font-bold tabular-nums">
-                      <span dir="ltr">{goalDraft.current.toLocaleString("en-US")}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {" / "}
-                        <span dir="ltr">{goalDraft.target.toLocaleString("en-US")}</span>
-                        {" "}
-                        {goalDraft.unit}
-                      </span>
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {[1, 5, 10, 25, 50, 100].map((amount) => (
-                        <button
-                          key={amount}
-                          type="button"
-                          className="rounded-lg border border-border px-3 py-1.5 text-sm font-semibold hover:border-primary hover:text-primary"
-                          onClick={() => void bumpGoal(amount)}
-                        >
-                          +{amount}
-                        </button>
-                      ))}
-                      <button
-                        type="button"
-                        className="rounded-lg border border-border px-3 py-1.5 text-sm font-semibold hover:border-primary hover:text-primary"
-                        onClick={() => void bumpGoal(-5)}
-                      >
-                        −5
-                      </button>
-                    </div>
-                    <form
-                      className="flex gap-2"
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        const value = Number(goalBump);
-                        if (!Number.isFinite(value) || value === 0) return;
-                        void bumpGoal(value);
-                        setGoalBump("");
-                      }}
-                    >
-                      <input
-                        inputMode="decimal"
-                        placeholder="Custom amount"
-                        value={goalBump}
-                        onChange={(event) => setGoalBump(event.target.value)}
-                        className={`${fieldClass} flex-1`}
+                      <RefreshCw
+                        className={`size-4 ${syncFollowers.isPending ? "animate-spin" : ""}`}
+                        aria-hidden
                       />
-                      <button
-                        type="submit"
-                        className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
-                      >
-                        Apply
-                      </button>
-                    </form>
-                    <button
-                      type="button"
-                      className="text-xs text-muted-foreground hover:text-foreground"
-                      onClick={() => void bumpGoal(-goalDraft.current)}
-                    >
-                      Reset progress
+                      {syncFollowers.isPending ? t("std.goal.syncing") : t("std.goal.sync")}
                     </button>
+                    <p className="text-[10px] text-muted-foreground">{t("std.goal.syncHint")}</p>
                   </div>
-                )}
-              </div>
+                }
+                testPanel={<TestSimulatePanel widgetId={widget.id} />}
+              />
             ) : null}
 
             {widget.type === "KICKS_GOAL" ||
@@ -737,46 +646,20 @@ function WidgetBuilder() {
                 set={set}
                 spinning={wheelTurning || spin.isPending}
                 onSpin={widget.type === "SPIN_WHEEL" ? requestWheelSpin : undefined}
+                testPanel={widget.type === "KICKS_GOAL" ? <TestSimulatePanel widgetId={widget.id} /> : undefined}
               />
             ) : null}
 
             {widget.type === "CHAT_BOX" ? (
               <div className="space-y-3">
-                <div
-                  role="tablist"
-                  aria-label="Chat settings"
-                  className="flex gap-1 rounded-xl border border-white/8 bg-black/20 p-1"
-                >
-                  {(
-                    [
-                      ["layout", "Layout"],
-                      ["display", "Display"],
-                      ["extra", "Extra"],
-                    ] as const
-                  ).map(([id, label]) => (
-                    <button
-                      key={id}
-                      type="button"
-                      role="tab"
-                      aria-selected={chatPane === id}
-                      onClick={() => setChatPane(id)}
-                      className={`flex-1 rounded-lg px-2 py-1.5 text-[0.72rem] font-semibold ${
-                        chatPane === id
-                          ? "bg-primary/15 text-primary"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
+                <BuilderTabs value={chatPane} onChange={setChatPane} label={t("builder.chat.settings")} />
 
                 {chatPane === "layout" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                  <BuilderCard>
                     <div className="block">
-                      <h3 className="text-sm font-semibold">Message Layout</h3>
+                      <h3 className="text-sm font-semibold">{t("builder.chat.layoutTitle")}</h3>
                       <p className="mt-1 text-[11px] text-muted-foreground">
-                        Choose how each chat message is drawn on the overlay.
+                        {t("builder.chat.layoutHint")}
                       </p>
                       <div className="mt-3">
                         <ChatThemePicker
@@ -805,20 +688,19 @@ function WidgetBuilder() {
                           : CHAT_LAYOUTS.find((e) => e.value === parseChatConfig(config).chatLayout)?.hint}
                       </span>
                     </div>
-
+                  </BuilderCard>
+                ) : chatPane === "display" ? (
+                  <BuilderCard>
+                    <RangeField
+                      label={t("builder.chat.messagesShown")}
+                      value={parseChatConfig(config).maxMessages}
+                      min={3}
+                      max={25}
+                      tip={<InfoTip text={t("tooltips.widget.chatMax")} />}
+                      onChange={(next) => set("maxMessages", next)}
+                    />
                     {chatUsesRoyalCompact(config) ? (
                       <>
-                        <ToggleField
-                          label={t("chat.theme.showAvatar")}
-                          checked={parseRoyalCompactSettings(config).showAvatar}
-                          onChange={(next) => patchRoyal({ showAvatar: next })}
-                        />
-                        <ToggleField
-                          label={"Show account badges"}
-                          hint="👑 Broadcaster · 🛡️ Moderator · 💎 Sub/VIP · 🎵 TikTok gifter"
-                          checked={parseChatConfig(config).showBadges}
-                          onChange={(next) => set("showBadges", next)}
-                        />
                         <label className="block">
                           <span className={labelClass}>{t("chat.theme.density")}</span>
                           <DarkSelect
@@ -833,209 +715,151 @@ function WidgetBuilder() {
                             ]}
                           />
                         </label>
-                        <label className="block">
-                          <span className={labelClass}>
-                            {"Text size"} ({parseRoyalCompactSettings(config).fontSize}px)
-                          </span>
-                          <input
-                            type="range"
-                            min={12}
-                            max={28}
-                            className="mt-3 w-full accent-primary"
-                            value={parseRoyalCompactSettings(config).fontSize}
-                            onChange={(event) => patchRoyal({ fontSize: Number(event.target.value) })}
-                          />
-                        </label>
-                        <label className="block">
-                          <span className={labelClass}>
-                            {t("chat.theme.opacity")} ({parseRoyalCompactSettings(config).bubbleOpacity}%)
-                          </span>
-                          <input
-                            type="range"
-                            min={40}
-                            max={100}
-                            className="mt-3 w-full accent-primary"
-                            value={parseRoyalCompactSettings(config).bubbleOpacity}
-                            onChange={(event) => patchRoyal({ bubbleOpacity: Number(event.target.value) })}
-                          />
-                        </label>
-                        <label className="block">
-                          <span className={`${labelClass} inline-flex items-center gap-1.5`}>
-                            {"Message spacing"} ({parseRoyalCompactSettings(config).messageGap}px)
-                            <InfoTip text={t("tooltips.widget.chatGap")} />
-                          </span>
-                          <input
-                            type="range"
-                            min={4}
-                            max={20}
-                            className="mt-3 w-full accent-primary"
-                            value={parseRoyalCompactSettings(config).messageGap}
-                            onChange={(event) => patchRoyal({ messageGap: Number(event.target.value) })}
-                          />
-                        </label>
+                        <RangeField
+                          label={t("builder.chat.textSize")}
+                          value={parseRoyalCompactSettings(config).fontSize}
+                          min={12}
+                          max={28}
+                          unit="px"
+                          onChange={(next) => patchRoyal({ fontSize: next })}
+                        />
+                        <RangeField
+                          label={t("chat.theme.opacity")}
+                          value={parseRoyalCompactSettings(config).bubbleOpacity}
+                          min={40}
+                          max={100}
+                          unit="%"
+                          onChange={(next) => patchRoyal({ bubbleOpacity: next })}
+                        />
+                        <RangeField
+                          label={t("builder.chat.messageSpacing")}
+                          value={parseRoyalCompactSettings(config).messageGap}
+                          min={4}
+                          max={20}
+                          unit="px"
+                          tip={<InfoTip text={t("tooltips.widget.chatGap")} />}
+                          onChange={(next) => patchRoyal({ messageGap: next })}
+                        />
                         {parseRoyalCompactSettings(config).showAvatar ? (
-                          <label className="block">
-                            <span className={labelClass}>
-                              {t("chat.theme.avatarSize")} ({parseRoyalCompactSettings(config).avatarSize}px)
-                            </span>
-                            <input
-                              type="range"
-                              min={24}
-                              max={64}
-                              className="mt-3 w-full accent-primary"
-                              value={parseRoyalCompactSettings(config).avatarSize}
-                              onChange={(event) => patchRoyal({ avatarSize: Number(event.target.value) })}
-                            />
-                          </label>
+                          <RangeField
+                            label={t("chat.theme.avatarSize")}
+                            value={parseRoyalCompactSettings(config).avatarSize}
+                            min={24}
+                            max={64}
+                            unit="px"
+                            onChange={(next) => patchRoyal({ avatarSize: next })}
+                          />
                         ) : null}
                       </>
-                    ) : null}
-                  </div>
-                ) : chatPane === "display" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <label className="block">
-                      <span className={`${labelClass} inline-flex items-center gap-1.5`}>
-                        Messages shown ({parseChatConfig(config).maxMessages})
-                        <InfoTip text={t("tooltips.widget.chatMax")} />
-                      </span>
-                      <input
-                        type="range"
-                        min={3}
-                        max={25}
-                        className="mt-3 w-full accent-primary"
-                        value={parseChatConfig(config).maxMessages}
-                        onChange={(event) => set("maxMessages", Number(event.target.value))}
-                      />
-                    </label>
-
-                    {chatUsesRoyalCompact(config) ? null : (
+                    ) : (
                       <>
-                        <label className="block">
-                          <span className={`${labelClass} inline-flex items-center gap-1.5`}>
-                            {"Message spacing"} ({parseChatConfig(config).messageGap}px)
-                            <InfoTip text={t("tooltips.widget.chatGap")} />
-                          </span>
-                          <input
-                            type="range"
-                            min={4}
-                            max={20}
-                            className="mt-3 w-full accent-primary"
-                            value={parseChatConfig(config).messageGap}
-                            onChange={(event) => set("messageGap", Number(event.target.value))}
-                          />
-                        </label>
-
-                        <label className="block">
-                          <span className={labelClass}>
-                            {"Text size"} (
-                            {Math.min(28, Math.max(12, parseChatConfig(config).fontSize))}
-                            px)
-                          </span>
-                          <input
-                            type="range"
-                            min={12}
-                            max={28}
-                            className="mt-3 w-full accent-primary"
-                            value={Math.min(28, Math.max(12, parseChatConfig(config).fontSize))}
-                            onChange={(event) => set("fontSize", Number(event.target.value))}
-                          />
-                        </label>
-
-                        <ToggleField
-                          label={"Show account badges"}
-                          hint="👑 Broadcaster · 🛡️ Moderator · 💎 Sub/VIP · 🎵 TikTok gifter"
-                          checked={parseChatConfig(config).showBadges}
-                          onChange={(next) => set("showBadges", next)}
+                        <RangeField
+                          label={t("builder.chat.messageSpacing")}
+                          value={parseChatConfig(config).messageGap}
+                          min={4}
+                          max={20}
+                          unit="px"
+                          tip={<InfoTip text={t("tooltips.widget.chatGap")} />}
+                          onChange={(next) => set("messageGap", next)}
+                        />
+                        <RangeField
+                          label={t("builder.chat.textSize")}
+                          value={Math.min(28, Math.max(12, parseChatConfig(config).fontSize))}
+                          min={12}
+                          max={28}
+                          unit="px"
+                          onChange={(next) => set("fontSize", next)}
                         />
                       </>
                     )}
-
+                  </BuilderCard>
+                ) : (
+                  <BuilderCard>
+                    <h3 className="text-sm font-semibold">{t("builder.chat.visibility")}</h3>
+                    {chatUsesRoyalCompact(config) ? (
+                      <ToggleField
+                        label={t("chat.theme.showAvatar")}
+                        checked={parseRoyalCompactSettings(config).showAvatar}
+                        onChange={(next) => patchRoyal({ showAvatar: next })}
+                      />
+                    ) : null}
                     <ToggleField
-                      label={"Show platform badge"}
-                      hint={"Hides the Twitch / Kick / TikTok tag next to the username"}
+                      label={t("builder.chat.showAccountBadges")}
+                      hint={t("builder.chat.showAccountBadgesHint")}
+                      checked={parseChatConfig(config).showBadges}
+                      onChange={(next) => set("showBadges", next)}
+                    />
+                    <ToggleField
+                      label={t("builder.chat.showPlatformBadge")}
+                      hint={t("builder.chat.showPlatformBadgeHint")}
                       checked={parseChatConfig(config).showPlatform}
                       onChange={(next) => set("showPlatform", next)}
                     />
-                    <KickSubscriberBadgesField
-                      userId={userId}
-                      config={config}
-                      onChange={(tiers) => set("kickSubscriberBadges", tiers)}
-                      onUseDefault={(enabled) => set("kickDefaultSubscriberBadge", enabled)}
-                    />
-                  </div>
-                ) : chatPane === "extra" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <p className="text-xs text-muted-foreground">
-                      Advanced settings for Chat Box widget behavior.
-                    </p>
-                    <div className="rounded-lg border border-white/5 bg-black/30 p-3 text-xs text-muted-foreground">
-                      Additional options coming soon
+                    <div className="border-t border-white/[0.06] pt-4">
+                      <KickSubscriberBadgesField
+                        userId={userId}
+                        config={config}
+                        onChange={(tiers) => set("kickSubscriberBadges", tiers)}
+                        onUseDefault={(enabled) => set("kickDefaultSubscriberBadge", enabled)}
+                      />
                     </div>
-                  </div>
-                ) : null}
+                  </BuilderCard>
+                )}
               </div>
             ) : null}
 
-            
-
             {widget.type === "TIKTOK_TAP_GOAL" ? (
               <div className="space-y-3">
-                <div
-                  role="tablist"
-                  aria-label="Tap Goal settings"
-                  className="flex gap-1 rounded-xl border border-white/8 bg-black/20 p-1"
-                >
-                  {(
-                    [
-                      ["layout", "Layout"],
-                      ["display", "Display"],
-                      ["extra", "Extra"],
-                    ] as const
-                  ).map(([id, label]) => (
-                    <button
-                      key={id}
-                      type="button"
-                      role="tab"
-                      aria-selected={tapGoalPane === id}
-                      onClick={() => setTapGoalPane(id)}
-                      className={`flex-1 rounded-lg px-2 py-1.5 text-[0.72rem] font-semibold ${
-                        tapGoalPane === id
-                          ? "bg-primary/15 text-primary"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-
+                <BuilderTabs value={tapGoalPane} onChange={setTapGoalPane} label={t("builder.tapgoal.settings")} />
                 {tapGoalPane === "layout" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <div className="block">
-                      <h3 className="text-sm font-semibold">Design Layout</h3>
-                      <p className="mt-1 text-[11px] text-muted-foreground">
-                        Choose how the tap goal is presented on the overlay.
-                      </p>
-                      <div className="mt-3">
-                        <label className="block">
-                          <span className={labelClass}>Layout</span>
-                          <DarkSelect
-                            className="mt-2"
-                            value={parseTapGoalConfig(config).design}
-                            onValueChange={(next) => set("design", next)}
-                            options={TAPGOAL_DESIGNS.map((entry) => ({
-                              value: entry.value,
-                              label: entry.label,
-                            }))}
-                          />
-                        </label>
-                      </div>
-                    </div>
-                  </div>
+                  <BuilderCard>
+                    <LayoutCards
+                      ariaLabel={t("builder.layoutPicker")}
+                      options={TAPGOAL_DESIGNS.map((entry) => ({
+                        value: entry.value,
+                        label: t(`builder.tapgoal.design.${entry.value}` as const),
+                      }))}
+                      value={parseTapGoalConfig(config).design}
+                      onSelect={(next) => set("design", next)}
+                      renderPreview={(next) => miniPreview({ design: next })}
+                    />
+                  </BuilderCard>
                 ) : tapGoalPane === "display" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                  <BuilderCard>
+                    <RangeField
+                      label={t("builder.fontSize")}
+                      value={style.fontSize}
+                      min={12}
+                      max={160}
+                      unit="px"
+                      tip={<InfoTip text={t("tooltips.widget.fontSize")} />}
+                      onChange={(next) => set("fontSize", next)}
+                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="block">
+                        <span className={labelClass}>{t("builder.gradientStart")}</span>
+                        <input
+                          type="color"
+                          className="mt-2 h-10 w-full rounded-lg border border-border bg-transparent"
+                          value={parseTapGoalConfig(config).gradientFrom}
+                          onChange={(event) => set("gradientFrom", event.target.value)}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className={labelClass}>{t("builder.gradientEnd")}</span>
+                        <input
+                          type="color"
+                          className="mt-2 h-10 w-full rounded-lg border border-border bg-transparent"
+                          value={parseTapGoalConfig(config).gradientTo}
+                          onChange={(event) => set("gradientTo", event.target.value)}
+                        />
+                      </label>
+                    </div>
+                  </BuilderCard>
+                ) : (
+                  <BuilderCard>
                     <label className="block">
-                      <span className={labelClass}>{"Goal title"}</span>
+                      <span className={labelClass}>{t("builder.goalTitle")}</span>
                       <input
                         className={`${fieldClass} mt-2`}
                         value={parseTapGoalConfig(config).title}
@@ -1044,9 +868,7 @@ function WidgetBuilder() {
                       />
                     </label>
                     <label className="block">
-                      <span className={labelClass}>
-                        {"Goal target (taps)"}
-                      </span>
+                      <span className={labelClass}>{t("builder.goalTarget")}</span>
                       <input
                         type="number"
                         min={1}
@@ -1064,120 +886,57 @@ function WidgetBuilder() {
                           onClick={() => set("target", preset)}
                           className="rounded-lg border border-border px-3 py-1.5 text-xs hover:border-primary hover:text-primary"
                         >
-                          {preset.toLocaleString()}
+                          {preset.toLocaleString("en-US")}
                         </button>
                       ))}
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <label className="block">
-                        <span className={labelClass}>
-                          {"Gradient start"}
-                        </span>
-                        <input
-                          type="color"
-                          className="mt-2 h-10 w-full rounded-lg border border-border bg-transparent"
-                          value={parseTapGoalConfig(config).gradientFrom}
-                          onChange={(event) => set("gradientFrom", event.target.value)}
-                        />
-                      </label>
-                      <label className="block">
-                        <span className={labelClass}>
-                          {"Gradient end"}
-                        </span>
-                        <input
-                          type="color"
-                          className="mt-2 h-10 w-full rounded-lg border border-border bg-transparent"
-                          value={parseTapGoalConfig(config).gradientTo}
-                          onChange={(event) => set("gradientTo", event.target.value)}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                ) : tapGoalPane === "extra" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
                     <ToggleField
-                      label={"Show percentage"}
+                      label={t("builder.showPercent")}
                       checked={parseTapGoalConfig(config).showPercent}
                       onChange={(next) => set("showPercent", next)}
                     />
-                    <button
-                      type="button"
-                      onClick={() => void copyUrl()}
-                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm hover:border-primary hover:text-primary"
-                    >
-                      {copied ? (
-                        <Check className="size-4" aria-hidden />
-                      ) : (
-                        <Copy className="size-4" aria-hidden />
-                      )}
-                      {"Copy OBS URL"}
-                    </button>
-                    <code className="block break-all text-[0.7rem] text-muted-foreground">
-                      /overlay/tiktok-tap-goal?token={widget.public_token}
-                    </code>
-                  </div>
-                ) : null}
+                  </BuilderCard>
+                )}
               </div>
             ) : null}
 
             {widget.type === "TIKTOK_TAPPERS" ? (
               <div className="space-y-3">
-                <div
-                  role="tablist"
-                  aria-label="Tappers settings"
-                  className="flex gap-1 rounded-xl border border-white/8 bg-black/20 p-1"
-                >
-                  {(
-                    [
-                      ["layout", "Layout"],
-                      ["display", "Display"],
-                      ["extra", "Extra"],
-                    ] as const
-                  ).map(([id, label]) => (
-                    <button
-                      key={id}
-                      type="button"
-                      role="tab"
-                      aria-selected={tappersPane === id}
-                      onClick={() => setTappersPane(id)}
-                      className={`flex-1 rounded-lg px-2 py-1.5 text-[0.72rem] font-semibold ${
-                        tappersPane === id
-                          ? "bg-primary/15 text-primary"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-
+                <BuilderTabs value={tappersPane} onChange={setTappersPane} label={t("builder.tappers.settings")} />
                 {tappersPane === "layout" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <div className="block">
-                      <h3 className="text-sm font-semibold">Layout</h3>
-                      <p className="mt-1 text-[11px] text-muted-foreground">
-                        Choose how the top tappers list is displayed.
-                      </p>
-                      <div className="mt-3">
-                        <label className="block">
-                          <span className={labelClass}>{"Layout"}</span>
-                          <DarkSelect
-                            className="mt-2"
-                            value={parseTappersConfig(config).layout}
-                            onValueChange={(next) => set("layout", next)}
-                            options={TAPPERS_LAYOUTS.map((entry) => ({
-                              value: entry.value,
-                              label: entry.label,
-                            }))}
-                          />
-                        </label>
-                      </div>
-                    </div>
-                  </div>
+                  <BuilderCard>
+                    <LayoutCards
+                      ariaLabel={t("builder.layoutPicker")}
+                      options={TAPPERS_LAYOUTS.map((entry) => ({
+                        value: entry.value,
+                        label: t(`builder.tappers.layout.${entry.value}` as const),
+                      }))}
+                      value={parseTappersConfig(config).layout}
+                      onSelect={(next) => set("layout", next)}
+                      renderPreview={(next) => miniPreview({ layout: next })}
+                    />
+                  </BuilderCard>
                 ) : tappersPane === "display" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                  <BuilderCard>
+                    <RangeField
+                      label={t("builder.fontSize")}
+                      value={style.fontSize}
+                      min={12}
+                      max={160}
+                      unit="px"
+                      tip={<InfoTip text={t("tooltips.widget.fontSize")} />}
+                      onChange={(next) => set("fontSize", next)}
+                    />
+                    <ToggleField
+                      label={t("builder.showProfilePictures")}
+                      checked={parseTappersConfig(config).showAvatars}
+                      onChange={(next) => set("showAvatars", next)}
+                    />
+                  </BuilderCard>
+                ) : (
+                  <BuilderCard>
                     <label className="block">
-                      <span className={labelClass}>{"Title"}</span>
+                      <span className={labelClass}>{t("builder.title")}</span>
                       <input
                         className={`${fieldClass} mt-2`}
                         value={parseTappersConfig(config).title}
@@ -1185,89 +944,54 @@ function WidgetBuilder() {
                       />
                     </label>
                     <label className="block">
-                      <span className={labelClass}>{"Top limit"}</span>
+                      <span className={labelClass}>{t("builder.topLimit")}</span>
                       <DarkSelect
                         className="mt-2"
                         value={String(parseTappersConfig(config).topLimit)}
                         onValueChange={(next) => set("topLimit", Number(next))}
                         options={TAPPERS_LIMITS.map((limit) => ({
                           value: String(limit),
-                          label: `Top ${limit}`,
+                          label: t("builder.topN", { n: limit }),
                         }))}
                       />
                     </label>
-                    <ToggleField
-                      label={"Show profile pictures"}
-                      checked={parseTappersConfig(config).showAvatars}
-                      onChange={(next) => set("showAvatars", next)}
-                    />
-                  </div>
-                ) : tappersPane === "extra" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <button
-                      type="button"
-                      onClick={() => void copyUrl()}
-                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm hover:border-primary hover:text-primary"
-                    >
-                      {copied ? (
-                        <Check className="size-4" aria-hidden />
-                      ) : (
-                        <Copy className="size-4" aria-hidden />
-                      )}
-                      {"Copy OBS URL"}
-                    </button>
-                    <code className="block break-all text-[0.7rem] text-muted-foreground">
-                      /overlay/tiktok-tappers?token={widget.public_token}
-                    </code>
-                  </div>
-                ) : null}
+                  </BuilderCard>
+                )}
               </div>
             ) : null}
 
             {widget.type === "EMOTE_RAIN" ? (
               <div className="space-y-3">
-                <div
-                  role="tablist"
-                  aria-label="Emote Rain settings"
-                  className="flex gap-1 rounded-xl border border-white/8 bg-black/20 p-1"
-                >
-                  {(
-                    [
-                      ["layout", "Layout"],
-                      ["display", "Display"],
-                      ["extra", "Extra"],
-                    ] as const
-                  ).map(([id, label]) => (
-                    <button
-                      key={id}
-                      type="button"
-                      role="tab"
-                      aria-selected={emoteRainPane === id}
-                      onClick={() => setEmoteRainPane(id)}
-                      className={`flex-1 rounded-lg px-2 py-1.5 text-[0.72rem] font-semibold ${
-                        emoteRainPane === id
-                          ? "bg-primary/15 text-primary"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-
-                {emoteRainPane === "layout" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <div className="block">
-                      <h3 className="text-sm font-semibold">Layout</h3>
-                      <p className="mt-1 text-[11px] text-muted-foreground">
-                        Emote rain layout settings.
-                      </p>
-                    </div>
-                  </div>
-                ) : emoteRainPane === "display" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                <BuilderTabs
+                  value={emoteRainPane === "layout" ? "display" : emoteRainPane}
+                  onChange={setEmoteRainPane}
+                  label={t("builder.emoteRain.settings")}
+                  panes={["display", "extra"]}
+                />
+                {emoteRainPane === "extra" ? (
+                  <BuilderCard>
+                    <RangeField
+                      label={t("builder.emoteBurst")}
+                      value={parseEmoteRainConfig(config).burst}
+                      min={1}
+                      max={60}
+                      tip={<InfoTip text={t("tooltips.widget.emoteBurst")} />}
+                      onChange={(next) => set("burst", next)}
+                    />
+                    <RangeField
+                      label={t("builder.fallDuration")}
+                      value={Math.round(parseEmoteRainConfig(config).fallMs / 1000)}
+                      min={1}
+                      max={15}
+                      unit="s"
+                      tip={<InfoTip text={t("tooltips.widget.fallDuration")} />}
+                      onChange={(next) => set("fallMs", next * 1000)}
+                    />
+                  </BuilderCard>
+                ) : (
+                  <BuilderCard>
                     <label className="block">
-                      <span className={labelClass}>Emotes (comma separated)</span>
+                      <span className={labelClass}>{t("builder.emotes")}</span>
                       <input
                         className={`${fieldClass} mt-2`}
                         value={parseEmoteRainConfig(config).emotes.join(", ")}
@@ -1279,147 +1003,100 @@ function WidgetBuilder() {
                         }
                       />
                     </label>
-                    <label className="block">
-                      <span className={labelClass}>
-                        Emote size ({parseEmoteRainConfig(config).emoteSize}px)
-                      </span>
-                      <input
-                        type="range"
-                        min={16}
-                        max={160}
-                        className="mt-3 w-full accent-primary"
-                        value={parseEmoteRainConfig(config).emoteSize}
-                        onChange={(event) => set("emoteSize", Number(event.target.value))}
-                      />
-                    </label>
-                  </div>
-                ) : emoteRainPane === "extra" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <label className="block">
-                      <span className={`${labelClass} inline-flex items-center gap-1.5`}>
-                        Emotes per event ({parseEmoteRainConfig(config).burst})
-                        <InfoTip text={t("tooltips.widget.emoteBurst")} />
-                      </span>
-                      <input
-                        type="range"
-                        min={1}
-                        max={60}
-                        className="mt-3 w-full accent-primary"
-                        value={parseEmoteRainConfig(config).burst}
-                        onChange={(event) => set("burst", Number(event.target.value))}
-                      />
-                    </label>
-                    <label className="block">
-                      <span className={`${labelClass} inline-flex items-center gap-1.5`}>
-                        Fall duration ({Math.round(parseEmoteRainConfig(config).fallMs / 1000)}s)
-                        <InfoTip text={t("tooltips.widget.fallDuration")} />
-                      </span>
-                      <input
-                        type="range"
-                        min={1}
-                        max={15}
-                        className="mt-3 w-full accent-primary"
-                        value={Math.round(parseEmoteRainConfig(config).fallMs / 1000)}
-                        onChange={(event) => set("fallMs", Number(event.target.value) * 1000)}
-                      />
-                    </label>
-                  </div>
-                ) : null}
+                    <RangeField
+                      label={t("builder.emoteSize")}
+                      value={parseEmoteRainConfig(config).emoteSize}
+                      min={16}
+                      max={160}
+                      unit="px"
+                      onChange={(next) => set("emoteSize", next)}
+                    />
+                  </BuilderCard>
+                )}
               </div>
             ) : null}
 
-
-
             {widget.type === "CHAT_SPOTLIGHT" ? (
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-2 border-b border-border">
-                  {["layout", "display", "extra"].map((id) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setSpotlightPane(id as "layout" | "display" | "extra")}
-                      className={`px-4 py-2 text-sm font-medium ${
-                        spotlightPane === id
-                          ? "border-b-2 border-primary text-primary"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      aria-selected={spotlightPane === id}
-                    >
-                      {id.charAt(0).toUpperCase() + id.slice(1)}
-                    </button>
-                  ))}
-                </div>
+              <div className="space-y-3">
+                <BuilderTabs value={spotlightPane} onChange={setSpotlightPane} label={t("builder.spotlight.settings")} />
                 {spotlightPane === "layout" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <LayoutPicker
+                  <BuilderCard>
+                    <LayoutCards
+                      ariaLabel={t("builder.layoutPicker")}
+                      options={CHROME_LAYOUTS.map((id) => ({ value: id, label: t(`layout.chrome.${id}`) }))}
                       value={parseChromeLayout(config)}
-                      options={CHROME_LAYOUTS.map((id) => ({ id, label: t(`layout.chrome.${id}`) }))}
-                      onChange={(id) => set("layout", id)}
+                      onSelect={(next) => set("layout", next)}
+                      renderPreview={(next) => miniPreview({ layout: next })}
                     />
-                  </div>
+                  </BuilderCard>
                 ) : spotlightPane === "display" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <label className="block">
-                      <span className={labelClass}>Auto-hide after (seconds)</span>
-                      <input
-                        type="number"
-                        min={1}
-                        max={60}
-                        className={`${fieldClass} mt-2`}
-                        value={parseSpotlightConfig(config).autoHideMs / 1000}
-                        onChange={(event) => set("autoHideMs", Number(event.target.value) * 1000)}
-                      />
-                    </label>
-                  </div>
-                ) : spotlightPane === "extra" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <SpotlightControlPanel
-                      widgetId={widget.id}
-                      chat={stream.chat ?? null}
-                      testMessages={stream.testMessages}
-                      pinned={stream.spotlight ?? null}
-                      autoHideMs={parseSpotlightConfig(config).autoHideMs}
-                      onAutoHideChange={(next) => set("autoHideMs", next)}
-                      lang={"en"}
+                  <BuilderCard>
+                    <RangeField
+                      label={t("builder.fontSize")}
+                      value={style.fontSize}
+                      min={12}
+                      max={160}
+                      unit="px"
+                      tip={<InfoTip text={t("tooltips.widget.fontSize")} />}
+                      onChange={(next) => set("fontSize", next)}
                     />
-                  </div>
-                ) : null}
+                  </BuilderCard>
+                ) : (
+                  <BuilderCard>
+                    <ToggleField
+                      label={t("builder.chat.showPlatformBadge")}
+                      hint={t("builder.chat.showPlatformBadgeHint")}
+                      checked={parseSpotlightConfig(config).showPlatform}
+                      onChange={(next) => set("showPlatform", next)}
+                    />
+                    <ToggleField
+                      label={t("builder.showBadges")}
+                      checked={parseSpotlightConfig(config).showBadges}
+                      onChange={(next) => set("showBadges", next)}
+                    />
+                    <div className="border-t border-white/[0.06] pt-4">
+                      <SpotlightControlPanel
+                        widgetId={widget.id}
+                        chat={stream.chat ?? null}
+                        testMessages={stream.testMessages}
+                        pinned={stream.spotlight ?? null}
+                        autoHideMs={parseSpotlightConfig(config).autoHideMs}
+                        onAutoHideChange={(next) => set("autoHideMs", next)}
+                        lang={lang}
+                      />
+                    </div>
+                  </BuilderCard>
+                )}
               </div>
             ) : null}
 
             {widget.type === "STREAM_EVENTS_SCHEDULE" ? (
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-2 border-b border-border">
-                  {["layout", "display", "extra"].map((id) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setSchedulePane(id as "layout" | "display" | "extra")}
-                      className={`px-4 py-2 text-sm font-medium ${
-                        schedulePane === id
-                          ? "border-b-2 border-primary text-primary"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      aria-selected={schedulePane === id}
-                    >
-                      {id.charAt(0).toUpperCase() + id.slice(1)}
-                    </button>
-                  ))}
-                </div>
+              <div className="space-y-3">
+                <BuilderTabs value={schedulePane} onChange={setSchedulePane} label={t("builder.schedule.settings")} />
                 {schedulePane === "layout" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <LayoutPicker
+                  <BuilderCard>
+                    <LayoutCards
+                      ariaLabel={t("builder.layoutPicker")}
+                      options={CHROME_LAYOUTS.map((id) => ({ value: id, label: t(`layout.chrome.${id}`) }))}
                       value={parseChromeLayout(config)}
-                      options={CHROME_LAYOUTS.map((id) => ({ id, label: t(`layout.chrome.${id}`) }))}
-                      onChange={(id) => set("layout", id)}
+                      onSelect={(next) => set("layout", next)}
+                      renderPreview={(next) => miniPreview({ layout: next })}
                     />
-                  </div>
+                  </BuilderCard>
                 ) : schedulePane === "display" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <p className="text-xs text-muted-foreground">Event display settings are managed in the Extra tab.</p>
-                  </div>
-                ) : schedulePane === "extra" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                  <BuilderCard>
+                    <RangeField
+                      label={t("builder.fontSize")}
+                      value={style.fontSize}
+                      min={12}
+                      max={160}
+                      unit="px"
+                      tip={<InfoTip text={t("tooltips.widget.fontSize")} />}
+                      onChange={(next) => set("fontSize", next)}
+                    />
+                  </BuilderCard>
+                ) : (
+                  <BuilderCard>
                     <StreamEventsScheduleControlPanel
                       widgetId={widget.id}
                       config={config}
@@ -1428,88 +1105,74 @@ function WidgetBuilder() {
                         setConfig({ ...next });
                       }}
                     />
-                  </div>
-                ) : null}
+                  </BuilderCard>
+                )}
               </div>
             ) : null}
 
             {widget.type === "POLL" ? (
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-2 border-b border-border">
-                  {["layout", "display", "extra"].map((id) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setPollPane(id as "layout" | "display" | "extra")}
-                      className={`px-4 py-2 text-sm font-medium ${
-                        pollPane === id
-                          ? "border-b-2 border-primary text-primary"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      aria-selected={pollPane === id}
-                    >
-                      {id.charAt(0).toUpperCase() + id.slice(1)}
-                    </button>
-                  ))}
-                </div>
-                {pollPane === "layout" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <p className="text-xs text-muted-foreground">Poll layout configuration is in the Extra tab.</p>
-                  </div>
-                ) : pollPane === "display" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <p className="text-xs text-muted-foreground">Poll display settings are managed in the Extra tab.</p>
-                  </div>
-                ) : pollPane === "extra" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+              <div className="space-y-3">
+                <BuilderTabs
+                  value={pollPane === "layout" ? "display" : pollPane}
+                  onChange={setPollPane}
+                  label={t("builder.poll.settings")}
+                  panes={["display", "extra"]}
+                />
+                {pollPane === "extra" ? (
+                  <BuilderCard>
                     <PollControlPanel
                       state={widget.state}
                       live={stream.poll}
                       chat={stream.chat}
                       kickConnected={Boolean(stream.chat?.kickChatroomId)}
                     />
-                  </div>
-                ) : null}
+                  </BuilderCard>
+                ) : (
+                  <BuilderCard>
+                    <RangeField
+                      label={t("builder.fontSize")}
+                      value={style.fontSize}
+                      min={12}
+                      max={160}
+                      unit="px"
+                      tip={<InfoTip text={t("tooltips.widget.fontSize")} />}
+                      onChange={(next) => set("fontSize", next)}
+                    />
+                  </BuilderCard>
+                )}
               </div>
             ) : null}
 
             {widget.type === "PREDICTION" ? (
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-2 border-b border-border">
-                  {["layout", "display", "extra"].map((id) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setPredictionPane(id as "layout" | "display" | "extra")}
-                      className={`px-4 py-2 text-sm font-medium ${
-                        predictionPane === id
-                          ? "border-b-2 border-primary text-primary"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      aria-selected={predictionPane === id}
-                    >
-                      {id.charAt(0).toUpperCase() + id.slice(1)}
-                    </button>
-                  ))}
-                </div>
-                {predictionPane === "layout" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <p className="text-xs text-muted-foreground">Prediction layout configuration is in the Extra tab.</p>
-                  </div>
-                ) : predictionPane === "display" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
-                    <p className="text-xs text-muted-foreground">Prediction display settings are managed in the Extra tab.</p>
-                  </div>
-                ) : predictionPane === "extra" ? (
-                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+              <div className="space-y-3">
+                <BuilderTabs
+                  value={predictionPane === "layout" ? "display" : predictionPane}
+                  onChange={setPredictionPane}
+                  label={t("builder.prediction.settings")}
+                  panes={["display", "extra"]}
+                />
+                {predictionPane === "extra" ? (
+                  <BuilderCard>
                     <PredictionControlPanel
                       state={widget.state}
                       live={stream.prediction}
                       chat={stream.chat}
                       kickConnected={Boolean(stream.chat?.kickChatroomId)}
                     />
-                  </div>
-                ) : null}
+                  </BuilderCard>
+                ) : (
+                  <BuilderCard>
+                    <RangeField
+                      label={t("builder.fontSize")}
+                      value={style.fontSize}
+                      min={12}
+                      max={160}
+                      unit="px"
+                      tip={<InfoTip text={t("tooltips.widget.fontSize")} />}
+                      onChange={(next) => set("fontSize", next)}
+                    />
+                  </BuilderCard>
+                )}
               </div>
             ) : null}
 
@@ -1518,6 +1181,7 @@ function WidgetBuilder() {
             widget.type === "EVENT_LABELS" ||
             widget.type === "CHAT_BOX" ||
             widget.type === "CHAT_SPOTLIGHT" ||
+            tabbedStandalone ||
             widget.type === "VIEWER_COUNTER" ? null : (
               <TestSimulatePanel widgetId={widget.id} />
             )}
@@ -1550,7 +1214,7 @@ function WidgetBuilder() {
             )}
           </section>
 
-          <section className="grid min-h-[420px] place-items-center rounded-2xl border border-border bg-[repeating-conic-gradient(#16171d_0%_25%,#101116_0%_50%)] bg-[length:32px_32px] p-6">
+          <section className="grid min-h-[420px] min-w-0 place-items-center overflow-hidden rounded-2xl border border-border bg-[repeating-conic-gradient(#161616_0%_25%,#101010_0%_50%)] bg-[length:32px_32px] p-6">
             <WidgetRenderer
               type={widget.type}
               config={config}
