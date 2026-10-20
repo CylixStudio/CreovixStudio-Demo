@@ -193,6 +193,8 @@ function WidgetBuilder() {
   const [emoteRainPane, setEmoteRainPane] = useState<"layout" | "display" | "extra">("display");
   const [spotlightPane, setSpotlightPane] = useState<"layout" | "display" | "extra">("display");
   const [schedulePane, setSchedulePane] = useState<"layout" | "display" | "extra">("display");
+  const [pollPane, setPollPane] = useState<"layout" | "display" | "extra">("display");
+  const [predictionPane, setPredictionPane] = useState<"layout" | "display" | "extra">("display");
   const [goalBump, setGoalBump] = useState("");
   const subathonSeeded = useRef<string | null>(null);
 
@@ -1329,58 +1331,186 @@ function WidgetBuilder() {
 
 
             {widget.type === "CHAT_SPOTLIGHT" ? (
-              <>
-                <LayoutPicker
-                  value={parseChromeLayout(config)}
-                  options={CHROME_LAYOUTS.map((id) => ({ id, label: t(`layout.chrome.${id}`) }))}
-                  onChange={(id) => set("layout", id)}
-                />
-              <SpotlightControlPanel
-                widgetId={widget.id}
-                chat={stream.chat ?? null}
-                testMessages={stream.testMessages}
-                pinned={stream.spotlight ?? null}
-                autoHideMs={parseSpotlightConfig(config).autoHideMs}
-                onAutoHideChange={(next) => set("autoHideMs", next)}
-                lang={"en"}
-              />
-              </>
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2 border-b border-border">
+                  {["layout", "display", "extra"].map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setSpotlightPane(id as "layout" | "display" | "extra")}
+                      className={`px-4 py-2 text-sm font-medium ${
+                        spotlightPane === id
+                          ? "border-b-2 border-primary text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                      aria-selected={spotlightPane === id}
+                    >
+                      {id.charAt(0).toUpperCase() + id.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                {spotlightPane === "layout" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <LayoutPicker
+                      value={parseChromeLayout(config)}
+                      options={CHROME_LAYOUTS.map((id) => ({ id, label: t(`layout.chrome.${id}`) }))}
+                      onChange={(id) => set("layout", id)}
+                    />
+                  </div>
+                ) : spotlightPane === "display" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <label className="block">
+                      <span className={labelClass}>Auto-hide after (seconds)</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={60}
+                        className={`${fieldClass} mt-2`}
+                        value={parseSpotlightConfig(config).autoHideMs / 1000}
+                        onChange={(event) => set("autoHideMs", Number(event.target.value) * 1000)}
+                      />
+                    </label>
+                  </div>
+                ) : spotlightPane === "extra" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <SpotlightControlPanel
+                      widgetId={widget.id}
+                      chat={stream.chat ?? null}
+                      testMessages={stream.testMessages}
+                      pinned={stream.spotlight ?? null}
+                      autoHideMs={parseSpotlightConfig(config).autoHideMs}
+                      onAutoHideChange={(next) => set("autoHideMs", next)}
+                      lang={"en"}
+                    />
+                  </div>
+                ) : null}
+              </div>
             ) : null}
 
             {widget.type === "STREAM_EVENTS_SCHEDULE" ? (
-              <>
-                <LayoutPicker
-                  value={parseChromeLayout(config)}
-                  options={CHROME_LAYOUTS.map((id) => ({ id, label: t(`layout.chrome.${id}`) }))}
-                  onChange={(id) => set("layout", id)}
-                />
-              <StreamEventsScheduleControlPanel
-                widgetId={widget.id}
-                config={config}
-                state={widget.state}
-                onConfigChange={(next) => {
-                  setConfig({ ...next });
-                }}
-              />
-              </>
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2 border-b border-border">
+                  {["layout", "display", "extra"].map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setSchedulePane(id as "layout" | "display" | "extra")}
+                      className={`px-4 py-2 text-sm font-medium ${
+                        schedulePane === id
+                          ? "border-b-2 border-primary text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                      aria-selected={schedulePane === id}
+                    >
+                      {id.charAt(0).toUpperCase() + id.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                {schedulePane === "layout" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <LayoutPicker
+                      value={parseChromeLayout(config)}
+                      options={CHROME_LAYOUTS.map((id) => ({ id, label: t(`layout.chrome.${id}`) }))}
+                      onChange={(id) => set("layout", id)}
+                    />
+                  </div>
+                ) : schedulePane === "display" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <p className="text-xs text-muted-foreground">Event display settings are managed in the Extra tab.</p>
+                  </div>
+                ) : schedulePane === "extra" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <StreamEventsScheduleControlPanel
+                      widgetId={widget.id}
+                      config={config}
+                      state={widget.state}
+                      onConfigChange={(next) => {
+                        setConfig({ ...next });
+                      }}
+                    />
+                  </div>
+                ) : null}
+              </div>
             ) : null}
 
             {widget.type === "POLL" ? (
-              <PollControlPanel
-                state={widget.state}
-                live={stream.poll}
-                chat={stream.chat}
-                kickConnected={Boolean(stream.chat?.kickChatroomId)}
-              />
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2 border-b border-border">
+                  {["layout", "display", "extra"].map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setPollPane(id as "layout" | "display" | "extra")}
+                      className={`px-4 py-2 text-sm font-medium ${
+                        pollPane === id
+                          ? "border-b-2 border-primary text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                      aria-selected={pollPane === id}
+                    >
+                      {id.charAt(0).toUpperCase() + id.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                {pollPane === "layout" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <p className="text-xs text-muted-foreground">Poll layout configuration is in the Extra tab.</p>
+                  </div>
+                ) : pollPane === "display" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <p className="text-xs text-muted-foreground">Poll display settings are managed in the Extra tab.</p>
+                  </div>
+                ) : pollPane === "extra" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <PollControlPanel
+                      state={widget.state}
+                      live={stream.poll}
+                      chat={stream.chat}
+                      kickConnected={Boolean(stream.chat?.kickChatroomId)}
+                    />
+                  </div>
+                ) : null}
+              </div>
             ) : null}
 
             {widget.type === "PREDICTION" ? (
-              <PredictionControlPanel
-                state={widget.state}
-                live={stream.prediction}
-                chat={stream.chat}
-                kickConnected={Boolean(stream.chat?.kickChatroomId)}
-              />
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2 border-b border-border">
+                  {["layout", "display", "extra"].map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setPredictionPane(id as "layout" | "display" | "extra")}
+                      className={`px-4 py-2 text-sm font-medium ${
+                        predictionPane === id
+                          ? "border-b-2 border-primary text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                      aria-selected={predictionPane === id}
+                    >
+                      {id.charAt(0).toUpperCase() + id.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                {predictionPane === "layout" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <p className="text-xs text-muted-foreground">Prediction layout configuration is in the Extra tab.</p>
+                  </div>
+                ) : predictionPane === "display" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <p className="text-xs text-muted-foreground">Prediction display settings are managed in the Extra tab.</p>
+                  </div>
+                ) : predictionPane === "extra" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <PredictionControlPanel
+                      state={widget.state}
+                      live={stream.prediction}
+                      chat={stream.chat}
+                      kickConnected={Boolean(stream.chat?.kickChatroomId)}
+                    />
+                  </div>
+                ) : null}
+              </div>
             ) : null}
 
             {widget.type === "STREAM_EVENTS_SCHEDULE" ||
