@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  Check,
-  ChevronDown,
   ChevronRight,
   CircleDollarSign,
   Filter as FilterIcon,
@@ -41,6 +39,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLanguage, type TranslationKey } from "@/lib/i18n";
 import { describeFeedEvent, relativeFeedTime, type ActivityFeedEvent } from "@/lib/activityFeed";
+import { PLATFORM_EVENT_ALLOWLIST, triggerPhrase } from "@/lib/platformEvents";
 
 export const Route = createFileRoute("/activity-feed/dock/$token")({
   head: () => ({
@@ -77,8 +76,49 @@ type FilterId =
   | "streamelements"
   | "other";
 
-const PRIMARY_FILTERS: FilterId[] = ["all", "kick", "twitch", "youtube", "tiktok"];
-const MORE_FILTERS: FilterId[] = ["x", "streamlabs", "streamelements", "other"];
+const ALL_FILTERS: FilterId[] = [
+  "all",
+  "kick",
+  "twitch",
+  "youtube",
+  "tiktok",
+  "x",
+  "streamlabs",
+  "streamelements",
+  "other",
+];
+
+// Event types come from the real per-platform allowlist, grouped by their feed phrase
+// (KICKs, Super Chat, Membership... are phrases of the base event types).
+// YouTube "subscribe" is a follow and "membership" is a paid subscription, so they
+// filter under those base types instead of showing duplicate labels.
+const TYPE_GROUP: Record<string, string> = { SUBSCRIBE: "FOLLOW", MEMBERSHIP: "SUBSCRIPTION" };
+const typeGroup = (platform: string, eventType: string) => {
+  const phrase = triggerPhrase(platform, eventType);
+  return TYPE_GROUP[phrase] ?? phrase;
+};
+
+const PHRASE_ORDER = [
+  "FOLLOW",
+  "SUBSCRIPTION",
+  "GIFT_SUB",
+  "GIFT",
+  "RAID",
+  "BITS",
+  "KICKS",
+  "DONATION",
+  "SUPER_CHAT",
+  "LIKE",
+];
+const SUPPORTED_PHRASES = new Set(
+  Object.entries(PLATFORM_EVENT_ALLOWLIST).flatMap(([platform, types]) =>
+    types.map((type) => typeGroup(platform, type)),
+  ),
+);
+const EVENT_TYPE_OPTIONS = [
+  ...PHRASE_ORDER.filter((phrase) => SUPPORTED_PHRASES.has(phrase)),
+  ...[...SUPPORTED_PHRASES].filter((phrase) => !PHRASE_ORDER.includes(phrase)),
+];
 
 const FILTER_PLATFORM: Record<Exclude<FilterId, "all" | "other">, string> = {
   kick: "KICK",
@@ -209,6 +249,9 @@ function ActivityFeedDock() {
   const { t, dir, lang, setLang } = useLanguage();
   const [data, setData] = useState<DockData | null>(null);
   const [filter, setFilter] = useState<FilterId>("all");
+  // Empty list means every event type; platform and type filters apply together.
+  const [types, setTypes] = useState<string[]>([]);
+  const pillRow = useRef<HTMLDivElement>(null);
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [loading, setLoading] = useState(true);
   const [online, setOnline] = useState(false);
@@ -318,10 +361,32 @@ function ActivityFeedDock() {
       (data?.events ?? []).filter(
         (event) =>
           matchesFilter(event, filter) &&
+          (types.length === 0 || types.includes(typeGroup(event.platform, event.event_type))) &&
           (prefs.showTests || !event.isTest),
       ),
-    [data?.events, filter, prefs.showTests],
+    [data?.events, filter, types, prefs.showTests],
   );
+
+  const toggleType = (phrase: string) =>
+    setTypes((current) =>
+      current.includes(phrase) ? current.filter((item) => item !== phrase) : [...current, phrase],
+    );
+
+  const selectFilter = (id: FilterId) => {
+    setFilter(id);
+    window.requestAnimationFrame(() =>
+      pillRow.current
+        ?.querySelector<HTMLElement>(`[data-filter="${id}"]`)
+        ?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" }),
+    );
+  };
+
+  const onPillWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    const row = event.currentTarget;
+    if (row.scrollWidth > row.clientWidth && Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+      row.scrollLeft += event.deltaY;
+    }
+  };
 
   const performAction = async (action: DockAction) => {
     if (working || invalid) return;
@@ -380,8 +445,7 @@ function ActivityFeedDock() {
       : id === "other"
         ? t("activity.dock.other")
         : BRAND_NAME[id];
-  const activeFilter = filter !== "all";
-  const moreActive = MORE_FILTERS.includes(filter);
+  const activeFilter = types.length > 0;
 
   return (
     <main className="fixed inset-0 overflow-hidden bg-[#0a0a0a] p-1.5 text-white" dir={dir}>
@@ -390,7 +454,9 @@ function ActivityFeedDock() {
         .dock-scroll::-webkit-scrollbar { width: 6px; }
         .dock-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 999px; }
         .dock-scroll::-webkit-scrollbar-track { background: transparent; }
-        .dock-filters::-webkit-scrollbar { display: none; }
+        .dock-filters { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
+        .dock-filters::-webkit-scrollbar { height: 4px; }
+        .dock-filters::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 999px; }
       `}</style>
       <div className="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a]">
         <header className="relative flex h-12 shrink-0 items-center gap-1 border-b border-white/10 ps-3 pe-2 max-[379px]:ps-2.5 max-[379px]:pe-1.5">
@@ -454,7 +520,7 @@ function ActivityFeedDock() {
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    aria-label={t("activity.dock.filter")}
+                    aria-label={t("activity.dock.filterTypes")}
                     className={`relative flex size-8 items-center justify-center rounded-md transition-colors max-[379px]:size-7 max-[339px]:size-[26px] ${
                       activeFilter
                         ? "bg-[#bee1fc]/15 text-[#bee1fc]"
@@ -470,20 +536,48 @@ function ActivityFeedDock() {
                 className="rounded-md px-2 py-1 text-[11px] leading-tight"
                 sideOffset={6}
               >
-                {t("activity.dock.filter")}
+                {t("activity.dock.filterTypes")}
               </TooltipContent>
             </Tooltip>
-            <DropdownMenuContent align="end" className={MENU_CONTENT}>
-              <DropdownMenuRadioGroup value={filter} onValueChange={(value) => setFilter(value as FilterId)}>
-                {[...PRIMARY_FILTERS, ...MORE_FILTERS].map((id) => (
-                  <DropdownMenuRadioItem key={id} value={id} className={`${MENU_ITEM} gap-2`}>
-                    <span className="flex size-4 items-center justify-center">
-                      <FilterGlyph id={id} size={15} />
-                    </span>
-                    {filterLabel(id)}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
+            <DropdownMenuContent align="end" className={`${MENU_CONTENT} w-56`}>
+              <DropdownMenuLabel className="px-2 py-1 text-[11px] font-medium text-white/50">
+                {t("activity.dock.eventTypes")}
+              </DropdownMenuLabel>
+              <DropdownMenuCheckboxItem
+                checked={types.length === 0}
+                onCheckedChange={() => setTypes([])}
+                onSelect={(event) => event.preventDefault()}
+                className={MENU_ITEM}
+              >
+                {t("activity.dock.all")}
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuSeparator className="bg-white/10" />
+              {EVENT_TYPE_OPTIONS.map((phrase) => {
+                const key = `activity.dock.type.${phrase}` as TranslationKey;
+                const label = t(key);
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={phrase}
+                    checked={types.includes(phrase)}
+                    onCheckedChange={() => toggleType(phrase)}
+                    onSelect={(event) => event.preventDefault()}
+                    className={MENU_ITEM}
+                  >
+                    {label === key ? phrase : label}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem
+                className={MENU_ITEM}
+                disabled={types.length === 0}
+                onSelect={(event) => {
+                  event.preventDefault();
+                  setTypes([]);
+                }}
+              >
+                {t("activity.dock.clearFilter")}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -585,67 +679,36 @@ function ActivityFeedDock() {
         </header>
 
         <div
-          className="dock-filters flex shrink-0 items-center gap-1 overflow-x-auto border-b border-white/10 px-2.5 py-2 max-[379px]:px-2"
+          ref={pillRow}
+          onWheel={onPillWheel}
+          className="dock-filters flex shrink-0 scroll-smooth items-center gap-1 overflow-x-auto border-b border-white/10 px-2.5 py-2 max-[379px]:px-2"
           role="group"
           aria-label={t("activity.dock.filter")}
         >
-          {PRIMARY_FILTERS.map((id) => {
+          {ALL_FILTERS.map((id) => {
             const selected = filter === id;
             return (
               <button
                 type="button"
                 key={id}
+                data-filter={id}
                 aria-pressed={selected}
                 aria-label={filterLabel(id)}
-                onClick={() => setFilter(id)}
-                className={`flex h-7 shrink-0 items-center gap-1.5 rounded-lg border px-2 text-[13px] leading-none transition-colors ${
+                onClick={() => selectFilter(id)}
+                className={`flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-2 text-[13px] leading-none transition-colors ${
                   selected
                     ? "border-[#bee1fc]/45 bg-[#bee1fc]/12 text-white"
                     : "border-white/12 text-white/80 hover:bg-white/[0.05]"
                 }`}
               >
                 <FilterGlyph id={id} size={15} />
-                <span className={selected || id === "all" ? "" : "max-[439px]:hidden"}>
-                  {filterLabel(id)}
-                </span>
+                <span>{filterLabel(id)}</span>
               </button>
             );
           })}
-          <DropdownMenu dir={dir}>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                aria-label={t("activity.dock.morePlatforms")}
-                className={`flex h-7 shrink-0 items-center gap-1 rounded-lg border px-2 text-[13px] leading-none transition-colors ${
-                  moreActive
-                    ? "border-[#bee1fc]/45 bg-[#bee1fc]/12 text-white"
-                    : "border-white/12 text-white/80 hover:bg-white/[0.05]"
-                }`}
-              >
-                {moreActive ? (
-                  <>
-                    <FilterGlyph id={filter} size={15} />
-                    <span>{filterLabel(filter)}</span>
-                  </>
-                ) : null}
-                <ChevronDown className="size-3.5" aria-hidden />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className={MENU_CONTENT}>
-              {MORE_FILTERS.map((id) => (
-                <DropdownMenuItem key={id} className={`${MENU_ITEM} gap-2`} onSelect={() => setFilter(id)}>
-                  <span className="flex size-4 items-center justify-center">
-                    <FilterGlyph id={id} size={15} />
-                  </span>
-                  <span className="flex-1">{filterLabel(id)}</span>
-                  {filter === id ? <Check className="size-3.5 text-[#bee1fc]" /> : null}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
 
-        {notice ? (
+{notice ? (
           <p
             role="status"
             className={`shrink-0 border-b border-white/10 px-3 py-1.5 text-xs ${
