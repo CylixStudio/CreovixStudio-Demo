@@ -224,6 +224,50 @@ export function acknowledgeAlert(id: string): Promise<void> {
   });
 }
 
+/**
+ * Replay a specific alert event back into the queue.
+ * Creates a new event with the same alert type and parameters as the original.
+ * Used by the Activity Dock replay button.
+ */
+export function replayAlertEvent(eventId: string): { queued: boolean; message: string } {
+  return withLock(() => {
+    const events = listAlertEvents();
+    const original = events.find((e) => e.id === eventId);
+
+    if (!original) {
+      return { queued: false, message: "حدث غير موجود في السجل." };
+    }
+
+    // Create a new event (fresh ID, current timestamp) from the original
+    const replayed: AlertEvent = {
+      id: crypto.randomUUID(),
+      alertId: original.alertId,
+      platform: original.platform,
+      username: original.username,
+      count: original.count,
+      months: original.months,
+      amount: original.amount,
+      message: original.message,
+      variationId: original.variationId,
+      text: original.text,
+      config: original.config,
+      visualId: original.visualId,
+      visualMime: original.visualMime,
+      visualUrl: original.visualUrl,
+      audioId: original.audioId,
+      createdAt: Date.now(),
+    };
+
+    const queue = readQueue();
+    queue.push(replayed);
+    writeQueue(queue);
+
+    for (const listener of listeners) listener(replayed);
+
+    return { queued: true, message: "أُضيف الحدث المعاد تشغيله إلى طابور OBS." };
+  });
+}
+
 // ===== Alert Control =====
 // Server-side control for the OBS alert queue, shared by every dashboard tab and
 // OBS source. Pause/resume, skip and clear live here so they survive a dashboard
