@@ -17,17 +17,25 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { adjustTimer, pauseTimer, resetTimer, setTimer, startTimer } from "@/lib/timer.functions";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, type TranslationKey } from "@/lib/i18n";
+import { publishDemoTimerFrame } from "@/lib/subathonDemoSync";
 import { displayedSeconds, formatDuration, remainingMsAt, type TimerFrame } from "@/lib/timer";
 
 const ADJUSTMENTS = [
-  { seconds: 60, label: "+1 min" },
-  { seconds: 600, label: "+10 min" },
-  { seconds: 3600, label: "+1 hour" },
-  { seconds: -60, label: "−1 min" },
-  { seconds: -600, label: "−10 min" },
-  { seconds: -3600, label: "−1 hour" },
+  { seconds: 60, labelKey: "sub.ctl.p1m" },
+  { seconds: 600, labelKey: "sub.ctl.p10m" },
+  { seconds: 3600, labelKey: "sub.ctl.p1h" },
+  { seconds: -60, labelKey: "sub.ctl.m1m" },
+  { seconds: -600, labelKey: "sub.ctl.m10m" },
+  { seconds: -3600, labelKey: "sub.ctl.m1h" },
 ] as const;
+
+const STATUS_KEY: Record<string, TranslationKey> = {
+  IDLE: "sub.ctl.status.IDLE",
+  RUNNING: "sub.ctl.status.RUNNING",
+  PAUSED: "sub.ctl.status.PAUSED",
+  ENDED: "sub.ctl.status.ENDED",
+};
 
 const channelName = (subathonId: string) => `creovix-timer-${subathonId}`;
 
@@ -41,7 +49,7 @@ export function SubathonElementControlPanel({
   frame,
   remaining,
   compact = false,
-  lang = "ar",
+  embedded = false,
 }: {
   widgetId: string;
   subathonId: string | null;
@@ -51,6 +59,7 @@ export function SubathonElementControlPanel({
   onConfigChange?: (key: string, value: unknown) => void;
   onSaveConfig?: () => Promise<unknown> | void;
   compact?: boolean;
+  embedded?: boolean;
   lang?: "ar" | "en";
 }) {
   const start = useServerFn(startTimer);
@@ -98,6 +107,7 @@ export function SubathonElementControlPanel({
   const publishFrame = (next: TimerFrame) => {
     setLocalFrame(next);
     setLocalRemaining(projectSeconds(next));
+    publishDemoTimerFrame(widgetId, next);
     if (!subathonId) return;
     const channel = new BroadcastChannel(channelName(subathonId));
     channel.postMessage({ frame: next });
@@ -111,7 +121,7 @@ export function SubathonElementControlPanel({
       const result = await action();
       publishFrame(result as TimerFrame);
     } catch (caught) {
-      setError(widgetErrorText(caught, "Action failed"));
+      setError(widgetErrorText(caught, t("sub.ctl.actionFailed")));
     } finally {
       setBusy(false);
     }
@@ -130,34 +140,36 @@ export function SubathonElementControlPanel({
   const status = localFrame?.status ?? "IDLE";
   const primaryLabel =
     status === "RUNNING"
-      ? "Pause"
+      ? t("sub.ctl.pause")
       : status === "PAUSED"
-        ? "Resume"
-        : "Start";
+        ? t("sub.ctl.resume")
+        : t("sub.ctl.start");
 
   const digitInput =
     "w-full rounded-md bg-transparent text-center font-mono text-4xl font-bold tabular-nums text-foreground outline-none transition focus:bg-primary/10 focus:ring-1 focus:ring-primary sm:text-5xl";
 
   return (
-    <section className={`overflow-hidden rounded-xl border border-border bg-card ${compact ? "shadow-2xl" : ""}`}>
-      <header className="flex items-center justify-between border-b border-border px-4 py-3">
-        <div>
-          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary">Element Control Panel</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{"Subathon Timer"}</p>
+    <section className={embedded ? "space-y-4" : "surface-card overflow-hidden"}>
+      <header
+        className={`flex items-center justify-between gap-2 ${embedded ? "" : "border-b border-white/8 px-4 py-3"}`}
+      >
+        <div className="min-w-0">
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary">{t("sub.ctl.title")}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{t("sub.ctl.subtitle")}</p>
         </div>
         {!compact ? (
-          <Button type="button" variant="ghost" size="icon" onClick={() => window.open(`/widgets/${widgetId}/control`, `creovix-timer-${widgetId}`, "popup=yes,width=520,height=820,resizable=yes,scrollbars=yes")} title="Open in separate window" aria-label="Open control panel in separate window">
+          <Button type="button" variant="ghost" size="icon" onClick={() => window.open(`/widgets/${widgetId}/control`, `creovix-timer-${widgetId}`, "popup=yes,width=520,height=820,resizable=yes,scrollbars=yes")} title={t("sub.ctl.popout")} aria-label={t("sub.ctl.popout")}>
             <ExternalLink aria-hidden />
           </Button>
         ) : null}
       </header>
 
-      <div className="space-y-5 p-4">
-        <div className="rounded-lg border border-primary/30 bg-background px-4 py-6 text-center shadow-[inset_0_1px_0_hsl(var(--foreground)/0.05)]">
-          <span className="text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground">{status}</span>
+      <div className={embedded ? "space-y-5" : "space-y-5 p-4"}>
+        <div className="surface-inset px-4 py-6 text-center">
+          <span className="text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground">{t(STATUS_KEY[status] ?? "sub.ctl.status.IDLE")}</span>
           <div className="mt-2 flex items-center justify-center gap-1" dir="ltr">
             <input
-              aria-label={"Hours"}
+              aria-label={t("sub.ctl.hours")}
               inputMode="numeric"
               className={`${digitInput} max-w-[2.4ch]`}
               value={hours}
@@ -167,7 +179,7 @@ export function SubathonElementControlPanel({
             />
             <span className="font-mono text-4xl font-bold text-muted-foreground sm:text-5xl">:</span>
             <input
-              aria-label={"Minutes"}
+              aria-label={t("sub.ctl.minutes")}
               inputMode="numeric"
               className={`${digitInput} max-w-[2.2ch]`}
               value={minutes}
@@ -177,7 +189,7 @@ export function SubathonElementControlPanel({
             />
             <span className="font-mono text-4xl font-bold text-muted-foreground sm:text-5xl">:</span>
             <input
-              aria-label={"Seconds"}
+              aria-label={t("sub.ctl.seconds")}
               inputMode="numeric"
               className={`${digitInput} max-w-[2.2ch]`}
               value={seconds}
@@ -195,11 +207,11 @@ export function SubathonElementControlPanel({
               disabled={busy || !subathonId}
               onClick={applyCustomTime}
             >
-              {"Set Time"}
+              {t("sub.ctl.setTime")}
             </Button>
           ) : (
             <p className="mt-2 text-[0.65rem] text-muted-foreground">
-              {"Click the digits to set the time manually"}
+              {t("sub.ctl.clickDigits")}
             </p>
           )}
         </div>
@@ -216,23 +228,23 @@ export function SubathonElementControlPanel({
 
         <div>
           <p className="mb-2 inline-flex items-center gap-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            {"Change Duration"}
+            {t("sub.ctl.changeDuration")}
             <InfoTip text={t("tooltips.subathon.changeDuration")} />
           </p>
           <div className="grid grid-cols-3 gap-2">
             {ADJUSTMENTS.map((entry) => (
               <Button key={entry.seconds} type="button" variant="outline" disabled={busy || !subathonId} onClick={() => void run(() => adjust({ data: { ...payload, seconds: entry.seconds } }))}>
-                {entry.label}
+                <bdi>{t(entry.labelKey)}</bdi>
               </Button>
             ))}
           </div>
         </div>
 
-        <div className="rounded-lg border border-destructive/35 bg-destructive/5 p-4">
-          <p className="font-semibold text-destructive">{"Need to reset timer?"}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{"The timer returns to its original duration."}</p>
+        <div className="rounded-xl border border-destructive/35 bg-destructive/5 p-4">
+          <p className="font-semibold text-destructive">{t("sub.ctl.resetQuestion")}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("sub.ctl.resetHint")}</p>
           <Button type="button" variant="destructive" className="mt-3 w-full" disabled={busy || !subathonId} onClick={() => setResetOpen(true)}>
-            <RotateCcw aria-hidden />{"Reset Timer"}
+            <RotateCcw aria-hidden />{t("sub.ctl.reset")}
           </Button>
         </div>
       </div>
@@ -242,12 +254,12 @@ export function SubathonElementControlPanel({
       <AlertDialog open={resetOpen} onOpenChange={setResetOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{"Reset timer?"}</AlertDialogTitle>
-            <AlertDialogDescription>{"This stops the timer and restores its original duration. This action is not automatically reversible."}</AlertDialogDescription>
+            <AlertDialogTitle>{t("sub.ctl.resetTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("sub.ctl.resetDesc")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{"Cancel"}</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => void run(() => reset({ data: payload }))}>{"Reset Timer"}</AlertDialogAction>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => void run(() => reset({ data: payload }))}>{t("sub.ctl.reset")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

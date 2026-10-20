@@ -6,10 +6,13 @@ import { toast } from "sonner";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { OverlayView } from "@/components/overlay/OverlayView";
+import { ANIMATION_KEY, LAYOUT_KEY, LayoutMini } from "@/components/widgets/SubathonTimerSidebar";
+import { Switch } from "@/components/widgets/SubathonUi";
 import { useTimerStream } from "@/hooks/useTimerStream";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { supabase } from "@/lib/supabase/client";
 import { DarkSelect } from "@/components/ui/dark-select";
+import { useLanguage } from "@/lib/i18n";
 import {
   DEFAULT_OVERLAY_THEME,
   OVERLAY_ANIMATIONS,
@@ -19,6 +22,7 @@ import {
   parseOverlayTheme,
   type OverlayTheme,
 } from "@/lib/overlayTheme";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/subathons/$id/overlay")({
   head: () => ({
@@ -42,13 +46,15 @@ export const Route = createFileRoute("/_authenticated/subathons/$id/overlay")({
   component: OverlayBuilder,
 });
 
-const cardClass = "rounded-2xl border border-border bg-card p-5";
+const cardClass = "surface-card surface-card-pad";
 const fieldClass =
   "mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary";
+const headingClass = "text-sm font-semibold uppercase tracking-wider text-muted-foreground";
 
 function OverlayBuilder() {
   const { id } = Route.useParams();
   const { user } = Route.useRouteContext();
+  const { t } = useLanguage();
   const workspace = useWorkspace(user.id);
   const queryClient = useQueryClient();
   const [theme, setTheme] = useState<OverlayTheme>(DEFAULT_OVERLAY_THEME);
@@ -85,7 +91,7 @@ function OverlayBuilder() {
 
   const save = useMutation({
     mutationFn: async (next: OverlayTheme) => {
-      if (!overlay) throw new Error("No overlay exists for this subathon yet.");
+      if (!overlay) throw new Error(t("sub.overlay.noOverlayError"));
       const { error } = await supabase
         .from("overlays")
         .update({ theme: next as never })
@@ -93,10 +99,10 @@ function OverlayBuilder() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Overlay saved");
+      toast.success(t("sub.overlay.savedToast"));
       void queryClient.invalidateQueries({ queryKey: ["overlay", id] });
     },
-    onError: (error: Error) => toast.error(error.message || "Could not save overlay"),
+    onError: (error: Error) => toast.error(error.message || t("sub.overlay.saveFailed")),
   });
 
   const togglePublic = useMutation({
@@ -109,7 +115,7 @@ function OverlayBuilder() {
       if (error) throw error;
     },
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["overlay", id] }),
-    onError: (error: Error) => toast.error(error.message || "Could not update visibility"),
+    onError: (error: Error) => toast.error(error.message || t("sub.overlay.visibilityFailed")),
   });
 
   const createOverlay = useMutation({
@@ -120,10 +126,10 @@ function OverlayBuilder() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Overlay created");
+      toast.success(t("sub.overlay.createdToast"));
       void queryClient.invalidateQueries({ queryKey: ["overlay", id] });
     },
-    onError: (error: Error) => toast.error(error.message || "Could not create overlay"),
+    onError: (error: Error) => toast.error(error.message || t("sub.overlay.createFailed")),
   });
 
   const subathon = useMemo(
@@ -156,8 +162,12 @@ function OverlayBuilder() {
       profile={workspace.data?.profile}
       subathons={workspace.data?.subathons ?? []}
       activeSubathonId={id}
-      title="Overlay builder"
-      subtitle={subathon ? `${subathon.title} · OBS browser source` : "Design your OBS overlay"}
+      title={t("sub.overlay.title")}
+      subtitle={
+        subathon
+          ? t("sub.overlay.subtitleNamed", { name: subathon.title })
+          : t("sub.overlay.subtitle")
+      }
       actions={
         <button
           type="button"
@@ -165,25 +175,23 @@ function OverlayBuilder() {
           onClick={() => save.mutate(theme)}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
         >
-          {save.isPending ? "Saving…" : "Save overlay"}
+          {save.isPending ? t("sub.overlay.saving") : t("sub.overlay.save")}
         </button>
       }
     >
       {overlayQuery.isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading overlay…</p>
+        <p className="text-sm text-muted-foreground">{t("sub.overlay.loading")}</p>
       ) : !overlay ? (
         <div className={cardClass}>
-          <h2 className="font-semibold">No overlay yet</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Create a public browser source for this subathon to start designing.
-          </p>
+          <h2 className="font-semibold">{t("sub.overlay.noneTitle")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("sub.overlay.noneDesc")}</p>
           <button
             type="button"
             onClick={() => createOverlay.mutate()}
             disabled={createOverlay.isPending}
             className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
           >
-            Create overlay
+            {t("sub.overlay.create")}
           </button>
           {createOverlay.error ? (
             <p className="mt-3 text-sm text-destructive">{String(createOverlay.error)}</p>
@@ -192,47 +200,50 @@ function OverlayBuilder() {
       ) : (
         <div className="grid gap-5 xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
           <section className={cardClass}>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Customization
-            </h2>
+            <h2 className={headingClass}>{t("sub.overlay.customization")}</h2>
 
             <div className="mt-4 space-y-4">
               <div>
-                <span className="text-sm font-medium">Layout</span>
+                <span className="text-sm font-medium">{t("sub.tab.layout")}</span>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   {OVERLAY_LAYOUTS.map((option) => (
                     <button
                       key={option.value}
                       type="button"
+                      aria-pressed={theme.layout === option.value}
                       onClick={() => set("layout", option.value)}
-                      className={`rounded-xl border p-3 text-start text-sm transition-colors ${
-                        theme.layout === option.value
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-background hover:border-primary/60"
-                      }`}
+                      className={cn(
+                        "flex min-w-0 flex-col overflow-hidden rounded-xl border bg-zinc-950/40 text-start text-sm transition-colors hover:border-primary/50",
+                        theme.layout === option.value ? "border-primary" : "border-border",
+                      )}
                     >
-                      <span className="block font-semibold">{option.label}</span>
-                      <span className="block text-xs text-muted-foreground">{option.hint}</span>
+                      <LayoutMini theme={theme} layout={option.value} />
+                      <span className="px-2 py-1.5">
+                        <span className="block text-xs font-semibold">{t(LAYOUT_KEY[option.value].name)}</span>
+                        <span className="block text-[10px] text-muted-foreground">
+                          {t(LAYOUT_KEY[option.value].hint)}
+                        </span>
+                      </span>
                     </button>
                   ))}
                 </div>
               </div>
 
               <label className="block text-sm font-medium">
-                Font
+                {t("sub.font")}
                 <DarkSelect
                   className="mt-2"
                   value={theme.fontFamily}
                   onValueChange={(next) => set("fontFamily", next)}
                   options={OVERLAY_FONTS.map((font) => ({
                     value: font.value,
-                    label: font.label,
+                    label: font.value.startsWith("system-ui") ? t("sub.font.system") : font.label,
                   }))}
                 />
               </label>
 
               <label className="block text-sm font-medium">
-                Font size · {theme.fontSize}px
+                {t("sub.fontSize")} · <span dir="ltr">{theme.fontSize}px</span>
                 <input
                   type="range"
                   min={24}
@@ -245,24 +256,24 @@ function OverlayBuilder() {
 
               <div className="grid grid-cols-3 gap-3">
                 <ColorField
-                  label="Text"
+                  label={t("sub.color.text")}
                   value={theme.textColor}
                   onChange={(value) => set("textColor", value)}
                 />
                 <ColorField
-                  label="Background"
+                  label={t("sub.color.background")}
                   value={theme.backgroundColor}
                   onChange={(value) => set("backgroundColor", value)}
                 />
                 <ColorField
-                  label="Accent"
+                  label={t("sub.color.accent")}
                   value={theme.accentColor}
                   onChange={(value) => set("accentColor", value)}
                 />
               </div>
 
               <label className="block text-sm font-medium">
-                Background opacity · {theme.backgroundOpacity}%
+                {t("sub.opacity")} · <span dir="ltr">{theme.backgroundOpacity}%</span>
                 <input
                   type="range"
                   min={0}
@@ -274,41 +285,42 @@ function OverlayBuilder() {
               </label>
 
               <label className="block text-sm font-medium">
-                Animation on time added
+                {t("sub.animation")}
                 <DarkSelect
                   className="mt-2"
                   value={theme.animation}
                   onValueChange={(next) => set("animation", next as OverlayTheme["animation"])}
                   options={OVERLAY_ANIMATIONS.map((option) => ({
                     value: option.value,
-                    label: option.label,
+                    label: t(ANIMATION_KEY[option.value]),
                   }))}
                 />
               </label>
 
               <label className="block text-sm font-medium">
-                Label
+                {t("sub.titleText")}
                 <input
                   className={fieldClass}
                   value={theme.label}
                   maxLength={40}
+                  dir="auto"
                   onChange={(event) => set("label", event.target.value)}
                 />
               </label>
 
               <div className="space-y-2">
                 <Toggle
-                  label="Show label"
+                  label={t("sub.showTitle")}
                   checked={theme.showLabel}
                   onChange={(value) => set("showLabel", value)}
                 />
                 <Toggle
-                  label="Show timer status"
+                  label={t("sub.showStatus")}
                   checked={theme.showStatus}
                   onChange={(value) => set("showStatus", value)}
                 />
                 <Toggle
-                  label='Show floating "+time" popups'
+                  label={t("sub.popups")}
                   checked={theme.showAddedPopups}
                   onChange={(value) => set("showAddedPopups", value)}
                 />
@@ -320,7 +332,7 @@ function OverlayBuilder() {
                   onClick={() => setTheme(DEFAULT_OVERLAY_THEME)}
                   className="rounded-lg border border-border px-3 py-2 text-sm hover:border-primary hover:text-primary"
                 >
-                  Reset to defaults
+                  {t("sub.overlay.reset")}
                 </button>
                 <button
                   type="button"
@@ -328,29 +340,28 @@ function OverlayBuilder() {
                   onClick={() => save.mutate(theme)}
                   className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
                 >
-                  Save overlay
+                  {t("sub.overlay.save")}
                 </button>
               </div>
               {save.error ? (
                 <p className="text-sm text-destructive">{String(save.error)}</p>
               ) : save.isSuccess ? (
-                <p className="text-sm text-primary">Saved — OBS picks it up within 15s.</p>
+                <p className="text-sm text-primary">{t("sub.overlay.savedHint")}</p>
               ) : null}
             </div>
           </section>
 
           <div className="space-y-5">
             <section className={cardClass}>
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                  Live preview
-                </h2>
+              <div className="flex items-center justify-between gap-2">
+                <h2 className={headingClass}>{t("sub.overlay.preview")}</h2>
                 <span className="text-xs text-muted-foreground">
-                  {frame ? `synced · ${frame.status}` : "sample time"}
+                  {frame ? t("sub.overlay.synced", { status: frame.status }) : t("sub.overlay.sample")}
                 </span>
               </div>
               <div
-                className="mt-4 grid min-h-[320px] place-items-center rounded-2xl border border-border p-6"
+                className="mt-4 grid min-h-[320px] place-items-center overflow-hidden rounded-2xl border border-white/8 p-6"
+                dir="ltr"
                 style={{
                   backgroundImage:
                     "linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.05) 75%), linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.05) 75%)",
@@ -365,19 +376,16 @@ function OverlayBuilder() {
                   scale={theme.fontSize > 110 ? 0.7 : 1}
                 />
               </div>
-              <p className="mt-3 text-xs text-muted-foreground">
-                The checkerboard marks transparency — OBS composites your scene there.
-              </p>
+              <p className="mt-3 text-xs text-muted-foreground">{t("sub.overlay.checker")}</p>
             </section>
 
             <section className={cardClass}>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                OBS browser source
-              </h2>
+              <h2 className={headingClass}>{t("sub.extra.obs")}</h2>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <input
                   readOnly
                   value={overlayUrl}
+                  dir="ltr"
                   onFocus={(event) => event.currentTarget.select()}
                   className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs"
                 />
@@ -387,7 +395,7 @@ function OverlayBuilder() {
                   className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
                 >
                   {copied ? <Check className="size-4" aria-hidden /> : <Copy className="size-4" aria-hidden />}
-                  {copied ? "Copied" : "Copy URL"}
+                  {copied ? t("sub.overlay.copied") : t("sub.overlay.copyUrl")}
                 </button>
                 <a
                   href={overlayUrl}
@@ -395,20 +403,20 @@ function OverlayBuilder() {
                   rel="noreferrer"
                   className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:border-primary hover:text-primary"
                 >
-                  <ExternalLink className="size-4" aria-hidden /> Open
+                  <ExternalLink className="size-4" aria-hidden /> {t("sub.overlay.open")}
                 </a>
               </div>
               <div className="mt-4">
                 <Toggle
-                  label="Overlay is publicly reachable (required by OBS)"
+                  label={t("sub.overlay.public")}
                   checked={overlay.is_public}
                   onChange={(value) => togglePublic.mutate(value)}
                 />
               </div>
               <ol className="mt-4 list-decimal space-y-1 ps-5 text-sm text-muted-foreground">
-                <li>In OBS add a Browser source and paste the URL above.</li>
-                <li>Set width 1920, height 1080 and leave the background transparent.</li>
-                <li>Enable “Shutdown source when not visible” off so the timer stays connected.</li>
+                <li>{t("sub.overlay.step1")}</li>
+                <li>{t("sub.overlay.step2")}</li>
+                <li>{t("sub.overlay.step3")}</li>
               </ol>
             </section>
           </div>
@@ -436,9 +444,11 @@ function ColorField({
           value={value}
           onChange={(event) => onChange(event.target.value.toUpperCase())}
           className="size-7 cursor-pointer rounded border-0 bg-transparent p-0"
-          aria-label={`${label} color`}
+          aria-label={label}
         />
-        <span className="font-mono text-xs text-muted-foreground">{value}</span>
+        <span className="font-mono text-xs text-muted-foreground" dir="ltr">
+          {value}
+        </span>
       </span>
     </label>
   );
@@ -454,25 +464,9 @@ function Toggle({
   onChange: (value: boolean) => void;
 }) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className="flex w-full items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2 text-start text-sm"
-    >
+    <div className="surface-inset flex w-full items-center justify-between gap-3 px-3 py-2.5 text-sm">
       <span>{label}</span>
-      <span
-        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-          checked ? "bg-primary" : "bg-secondary"
-        }`}
-      >
-        <span
-          className={`absolute top-0.5 size-4 rounded-full bg-background transition-all ${
-            checked ? "start-[1.125rem]" : "start-0.5"
-          }`}
-        />
-      </span>
-    </button>
+      <Switch checked={checked} onChange={onChange} label={label} />
+    </div>
   );
 }

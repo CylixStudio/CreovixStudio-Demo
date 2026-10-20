@@ -84,7 +84,7 @@ export function TestSimulatePanel({ widgetId }: { widgetId: string }) {
       });
       setNotice(t(spec.labelKey));
     } catch (error) {
-      const message = widgetErrorText(error, "Failed");
+      const message = widgetErrorText(error, t("sub.test.failed"));
       setNotice(isMissingViewerSession(message) ? t("widget.signedOut") : message);
     } finally {
       setPending(false);
@@ -92,7 +92,7 @@ export function TestSimulatePanel({ widgetId }: { widgetId: string }) {
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-[rgba(10,10,12,0.96)] shadow-2xl shadow-black/60">
+    <div className="surface-card overflow-hidden">
       <div className="border-b border-white/8 px-3 pb-3 pt-3">
         <p className="mb-2.5 text-start text-[0.62rem] font-semibold tracking-[0.02em] text-muted-foreground">
           {t("settings.test.platformsAria")}
