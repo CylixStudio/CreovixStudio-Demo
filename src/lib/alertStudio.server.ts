@@ -34,7 +34,6 @@ import {
 const SETTINGS_KEY = "alerts:settings";
 const QUEUE_KEY = "alerts:queue";
 const CONTROL_KEY = "alerts:control";
-const VALID_TOKENS_KEY = "alerts:valid-tokens";
 
 let chain: Promise<unknown> = Promise.resolve();
 const listeners = new Set<(event: AlertEvent) => void>();
@@ -182,34 +181,19 @@ export function updateAlertStudio(
 }
 
 /**
- * Regenerate the Demo Dock token and invalidate the previous one.
- * The old token is added to a valid-tokens list with a TTL concept
- * (new sessions don't carry over old tokens, effectively invalidating them).
+ * Regenerate the Demo Dock token and immediately invalidate the previous one.
+ * Only the current token is stored. Old tokens are discarded and no longer valid.
+ * The new token persists in localStorage and survives page refresh.
  */
 export function regenerateDockToken(): AlertStudioState {
   const current = readStored();
-  const oldToken = current.token;
   
   // Generate new token
   const newToken = freshToken();
   
-  // Store old token in "valid tokens" set for brief overlap period
-  // (in same session only; fresh page load won't have it)
-  try {
-    let validTokens: string[] = [];
-    const stored = kvGet(VALID_TOKENS_KEY);
-    if (stored) {
-      validTokens = JSON.parse(stored) as string[];
-    }
-    // Keep last 2 tokens in case of rapid regeneration within same session
-    validTokens.push(oldToken);
-    validTokens = validTokens.slice(-2);
-    kvSet(VALID_TOKENS_KEY, JSON.stringify(validTokens));
-  } catch {
-    // Ignore errors; worst case old token stays briefly valid
-  }
-  
-  // Update stored token
+  // Discard old token; only keep current
+  // Do NOT store old tokens in a valid-tokens list
+  // This ensures immediate invalidation
   const next: StoredSettings = {
     ...current,
     token: newToken,
@@ -758,25 +742,12 @@ export function removeAlertMedia(id: string): Promise<AlertStudioState | null> {
 }
 
 /**
- * Check if a token is valid (current or previously valid).
- * Invalid tokens are no longer accepted for access.
+ * Check if a token is valid (must match current token).
+ * Old tokens are immediately invalidated upon regeneration.
  */
 export function alertTokenMatches(token: string): boolean {
   const current = readStored().token;
-  if (current === token) return true;
-  
-  // Check against valid tokens list (for migration/overlap period)
-  try {
-    const validTokensRaw = kvGet(VALID_TOKENS_KEY);
-    if (validTokensRaw) {
-      const validTokens = JSON.parse(validTokensRaw) as string[];
-      return validTokens.includes(token);
-    }
-  } catch {
-    // Ignore parse errors
-  }
-  
-  return false;
+  return current === token;
 }
 
 // ===== Platform event ingest =====
