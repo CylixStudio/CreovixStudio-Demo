@@ -187,7 +187,7 @@ function WidgetBuilder() {
   const [config, setConfig] = useState<Record<string, unknown>>({});
   const [goalDraft, setGoalDraft] = useState({ title: "", unit: "USD", target: 0, current: 0 });
   const [goalPane, setGoalPane] = useState<"setup" | "control">("setup");
-  const [chatPane, setChatPane] = useState<"display" | "layout">("display");
+  const [chatPane, setChatPane] = useState<"layout" | "display" | "extra">("display");
   const [goalBump, setGoalBump] = useState("");
   const subathonSeeded = useRef<string | null>(null);
 
@@ -742,8 +742,9 @@ function WidgetBuilder() {
                 >
                   {(
                     [
-                      ["display", "Display"],
                       ["layout", "Layout"],
+                      ["display", "Display"],
+                      ["extra", "Extra"],
                     ] as const
                   ).map(([id, label]) => (
                     <button
@@ -883,7 +884,7 @@ function WidgetBuilder() {
                       </>
                     ) : null}
                   </div>
-                ) : (
+                ) : chatPane === "display" ? (
                   <div className="space-y-4 rounded-xl border border-border bg-background p-4">
                     <label className="block">
                       <span className={`${labelClass} inline-flex items-center gap-1.5`}>
@@ -955,7 +956,16 @@ function WidgetBuilder() {
                       onUseDefault={(enabled) => set("kickDefaultSubscriberBadge", enabled)}
                     />
                   </div>
-                )}
+                ) : chatPane === "extra" ? (
+                  <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+                    <p className="text-xs text-muted-foreground">
+                      Advanced settings for Chat Box widget behavior.
+                    </p>
+                    <div className="rounded-lg border border-white/5 bg-black/30 p-3 text-xs text-muted-foreground">
+                      Additional options coming soon
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
