@@ -11,6 +11,8 @@ import {
   Plug,
 } from "lucide-react";
 
+import * as SelectPrimitive from "@radix-ui/react-select";
+
 
 import { AppShell } from "@/components/layout/AppShell";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -341,7 +343,19 @@ function ActivityFeedPage() {
 
   const [live, setLive] = useState<FeedEvent[]>([]);
   const [freshIds, setFreshIds] = useState<Set<string>>(() => new Set());
-  const [active, setActive] = useState<string[]>(() => FILTER_GROUPS.map((g) => g.id));
+  const [active, setActive] = useState<string[]>(() => [
+    ...(typeof window !== "undefined" && window.sessionStorage?.getItem("activity-feed-filter")
+      ? [window.sessionStorage.getItem("activity-feed-filter") || "all"]
+      : FILTER_GROUPS.map((g) => g.id)),
+  ]);
+  
+  // Save filter preference to sessionStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.sessionStorage?.setItem("activity-feed-filter", active[0] || "all");
+    }
+  }, [active]);
+  
   useApplyDefaultPlatform(workspace?.profile?.default_platform, (platform) => {
     const id = platform.toLowerCase();
     if (FILTER_GROUPS.some((group) => group.id === id)) setActive([id]);
@@ -530,13 +544,6 @@ function ActivityFeedPage() {
 
   const groups = useMemo(() => groupConsecutiveEvents(visible), [visible]);
 
-  const toggle = (id: string) =>
-    setActive((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-
-  const allActive = active.length === FILTER_GROUPS.length;
-  const toggleAll = () =>
-    setActive(allActive ? [] : FILTER_GROUPS.map((group) => group.id));
-
   return (
     <AppShell
       user={user}
@@ -577,41 +584,46 @@ function ActivityFeedPage() {
             </span>
           </div>
 
-          {/* Platform Chips */}
-          <div className="flex flex-wrap items-center gap-2" ref={filterRef}>
-            <button
-              type="button"
-              onClick={toggleAll}
-              className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
-                allActive
-                  ? "bg-primary/15 text-primary border border-primary/30"
-                  : "bg-white/5 text-muted-foreground border border-white/10 hover:bg-white/10"
-              }`}
-            >
-              <Globe className="size-3.5" aria-hidden />
-              {t("activity.allPlatforms")}
-            </button>
-
-            {FILTER_GROUPS.map((group) => {
-              const on = active.includes(group.id);
-              return (
-                <button
-                  key={group.id}
-                  type="button"
-                  onClick={() => toggle(group.id)}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
-                    on
-                      ? "bg-primary/15 text-primary border border-primary/30"
-                      : "bg-white/5 text-muted-foreground border border-white/10 hover:bg-white/10"
-                  }`}
-                >
-                  <span className="flex items-center justify-center w-3.5 h-3.5">
-                    {group.icon}
-                  </span>
-                  <span>{t(group.label)}</span>
-                </button>
-              );
-            })}
+          {/* Platform Dropdown Filter */}
+          <div className="flex items-center gap-3" ref={filterRef}>
+            <SelectPrimitive.Root value={active[0] ?? "all"} onValueChange={(value) => {
+              if (value === "all") {
+                setActive(FILTER_GROUPS.map((g) => g.id));
+              } else {
+                setActive([value]);
+              }
+            }}>
+              <SelectPrimitive.Trigger className="flex h-9 w-auto items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white shadow-lg shadow-black/30 backdrop-blur-md transition-colors cursor-pointer hover:border-zinc-700 focus:outline-none focus:border-zinc-600 focus:ring-2 focus:ring-zinc-700/40">
+                <SelectPrimitive.Value />
+                <SelectPrimitive.Icon asChild>
+                  <ChevronDown className="h-4 w-4 shrink-0 text-slate-300 transition-transform" />
+                </SelectPrimitive.Icon>
+              </SelectPrimitive.Trigger>
+              <SelectPrimitive.Portal>
+                <SelectPrimitive.Content className="relative z-50 max-h-96 min-w-[12rem] overflow-y-auto overflow-x-hidden rounded-lg border border-zinc-800 bg-zinc-900 text-slate-100 shadow-2xl shadow-black/60 backdrop-blur-2xl">
+                  <SelectPrimitive.Viewport className="p-1">
+                    <SelectPrimitive.Item value="all" className="relative flex cursor-pointer select-none items-center gap-2 rounded-md px-3 py-2 text-sm outline-none focus:bg-zinc-800 hover:bg-zinc-800 data-[state=checked]:bg-primary/20">
+                      <SelectPrimitive.ItemIndicator asChild>
+                        <Check className="h-4 w-4 text-primary" />
+                      </SelectPrimitive.ItemIndicator>
+                      <Globe className="h-4 w-4" />
+                      <span>{t("activity.allPlatforms")}</span>
+                    </SelectPrimitive.Item>
+                    {FILTER_GROUPS.map((group) => (
+                      <SelectPrimitive.Item key={group.id} value={group.id} className="relative flex cursor-pointer select-none items-center gap-2 rounded-md px-3 py-2 text-sm outline-none focus:bg-zinc-800 hover:bg-zinc-800 data-[state=checked]:bg-primary/20">
+                        <SelectPrimitive.ItemIndicator asChild>
+                          <Check className="h-4 w-4 text-primary" />
+                        </SelectPrimitive.ItemIndicator>
+                        <span className="flex items-center justify-center w-4 h-4">
+                          {group.icon}
+                        </span>
+                        <span>{t(group.label)}</span>
+                      </SelectPrimitive.Item>
+                    ))}
+                  </SelectPrimitive.Viewport>
+                </SelectPrimitive.Content>
+              </SelectPrimitive.Portal>
+            </SelectPrimitive.Root>
           </div>
         </div>
 

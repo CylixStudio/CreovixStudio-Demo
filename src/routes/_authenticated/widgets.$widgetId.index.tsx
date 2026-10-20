@@ -5,7 +5,6 @@ import { Check, Copy, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/layout/AppShell";
-import { DemoChatTester } from "@/components/widgets/DemoChatTester";
 import { DeleteWidgetDialog } from "@/components/widgets/DeleteWidgetDialog";
 import { StandaloneWidgetFields } from "@/components/widgets/StandaloneWidgetFields";
 import { LayoutPicker } from "@/components/widgets/LayoutPicker";
@@ -736,12 +735,6 @@ function WidgetBuilder() {
 
             {widget.type === "CHAT_BOX" ? (
               <div className="space-y-3">
-                {isDemoBuild() ? (
-                  <DemoChatTester
-                    publicToken={widget.public_token}
-                    onEnableSubscriberBadge={() => set("kickDefaultSubscriberBadge", true)}
-                  />
-                ) : null}
                 <div
                   role="tablist"
                   aria-label="Chat settings"
