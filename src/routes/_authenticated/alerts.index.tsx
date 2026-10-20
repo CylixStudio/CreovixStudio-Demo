@@ -39,8 +39,9 @@ import {
   AlertSlider,
 } from "@/components/alerts/AlertSettingsFields";
 import { AppShell } from "@/components/layout/AppShell";
-import { AlertControl } from "@/components/alerts/AlertControl";
 import { useLanguage, type TranslationKey } from "@/lib/i18n";
+import { useWorkspace } from "@/hooks/useWorkspace";
+import { useApplyDefaultPlatform } from "@/lib/defaultPlatform";
 import { localizeAlertText } from "@/lib/i18n.alerts";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
@@ -65,6 +66,10 @@ export const Route = createFileRoute("/_authenticated/alerts/")({
   }),
   component: AlertsPage,
 });
+
+const AUTO_SUBSCRIPTION_MONTHS = 1;
+const AUTO_RESUBSCRIPTION_MONTHS = 3;
+const AUTO_KICKS_AMOUNT = 40;
 
 function exportAlert(platform: AlertPlatform, kind: AlertKind, config: AlertConfig) {
   const url = URL.createObjectURL(
@@ -105,8 +110,25 @@ function AlertsPage() {
     refetchInterval: 5000,
   });
   const data = studio.data;
-  const [platform, setPlatform] = useState<AlertPlatform>("KICK");
-  const visibleAlertCatalog = ALERT_CATALOG.filter((item) => selectableAlert(item, platform));
+  const workspace = useWorkspace(user.id).data;
+  const primaryPlatform =
+    workspace?.profile?.default_platform ??
+    workspace?.connections?.find((item) => item.platform === "KICK" || item.platform === "TWITCH")
+      ?.platform;
+  const [preferred, setPreferredState] = useState<AlertPlatform>("KICK");
+  const platformPicked = useRef(false);
+  const setPreferred = (next: AlertPlatform) => {
+    platformPicked.current = true;
+    setPreferredState(next);
+  };
+  useApplyDefaultPlatform(primaryPlatform, (next) => {
+    if (!platformPicked.current && (next === "KICK" || next === "TWITCH")) setPreferredState(next);
+  });
+  const visibleAlertCatalog = ALERT_CATALOG.filter(
+    (item) => selectableAlert(item, "KICK") || selectableAlert(item, "TWITCH"),
+  );
+  const platformFor = (item: (typeof ALERT_CATALOG)[number]): AlertPlatform =>
+    selectableAlert(item, preferred) ? preferred : preferred === "KICK" ? "TWITCH" : "KICK";
   const alertName = (id: AlertKind) => ALERT_CATALOG.find((item) => item.id === id)?.title ?? id;
   const [kind, setKind] = useState<AlertKind>("follow");
   const [drafts, setDrafts] = useState<PlatformAlerts | null>(null);
@@ -123,11 +145,6 @@ function AlertsPage() {
   const [variationError, setVariationError] = useState<TranslationKey | "">("");
   const [deleting, setDeleting] = useState<string | null>(null);
   const [variationsOpen, setVariationsOpen] = useState(true);
-  const [giftCount, setGiftCount] = useState("5");
-  const [subscriptionMonths, setSubscriptionMonths] = useState("1");
-  const [resubscriptionMonths, setResubscriptionMonths] = useState("3");
-  const [kicksAmount, setKicksAmount] = useState("40");
-  const giftInitialized = useRef(false);
   const testPending = useRef(false);
   const stageRef = useRef<AlertStageHandle>(null);
   const importRef = useRef<HTMLInputElement>(null);
@@ -138,12 +155,6 @@ function AlertsPage() {
   useEffect(() => {
     if (data) setDrafts((value) => value ?? data.alerts);
   }, [data]);
-  useEffect(() => {
-    if (data && !giftInitialized.current) {
-      setGiftCount(String(data.simulation.count));
-      giftInitialized.current = true;
-    }
-  }, [data?.simulation.count]);
   useEffect(() => {
     if (!current) return;
     const frame = window.requestAnimationFrame(() => stageRef.current?.play());
@@ -159,6 +170,8 @@ function AlertsPage() {
 
   const definition =
     visibleAlertCatalog.find((item) => item.id === kind) ?? visibleAlertCatalog[0]!;
+  const platform = platformFor(definition);
+  const bothPlatforms = selectableAlert(definition, "KICK") && selectableAlert(definition, "TWITCH");
   const config = drafts?.[platform][kind];
   const blocked = supportFor(definition, platform).level === "unavailable";
   const dirty = Boolean(data && drafts && JSON.stringify(data.alerts) !== JSON.stringify(drafts));
@@ -205,52 +218,37 @@ function AlertsPage() {
 
   const test = async (alertId: AlertKind, customValue?: number) => {
     if (!data || !drafts || busy || testPending.current) return;
-    
+    const target = ALERT_CATALOG.find((item) => item.id === alertId);
+    if (!target) return;
+    const maxValue = alertId === "gift" ? 100000 : Number.MAX_SAFE_INTEGER;
+    if (
+      customValue !== undefined &&
+      (!Number.isSafeInteger(customValue) || customValue < 1 || customValue > maxValue)
+    ) {
+      setNotice("alerts.positiveCount");
+      return;
+    }
+
     testPending.current = true;
     setBusy(true);
     try {
-      // Build test values based on alert type and custom value
-      let testCount = 1;
-      let testMonths = 0;
-      let testAmount = 0;
-      
-      if (alertId === "gift") {
-        testCount = customValue ?? data.simulation.count;
-        if (!Number.isSafeInteger(testCount) || testCount < 1 || testCount > 100000) {
-          setNotice("alerts.positiveCount");
-          return;
-        }
-        const saved = await saveAlertStudio({ simulation: { ...data.simulation, count: testCount } });
-        queryClient.setQueryData(alertStudioKey, saved);
-      } else if (alertId === "subscription") {
-        testMonths = customValue ?? 1;
-        if (!Number.isSafeInteger(testMonths) || testMonths < 1) {
-          setNotice("alerts.positiveCount");
-          return;
-        }
-      } else if (alertId === "resubscription") {
-        testMonths = customValue ?? 3;
-        if (!Number.isSafeInteger(testMonths) || testMonths < 1) {
-          setNotice("alerts.positiveCount");
-          return;
-        }
-      } else if (alertId === "kicks") {
-        testAmount = customValue ?? 40;
-        if (!Number.isSafeInteger(testAmount) || testAmount < 1) {
-          setNotice("alerts.positiveCount");
-          return;
-        }
-      }
-      
+      const values = {
+        count: alertId === "gift" ? (customValue ?? data.simulation.count) : 1,
+        months:
+          alertId === "subscription"
+            ? (customValue ?? AUTO_SUBSCRIPTION_MONTHS)
+            : alertId === "resubscription"
+              ? (customValue ?? AUTO_RESUBSCRIPTION_MONTHS)
+              : 0,
+        amount: alertId === "kicks" ? (customValue ?? AUTO_KICKS_AMOUNT) : 0,
+      };
       const response = await fetch("/api/demo/alert-studio/test", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           ...data.simulation,
-          count: testCount,
-          months: testMonths,
-          amount: testAmount,
-          platform,
+          ...values,
+          platform: platformFor(target),
           alertId,
           requestId: crypto.randomUUID(),
         }),
@@ -331,7 +329,7 @@ function AlertsPage() {
         },
       };
       if (await save(next)) {
-        setPlatform(parsed.platform);
+        setPreferred(parsed.platform);
         setKind(target.id);
         setNotice("alerts.importOk");
       }
@@ -349,12 +347,16 @@ function AlertsPage() {
             <span /> {t("alerts.demo")}{" "}
           </span>
         </div>
-        <section className="alert-widget-section" aria-label={t("alerts.obsSection")}>
+        <section
+          className="alert-widget-section surface-card surface-card-pad"
+          aria-label={t("alerts.obsSection")}
+        >
           <p className="alert-secret-note">
             <ShieldCheck size={17} />
             {t("alerts.privateUrl")}{" "}
           </p>
-          <div className="alert-widget-row">
+          <div className="alert-link-rows">
+          <div className="alert-widget-row surface-inset">
             <label htmlFor="alert-widget-url">{t("alerts.widgetUrl")} </label>
             <div className="alert-url-field">
               <input
@@ -408,7 +410,7 @@ function AlertsPage() {
               {t("alerts.openPreview")}{" "}
             </a>
           </div>
-          <div className="alert-widget-row">
+          <div className="alert-widget-row surface-inset">
             <label htmlFor="alert-dock-url">{t("alerts.dockUrl")} </label>
             <div className="alert-url-field">
               <input
@@ -463,81 +465,39 @@ function AlertsPage() {
               {t("alerts.openPreview")}{" "}
             </a>
           </div>
-          <div className="alert-widget-meta">
-            <div className="alert-platforms" aria-label={t("alerts.platform")}>
-              {(["KICK", "TWITCH"] as const).map((item) => (
-                <button
-                  type="button"
-                  key={item}
-                  disabled={busy}
-                  aria-pressed={platform === item}
-                  onClick={() => {
-                    setPlatform(item);
-                    if (!selectableAlert(definition, item)) setKind("follow");
-                  }}
-                >
-                  <span className="platform-mark">{item === "KICK" ? "K" : "T"}</span>
-                  {item === "KICK" ? "Kick" : "Twitch"}
-                  <small>{t("alerts.simulated")} </small>
-                </button>
-              ))}
-            </div>
-            <span className="alert-hint">{t("alerts.demoOnly")} </span>
-            <span className="alert-upload-limits">
-              {t("alerts.fileLimit")} <bdi>Free: 5 MB</bdi>
-              <span>·</span>
-              <bdi>Pro: 60 MB</bdi>
-            </span>
           </div>
         </section>
-        {data ? <AlertControl token={data.token} /> : null}
-        <section className="alert-tests">
+        <section className="alert-tests surface-card">
           <div className="alert-tests-heading">
             <h2>{t("alerts.testHeading")} </h2>
             <span className="alert-hint">{t("alerts.savedTest")} </span>
           </div>
           <div className="alert-test-buttons">
             {visibleAlertCatalog.map((item) => {
-              const needsPopover =
-                item.id === "subscription" ||
-                item.id === "resubscription" ||
-                item.id === "gift" ||
-                item.id === "kicks";
-              const isDirectButton = item.id === "follow";
+              const itemPlatform = platformFor(item);
+              const disabled = busy || !data;
+              const popover =
+                item.id === "subscription"
+                  ? { kind: "months", auto: AUTO_SUBSCRIPTION_MONTHS }
+                  : item.id === "resubscription"
+                    ? { kind: "months", auto: AUTO_RESUBSCRIPTION_MONTHS }
+                    : item.id === "gift"
+                      ? { kind: "gift", auto: data?.simulation.count ?? 5 }
+                      : item.id === "kicks"
+                        ? { kind: "kicks", auto: AUTO_KICKS_AMOUNT }
+                        : null;
 
-              if (isDirectButton) {
-                return (
-                  <button
-                    type="button"
-                    className="alert-button test-button"
-                    key={item.id}
-                    disabled={busy || !data || supportFor(item, platform).level === "unavailable"}
-                    onClick={() => void test(item.id)}
-                  >
-                    <Plus size={17} />
-                    {alertName(item.id)}
-                  </button>
-                );
-              }
-
-              if (needsPopover) {
+              if (popover) {
                 return (
                   <TestAlertPopover
                     key={item.id}
                     label={alertName(item.id)}
-                    alertId={item.id}
-                    requiresInput={true}
-                    disabled={busy || !data || supportFor(item, platform).level === "unavailable"}
+                    kind={popover.kind as "months" | "gift" | "kicks"}
+                    autoValue={popover.auto}
+                    platformLabel={itemPlatform === "KICK" ? "Kick" : "Twitch"}
+                    disabled={disabled}
+                    max={item.id === "gift" ? 100000 : 1000000}
                     onTest={(customValue) => void test(item.id, customValue)}
-                    defaultValue={
-                      item.id === "subscription"
-                        ? 1
-                        : item.id === "resubscription"
-                          ? 3
-                          : item.id === "kicks"
-                            ? 40
-                            : 5
-                    }
                   />
                 );
               }
@@ -547,7 +507,7 @@ function AlertsPage() {
                   type="button"
                   className="alert-button test-button"
                   key={item.id}
-                  disabled={busy || !data || supportFor(item, platform).level === "unavailable"}
+                  disabled={disabled}
                   onClick={() => void test(item.id)}
                 >
                   <Plus size={17} />
@@ -613,6 +573,23 @@ function AlertsPage() {
         >
           {config && data ? (
             <fieldset disabled={busy}>
+              {bothPlatforms && (
+                <div className="alert-platform-switch">
+                  <span id="alert-platform-label">{t("alerts.settingsPlatform")}</span>
+                  <div role="group" aria-labelledby="alert-platform-label">
+                    {(["KICK", "TWITCH"] as const).map((item) => (
+                      <button
+                        type="button"
+                        key={item}
+                        aria-pressed={platform === item}
+                        onClick={() => setPreferred(item)}
+                      >
+                        {item === "KICK" ? "Kick" : "Twitch"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <AlertSettingsFields
                 config={config}
                 onChange={patch}
