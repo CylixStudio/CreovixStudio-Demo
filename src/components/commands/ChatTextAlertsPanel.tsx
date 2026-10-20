@@ -192,7 +192,7 @@ function AlertCard({
 }
 
 const alertField =
-  "w-full rounded-xl border border-[oklch(1_0_0/0.1)] bg-[oklch(0.14_0.02_265/0.9)] px-3 py-2.5 text-sm text-foreground outline-none";
+  "w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-foreground outline-none";
 
 function AlertEditor({
   draft,
@@ -326,7 +326,7 @@ function InfoTip({ text }: { text: string }) {
       <span
         role="tooltip"
         className={cn(
-          "bg-[#1c1d22] border border-white/10 rounded-xl p-3 text-xs text-zinc-300 shadow-xl max-w-xs z-50 absolute start-0 top-6",
+          "bg-popover border border-white/10 rounded-xl p-3 text-xs text-zinc-300 shadow-xl max-w-xs z-50 absolute start-0 top-6",
           open ? "block" : "hidden group-hover:block",
         )}
       >

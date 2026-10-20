@@ -1,3 +1,5 @@
+import type { TranslationKey } from "@/lib/i18n";
+import { triggerPhrase } from "@/lib/platformEvents";
 /**
  * Consecutive activity-feed grouping.
  *
@@ -80,4 +82,61 @@ export function groupConsecutiveEvents<T extends GroupableFeedEvent>(
     groups.push({ id: event.id, events: [event] });
   }
   return groups;
+}
+
+type Translate = (key: TranslationKey) => string;
+
+function formatNumber(value: number): string {
+  return value.toLocaleString("en-US");
+}
+
+function formatMoney(amount: number, currency: string | null): string {
+  if (currency && /^[A-Z]{3}$/.test(currency)) {
+    try {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency,
+        minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+      }).format(amount);
+    } catch {
+      return `${formatNumber(amount)} ${currency}`;
+    }
+  }
+  return formatNumber(amount);
+}
+
+/**
+ * One-line description of a feed record ("500 Bits", "Raid ×48", "Super Chat $50").
+ * Shared by the Activity Feed page and the OBS Dock so both read the same.
+ */
+export function describeFeedEvent(
+  event: Pick<ActivityFeedEvent, "platform" | "event_type" | "amount" | "currency" | "quantity">,
+  t: Translate,
+): { phrase: string; text: string } {
+  const phrase = triggerPhrase(event.platform, event.event_type);
+  const typeKey = `activity.dock.type.${phrase}` as TranslationKey;
+  const translated = t(typeKey);
+  const label = translated === typeKey ? event.event_type : translated;
+  const quantity = Math.max(1, Math.round(Number(event.quantity) || 1));
+  let text = label;
+  if (phrase === "BITS" || phrase === "KICKS") {
+    text = `${formatNumber(event.amount ?? quantity)} ${label}`;
+  } else if (phrase === "DONATION" || phrase === "SUPER_CHAT") {
+    text = event.amount != null ? `${label} ${formatMoney(event.amount, event.currency)}` : label;
+  } else if (
+    phrase === "RAID" ||
+    ((phrase === "GIFT_SUB" || phrase === "GIFT") && quantity > 1)
+  ) {
+    text = `${label} ×${formatNumber(quantity)}`;
+  }
+  return { phrase, text };
+}
+
+/** Compact relative time: now / 5m / 3h / 2d (unit letters come from the dock keys). */
+export function relativeFeedTime(iso: string, now: number, t: Translate): string {
+  const diff = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000));
+  if (diff < 60) return t("activity.dock.now");
+  if (diff < 3600) return `${Math.floor(diff / 60)}${t("activity.dock.unitMinute")}`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}${t("activity.dock.unitHour")}`;
+  return `${Math.floor(diff / 86400)}${t("activity.dock.unitDay")}`;
 }

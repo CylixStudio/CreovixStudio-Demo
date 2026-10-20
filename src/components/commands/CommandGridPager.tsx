@@ -103,7 +103,7 @@ export function CommandGridPager({
     <nav
       aria-label="pagination"
       dir="ltr"
-      className="bg-[#0d0e12] border border-white/5 rounded-2xl px-4 py-2 flex items-center gap-2 shadow-lg mx-auto w-fit my-8"
+      className="surface-card mx-auto my-8 flex w-fit items-center gap-2 px-4 py-2"
     >
       <button
         type="button"

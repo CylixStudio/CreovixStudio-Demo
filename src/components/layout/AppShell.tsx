@@ -177,7 +177,9 @@ export function AppShell({ children, title, subtitle, actions, user, profile }: 
 
   useEffect(() => {
     try {
-      setCollapsed(window.localStorage.getItem(SIDEBAR_KEY) === "1");
+      const stored = window.localStorage.getItem(SIDEBAR_KEY);
+      // Narrow screens start collapsed until the visitor picks a state.
+      setCollapsed(stored === null ? window.innerWidth < 768 : stored === "1");
     } catch {
       /* ignore */
     }

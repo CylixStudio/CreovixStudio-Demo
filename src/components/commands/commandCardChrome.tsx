@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 
 /** Visual tokens taken from the custom-command face card. */
 export const commandCardClass =
-  "flex h-full min-w-0 flex-col rounded-[20px] border border-white/[0.06] bg-[#101114] p-3.5 text-start transition-colors duration-200 hover:border-white/[0.12] hover:bg-[#141519]";
+  "surface-card flex h-full min-w-0 flex-col p-3.5 text-start transition-colors duration-200 hover:border-white/[0.14]";
 
-export const commandCardOffClass = "bg-[#0c0d10]";
+export const commandCardOffClass = "opacity-70";
 
 export const commandTitleClass = "min-w-0 flex-1 truncate text-sm font-semibold text-zinc-100";
 

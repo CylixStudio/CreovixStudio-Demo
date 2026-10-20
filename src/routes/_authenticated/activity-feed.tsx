@@ -1,17 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Activity,
-  ArrowUp,
-  Check,
-  ChevronDown,
-  Globe,
-  Layers,
-  Plug,
-} from "lucide-react";
+import { Activity, ArrowUp, ChevronDown, ChevronRight, Plug } from "lucide-react";
 
-import * as SelectPrimitive from "@radix-ui/react-select";
+import { PlatformFilterBar, FilterDot } from "@/components/hub/PlatformFilterBar";
 
 
 import { AppShell } from "@/components/layout/AppShell";
@@ -27,8 +19,8 @@ import { getPlanActivity } from "@/lib/planData.functions";
 import { FREE_PLAN_LIMITS } from "@/lib/plans";
 import { supabase } from "@/lib/supabase/client";
 import { useLanguage, type TranslationKey } from "@/lib/i18n";
-import { groupConsecutiveEvents, type FeedEventGroup } from "@/lib/activityFeed";
-import { isAllowedPlatformEvent, triggerPhrase } from "@/lib/platformEvents";
+import { describeFeedEvent, groupConsecutiveEvents, relativeFeedTime, type FeedEventGroup } from "@/lib/activityFeed";
+import { isAllowedPlatformEvent } from "@/lib/platformEvents";
 import { isTestMode } from "@/lib/testMode";
 import { useWidgets } from "@/hooks/useWidgets";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -72,16 +64,10 @@ type FeedEvent = {
 };
 
 
-function activityLabelKey(platform: string, eventType: string): TranslationKey {
-  return `activity.type.${triggerPhrase(platform, eventType)}` as TranslationKey;
-}
-
-
 type FilterGroup = {
   id: string;
-  label: TranslationKey;
+  name: string | null;
   dot: string;
-  icon: React.ReactNode;
   match: (event: FeedEvent) => boolean;
 };
 
@@ -96,65 +82,29 @@ const KNOWN_PLATFORMS = [
 ];
 
 const FILTER_GROUPS: FilterGroup[] = [
-  {
-    id: "kick",
-    label: "activity.filter.kick",
-    dot: "#53FC18",
-    icon: <PlatformIcon platform="KICK" size={20} />,
-    match: (e) => e.platform === "KICK",
-  },
-  {
-    id: "twitch",
-    label: "activity.filter.twitch",
-    dot: "#9F77F7",
-    icon: <PlatformIcon platform="TWITCH" size={20} />,
-    match: (e) => e.platform === "TWITCH",
-  },
-  {
-    id: "youtube",
-    label: "activity.filter.youtube",
-    dot: "#FF4444",
-    icon: <PlatformIcon platform="YOUTUBE" size={20} />,
-    match: (e) => e.platform === "YOUTUBE",
-  },
-  {
-    id: "tiktok",
-    label: "activity.filter.tiktok",
-    dot: "#2DCCD3",
-    icon: <PlatformIcon platform="TIKTOK" size={20} />,
-    match: (e) => e.platform === "TIKTOK",
-  },
-  {
-    id: "x",
-    label: "activity.filter.x",
-    dot: "#E7E9EA",
-    icon: <PlatformIcon platform="X" size={20} />,
-    match: (e) => e.platform === "X",
-  },
-  {
-    id: "streamlabs",
-    label: "activity.filter.streamlabs",
-    dot: "#31C3A2",
-    icon: <PlatformIcon platform="STREAMLABS" size={20} />,
-    match: (e) => e.platform === "STREAMLABS",
-  },
+  { id: "kick", name: "Kick", dot: "#53FC18", match: (e) => e.platform === "KICK" },
+  { id: "twitch", name: "Twitch", dot: "#9146FF", match: (e) => e.platform === "TWITCH" },
+  { id: "youtube", name: "YouTube", dot: "#FF0000", match: (e) => e.platform === "YOUTUBE" },
+  { id: "tiktok", name: "TikTok", dot: "#25F4EE", match: (e) => e.platform === "TIKTOK" },
+  { id: "x", name: "X", dot: "#E7E9EA", match: (e) => e.platform === "X" },
+  { id: "streamlabs", name: "Streamlabs", dot: "#31C3A2", match: (e) => e.platform === "STREAMLABS" },
   {
     id: "streamelements",
-    label: "activity.filter.streamelements",
+    name: "StreamElements",
     dot: "#236BE9",
-    icon: <PlatformIcon platform="STREAMELEMENTS" size={20} />,
     match: (e) => e.platform === "STREAMELEMENTS",
   },
   {
     // Anything from a source outside the named groups (manual adds, future
     // integrations) still belongs in the all-platform totals.
     id: "other",
-    label: "activity.filter.other",
+    name: null,
     dot: "#A1A1AA",
-    icon: <Layers className="size-5 shrink-0" aria-hidden />,
     match: (e) => !KNOWN_PLATFORMS.includes(e.platform),
   },
 ];
+
+const FILTER_STORAGE_KEY = "activity-feed-filter";
 
 
 const TEST_FEED_KEY = "creovix:test-activity-feed";
@@ -179,116 +129,92 @@ function writeTestFeed(events: FeedEvent[]) {
   }
 }
 
-function formatFeedAmount(
-  event: FeedEvent,
-  t: (key: TranslationKey, vars?: Record<string, string | number>) => string,
-): string | null {
-  if (event.event_type === "DONATION" && event.amount) {
-    return `${event.currency === "USD" || !event.currency ? "$" : ""}${event.amount}${
-      event.currency && event.currency !== "USD" ? ` ${event.currency}` : ""
-    }`;
-  }
-  if (event.event_type === "BITS" && event.amount) {
-    return `${event.amount} ${event.platform === "KICK" ? t("activity.type.KICKS") : t("activity.type.BITS")}`;
-  }
-  if (event.quantity > 1) return `×${event.quantity}`;
-  return null;
-}
-
 function ActivityFeedRow({
   group,
   fresh,
-  justNow,
+  now,
   t,
 }: {
   group: FeedEventGroup<FeedEvent>;
   fresh: boolean;
-  justNow: string;
+  now: number;
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
 }) {
   const event = group.events[0]!;
   const count = group.events.length;
-  const label = t(activityLabelKey(event.platform, event.event_type));
-  const amount = formatFeedAmount(event, t);
+  const { text } = describeFeedEvent(event, (key) => t(key));
+  const time = relativeFeedTime(event.created_at, now, (key) => t(key));
 
   return (
     <li className={fresh ? "soft-rise" : ""}>
       <ReplyAlertFrame active={event.isReply === true} quote={event.replyQuote}>
-      <div className="flex items-start gap-3.5 px-4 py-3.5 transition-colors hover:bg-white/[0.03]" dir="ltr">
-        <div className="mt-0.5 flex-shrink-0">
-          <PlatformIcon platform={event.platform} size={20} />
-        </div>
-        <div className="min-w-0 flex-1 text-left">
-          <div className="flex items-baseline justify-between gap-3 mb-0.5">
-            <p className="text-[0.72rem] font-medium text-muted-foreground leading-tight">
-              {label}
-              {event.isTest ? ` · ${t("activity.testEvent")}` : ""}
-              {amount ? ` · ${amount}` : ""}
-            </p>
-            <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-              {relativeTime(event.created_at, justNow)}
-            </span>
-          </div>
-          <p className="truncate text-sm font-semibold text-foreground" dir="auto">
-            {event.actor_name ?? t("activity.anonymous")}
-          </p>
-          {event.message ? (
-            <p className="mt-1 break-words text-[0.8rem] text-muted-foreground line-clamp-2" dir="auto">
-              "{event.message}"
-            </p>
-          ) : null}
-          {count > 1 ? (
-            <Collapsible className="mt-2">
-              <CollapsibleTrigger className="group flex items-center gap-1 text-[0.7rem] font-medium text-muted-foreground outline-none transition-colors hover:text-foreground">
-                {t("activity.group.count", { count })}
-                <ChevronDown
-                  className="size-3 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180"
+        <div className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-white/[0.03]">
+          <span className="mt-px flex w-6 shrink-0 justify-center">
+            <PlatformIcon platform={event.platform} size={22} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-baseline gap-3">
+              <p className="min-w-0 flex-1 text-sm leading-6">
+                <bdi className="font-semibold text-foreground">
+                  {event.actor_name ?? t("activity.anonymous")}
+                </bdi>
+                <ChevronRight
+                  className="mx-1.5 inline size-3.5 text-muted-foreground/60 rtl:rotate-180"
                   aria-hidden
                 />
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <ul className="mt-2 space-y-1 border-s border-white/10 ps-3 pt-1">
-                  {group.events.map((item, idx) => {
-                    const detail = [formatFeedAmount(item, t), item.message].filter(Boolean).join(" · ");
-                    return (
-                      <li
-                        key={item.id}
-                        className="py-1 text-[0.75rem] text-muted-foreground"
-                      >
+                <bdi className="text-foreground/90">{text}</bdi>
+                {event.isTest ? (
+                  <span className="ms-2 rounded bg-white/10 px-1.5 py-0.5 align-middle text-[0.62rem] text-muted-foreground">
+                    {t("activity.testEvent")}
+                  </span>
+                ) : null}
+              </p>
+              <span className="shrink-0 text-xs tabular-nums text-muted-foreground" title={event.created_at}>
+                {time}
+              </span>
+            </div>
+            {event.message ? (
+              <p className="mt-0.5 line-clamp-2 break-words text-[0.8rem] text-muted-foreground" dir="auto">
+                {event.message}
+              </p>
+            ) : null}
+            {count > 1 ? (
+              <Collapsible className="mt-1.5">
+                <CollapsibleTrigger className="group flex items-center gap-1 text-[0.7rem] font-medium text-muted-foreground outline-none transition-colors hover:text-foreground">
+                  {t("activity.group.count", { count })}
+                  <ChevronDown
+                    className="size-3 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180"
+                    aria-hidden
+                  />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <ul className="mt-2 space-y-1 border-s border-white/10 ps-3 pt-1">
+                    {group.events.map((item) => (
+                      <li key={item.id} className="py-0.5 text-[0.75rem] text-muted-foreground">
                         <ReplyAlertFrame active={item.isReply === true} quote={item.replyQuote}>
-                        <div className="flex items-center gap-2 justify-between">
-                          <span className="min-w-0 flex-1 truncate" dir="auto">
-                            {idx === 0 ? item.actor_name ?? t("activity.anonymous") : detail || t("activity.group.entry")}
-                          </span>
-                          <span className="shrink-0 tabular-nums" title={item.created_at}>
-                            {relativeTime(item.created_at, justNow)}
-                          </span>
-                        </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <bdi className="min-w-0 flex-1 truncate">
+                              {[describeFeedEvent(item, (key) => t(key)).text, item.message]
+                                .filter(Boolean)
+                                .join(" · ")}
+                            </bdi>
+                            <span className="shrink-0 tabular-nums" title={item.created_at}>
+                              {relativeFeedTime(item.created_at, now, (key) => t(key))}
+                            </span>
+                          </div>
                         </ReplyAlertFrame>
                       </li>
-                    );
-                  })}
-                </ul>
-              </CollapsibleContent>
-            </Collapsible>
-          ) : null}
+                    ))}
+                  </ul>
+                </CollapsibleContent>
+              </Collapsible>
+            ) : null}
+          </div>
         </div>
-      </div>
       </ReplyAlertFrame>
     </li>
   );
 }
-
-function relativeTime(iso: string, justNow: string) {
-  const diff = Math.max(0, Date.now() - new Date(iso).getTime()) / 1000;
-  if (diff < 10) return justNow;
-  if (diff < 60) return `${Math.floor(diff)}s`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-  if (diff < 31536000) return `${Math.floor(diff / 86400)}d`;
-  return `${Math.floor(diff / 31536000)}y`;
-}
-
 function readMessage(payload: unknown): string | null {
   if (!payload || typeof payload !== "object") return null;
   const record = payload as Record<string, unknown>;
@@ -341,28 +267,37 @@ function ActivityFeedPage() {
   const { t } = useLanguage();
   const testMode = isTestMode();
 
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const tick = window.setInterval(() => setNow(Date.now()), 30000);
+    return () => window.clearInterval(tick);
+  }, []);
   const [live, setLive] = useState<FeedEvent[]>([]);
   const [freshIds, setFreshIds] = useState<Set<string>>(() => new Set());
-  const [active, setActive] = useState<string[]>(() => [
-    ...(typeof window !== "undefined" && window.sessionStorage?.getItem("activity-feed-filter")
-      ? [window.sessionStorage.getItem("activity-feed-filter") || "all"]
-      : FILTER_GROUPS.map((g) => g.id)),
-  ]);
-  
-  // Save filter preference to sessionStorage
+  const [filter, setFilter] = useState<string>("all");
+  const filterRestored = useRef(false);
+
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.sessionStorage?.setItem("activity-feed-filter", active[0] || "all");
+    if (filterRestored.current) return;
+    filterRestored.current = true;
+    const stored = window.sessionStorage?.getItem(FILTER_STORAGE_KEY);
+    if (stored && (stored === "all" || FILTER_GROUPS.some((group) => group.id === stored))) {
+      setFilter(stored);
     }
-  }, [active]);
-  
+  }, []);
+
+  const changeFilter = (id: string) => {
+    setFilter(id);
+    window.sessionStorage?.setItem(FILTER_STORAGE_KEY, id);
+  };
+
   useApplyDefaultPlatform(workspace?.profile?.default_platform, (platform) => {
     const id = platform.toLowerCase();
-    if (FILTER_GROUPS.some((group) => group.id === id)) setActive([id]);
+    if (!window.sessionStorage?.getItem(FILTER_STORAGE_KEY) && FILTER_GROUPS.some((group) => group.id === id)) {
+      setFilter(id);
+    }
   });
-  const [filterOpen, setFilterOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const filterRef = useRef<HTMLDivElement>(null);
   const freshTimers = useRef<number[]>([]);
 
   const chatWidgetId =
@@ -375,16 +310,6 @@ function ActivityFeedPage() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    const handler = (event: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setFilterOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   useEffect(() => {
@@ -537,10 +462,11 @@ function ActivityFeedPage() {
 
 
 
-  const visible = useMemo(
-    () => events.filter((event) => FILTER_GROUPS.some((g) => active.includes(g.id) && g.match(event))),
-    [events, active],
-  );
+  const visible = useMemo(() => {
+    if (filter === "all") return events;
+    const group = FILTER_GROUPS.find((item) => item.id === filter);
+    return group ? events.filter((event) => group.match(event)) : events;
+  }, [events, filter]);
 
   const groups = useMemo(() => groupConsecutiveEvents(visible), [visible]);
 
@@ -574,59 +500,36 @@ function ActivityFeedPage() {
         ) : null}
 
         {/* Filters Section */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              {t("activity.filter")}
-            </h3>
-            <span className="text-xs font-medium text-muted-foreground">
-              {visible.length} {visible.length === 1 ? t("activity.event") : t("activity.events")}
-            </span>
-          </div>
-
-          {/* Platform Dropdown Filter */}
-          <div className="flex items-center gap-3" ref={filterRef}>
-            <SelectPrimitive.Root value={active[0] ?? "all"} onValueChange={(value) => {
-              if (value === "all") {
-                setActive(FILTER_GROUPS.map((g) => g.id));
-              } else {
-                setActive([value]);
-              }
-            }}>
-              <SelectPrimitive.Trigger className="flex h-9 w-auto items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white shadow-lg shadow-black/30 backdrop-blur-md transition-colors cursor-pointer hover:border-zinc-700 focus:outline-none focus:border-zinc-600 focus:ring-2 focus:ring-zinc-700/40">
-                <SelectPrimitive.Value />
-                <SelectPrimitive.Icon asChild>
-                  <ChevronDown className="h-4 w-4 shrink-0 text-slate-300 transition-transform" />
-                </SelectPrimitive.Icon>
-              </SelectPrimitive.Trigger>
-              <SelectPrimitive.Portal>
-                <SelectPrimitive.Content className="relative z-50 max-h-96 min-w-[12rem] overflow-y-auto overflow-x-hidden rounded-lg border border-zinc-800 bg-zinc-900 text-slate-100 shadow-2xl shadow-black/60 backdrop-blur-2xl">
-                  <SelectPrimitive.Viewport className="p-1">
-                    <SelectPrimitive.Item value="all" className="relative flex cursor-pointer select-none items-center gap-2 rounded-md px-3 py-2 text-sm outline-none focus:bg-zinc-800 hover:bg-zinc-800 data-[state=checked]:bg-primary/20">
-                      <SelectPrimitive.ItemIndicator asChild>
-                        <Check className="h-4 w-4 text-primary" />
-                      </SelectPrimitive.ItemIndicator>
-                      <Globe className="h-4 w-4" />
-                      <span>{t("activity.allPlatforms")}</span>
-                    </SelectPrimitive.Item>
-                    {FILTER_GROUPS.map((group) => (
-                      <SelectPrimitive.Item key={group.id} value={group.id} className="relative flex cursor-pointer select-none items-center gap-2 rounded-md px-3 py-2 text-sm outline-none focus:bg-zinc-800 hover:bg-zinc-800 data-[state=checked]:bg-primary/20">
-                        <SelectPrimitive.ItemIndicator asChild>
-                          <Check className="h-4 w-4 text-primary" />
-                        </SelectPrimitive.ItemIndicator>
-                        <span className="flex items-center justify-center w-4 h-4">
-                          {group.icon}
-                        </span>
-                        <span>{t(group.label)}</span>
-                      </SelectPrimitive.Item>
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+          <PlatformFilterBar
+            ariaLabel={t("activity.filter")}
+            allId="all"
+            value={filter}
+            onChange={changeFilter}
+            options={[
+              {
+                id: "all",
+                label: t("activity.dock.all"),
+                glyph: (
+                  <span className="inline-flex items-center gap-1.5" aria-hidden>
+                    {FILTER_GROUPS.slice(0, 4).map((group) => (
+                      <FilterDot key={group.id} color={group.dot} />
                     ))}
-                  </SelectPrimitive.Viewport>
-                </SelectPrimitive.Content>
-              </SelectPrimitive.Portal>
-            </SelectPrimitive.Root>
-          </div>
+                  </span>
+                ),
+              },
+              ...FILTER_GROUPS.map((group) => ({
+                id: group.id,
+                label: group.name ?? t("activity.dock.other"),
+                color: group.dot,
+                glyph: <FilterDot color={group.dot} />,
+              })),
+            ]}
+          />
+          <span className="text-xs font-medium text-muted-foreground" aria-live="polite">
+            {visible.length} {visible.length === 1 ? t("activity.event") : t("activity.events")}
+          </span>
         </div>
-
         {/* Main Feed Section */}
         <section>
           {visible.length === 0 ? (
@@ -650,14 +553,14 @@ function ActivityFeedPage() {
               />
             )
           ) : (
-            <div className="space-y-2 rounded-lg border border-white/5 bg-white/[0.02] overflow-hidden">
+            <div className="surface-card overflow-hidden">
               <ul className="divide-y divide-white/5">
                 {groups.map((group) => (
                   <ActivityFeedRow
                     key={group.id}
                     group={group}
                     fresh={group.events.some((event) => freshIds.has(event.id))}
-                    justNow={t("activity.justNow")}
+                    now={now}
                     t={t}
                   />
                 ))}

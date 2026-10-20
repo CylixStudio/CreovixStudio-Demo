@@ -254,7 +254,7 @@ const ROLE_LABEL_KEY = {
 } as const satisfies Record<CommandRole, TranslationKey>;
 
 const field =
-  "w-full rounded-xl border border-[oklch(1_0_0/0.1)] bg-[oklch(0.14_0.02_265/0.9)] px-3 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-[color-mix(in_oklab,var(--primary)_55%,transparent)]";
+  "w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-[color-mix(in_oklab,var(--primary)_55%,transparent)]";
 const pill =
   "inline-flex items-center rounded-full border px-3 py-1.5 text-[0.78rem] font-medium transition-colors";
 
@@ -1121,7 +1121,7 @@ function DefaultCommandEditor({
               value={draft.minRole}
               onValueChange={(value) => onChange({ ...draft, minRole: value as CommandMinRole })}
             >
-              <SelectTrigger className="h-10 w-full border-white/10 bg-[#0d0e12] text-sm">
+              <SelectTrigger className="h-10 w-full border-white/10 bg-white/[0.04] text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -1412,8 +1412,7 @@ function StudioFaceCard({
 }) {
   return (
     <article
-      className="group relative h-[95px] w-full min-w-0 overflow-hidden rounded-[20px] border border-white/[0.06]"
-      style={{ backgroundColor: "#101114" }}
+      className="surface-card group relative h-[95px] w-full min-w-0 overflow-hidden"
     >
       <span
         role="switch"

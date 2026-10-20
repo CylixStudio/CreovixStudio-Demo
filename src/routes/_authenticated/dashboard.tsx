@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 
 import { AppShell } from "@/components/layout/AppShell";
-import { InfoTip } from "@/components/ui/info-tip";
+import { PlatformFilterBar } from "@/components/hub/PlatformFilterBar";
 import { SaudiBusinessSeal } from "@/components/brand/SaudiBusinessSeal";
 import { DeleteWidgetDialog } from "@/components/widgets/DeleteWidgetDialog";
 import { SessionAwareError } from "@/components/widgets/SessionAwareError";
@@ -606,45 +606,29 @@ function HomePage() {
         </div>
       ) : null}
 
-      <div
-        role="toolbar"
-        aria-label={t("home.platformFilter")}
-        className="mb-5 flex flex-wrap items-center gap-1 overflow-visible px-0.5"
-        style={{ overflow: "visible" }}
-      >
-        <InfoTip text={t("tooltips.home.platformFilter")} />
-        {FILTER_ORDER.map((id) => {
-          const active = platformFilter === id;
-          const color = id === "ALL" ? "var(--foreground)" : PLATFORM_META[id].color;
-          const label = t(FILTER_KEYS[id]);
-          return (
-            <button
-              key={id}
-              type="button"
-              aria-pressed={active}
-              onClick={() => setPlatformFilter((prev) => (prev === id && id !== "ALL" ? "ALL" : id))}
-              className={`inline-flex items-center gap-1.5 overflow-visible rounded-full px-3 py-1.5 text-[0.72rem] leading-none transition-colors ${
-                active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-              style={{
-                overflow: "visible",
-                ...(active && id !== "ALL" ? { color } : {}),
-              }}
-            >
-              {id === "ALL" ? (
-                <span className="inline-flex items-center gap-1.5 overflow-visible" aria-hidden>
-                  {ALL_PLATFORMS.map((dot) => (
-                    <HubPlatformDot key={dot} id={dot} />
-                  ))}
-                </span>
-              ) : (
-                <HubPlatformDot id={id} />
-              )}
-              {label}
-            </button>
-          );
-        })}
-      </div>
+      <PlatformFilterBar
+        className="mb-5"
+        ariaLabel={t("home.platformFilter")}
+        tip={t("tooltips.home.platformFilter")}
+        allId="ALL"
+        value={platformFilter}
+        onChange={(id) => setPlatformFilter(id as PlatformFilter)}
+        options={FILTER_ORDER.map((id) => ({
+          id,
+          label: t(FILTER_KEYS[id]),
+          ...(id !== "ALL" ? { color: PLATFORM_META[id].color } : {}),
+          glyph:
+            id === "ALL" ? (
+              <span className="inline-flex items-center gap-1.5" aria-hidden>
+                {ALL_PLATFORMS.map((dot) => (
+                  <HubPlatformDot key={dot} id={dot} />
+                ))}
+              </span>
+            ) : (
+              <HubPlatformDot id={id} />
+            ),
+        }))}
+      />
 
       {visibleTools.length === 0 ? (
         <p className="py-12 text-sm text-muted-foreground">{t("home.empty")}</p>

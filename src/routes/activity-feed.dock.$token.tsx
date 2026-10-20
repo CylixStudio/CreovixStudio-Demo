@@ -40,8 +40,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguage, type TranslationKey } from "@/lib/i18n";
-import type { ActivityFeedEvent } from "@/lib/activityFeed";
-import { triggerPhrase } from "@/lib/platformEvents";
+import { describeFeedEvent, relativeFeedTime, type ActivityFeedEvent } from "@/lib/activityFeed";
 
 export const Route = createFileRoute("/activity-feed/dock/$token")({
   head: () => ({
@@ -134,50 +133,6 @@ function matchesFilter(event: ActivityFeedEvent, filter: FilterId): boolean {
   if (filter === "all") return true;
   if (filter === "other") return !KNOWN_PLATFORMS.has(event.platform);
   return event.platform === FILTER_PLATFORM[filter];
-}
-
-function formatNumber(value: number): string {
-  return value.toLocaleString("en-US");
-}
-
-function formatMoney(amount: number, currency: string | null): string {
-  if (currency && /^[A-Z]{3}$/.test(currency)) {
-    try {
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency,
-        minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
-      }).format(amount);
-    } catch {
-      return `${formatNumber(amount)} ${currency}`;
-    }
-  }
-  return formatNumber(amount);
-}
-
-function describeEvent(event: ActivityFeedEvent, t: (key: TranslationKey) => string) {
-  const phrase = triggerPhrase(event.platform, event.event_type);
-  const typeKey = `activity.dock.type.${phrase}` as TranslationKey;
-  const translated = t(typeKey);
-  const label = translated === typeKey ? event.event_type : translated;
-  const quantity = Math.max(1, Math.round(Number(event.quantity) || 1));
-  let text = label;
-  if (phrase === "BITS" || phrase === "KICKS") {
-    text = `${formatNumber(event.amount ?? quantity)} ${label}`;
-  } else if (phrase === "DONATION" || phrase === "SUPER_CHAT") {
-    text = event.amount != null ? `${label} ${formatMoney(event.amount, event.currency)}` : label;
-  } else if (phrase === "RAID" || (phrase === "GIFT_SUB" && quantity > 1) || (phrase === "GIFT" && quantity > 1)) {
-    text = `${label} ×${formatNumber(quantity)}`;
-  }
-  return { phrase, text };
-}
-
-function relativeTime(iso: string, now: number, t: (key: TranslationKey) => string): string {
-  const diff = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000));
-  if (diff < 60) return t("activity.dock.now");
-  if (diff < 3600) return `${Math.floor(diff / 60)}${t("activity.dock.unitMinute")}`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}${t("activity.dock.unitHour")}`;
-  return `${Math.floor(diff / 86400)}${t("activity.dock.unitDay")}`;
 }
 
 function FilterGlyph({ id, size }: { id: FilterId; size: number }) {
@@ -719,7 +674,7 @@ function ActivityFeedDock() {
           ) : (
             <ul>
               {visibleEvents.map((event) => {
-                const { phrase, text } = describeEvent(event, label);
+                const { phrase, text } = describeFeedEvent(event, label);
                 const TypeIcon = TYPE_ICON[phrase];
                 const edge = PLATFORM_EDGE[event.platform] ?? "#71717a";
                 const replaying = replayingId === event.id;
@@ -765,7 +720,7 @@ function ActivityFeedDock() {
                       className="shrink-0 text-[13px] tabular-nums text-white/50"
                       dateTime={event.created_at}
                     >
-                      {relativeTime(event.created_at, now, label)}
+                      {relativeFeedTime(event.created_at, now, label)}
                     </time>
                     <Tooltip>
                       <TooltipTrigger asChild>
