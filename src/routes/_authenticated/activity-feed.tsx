@@ -6,16 +6,13 @@ import {
   ArrowUp,
   Check,
   ChevronDown,
-  Filter,
   Globe,
   Layers,
-  Pause,
   Plug,
 } from "lucide-react";
 
 
 import { AppShell } from "@/components/layout/AppShell";
-import { InfoTip } from "@/components/ui/info-tip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { TestEventMenu, type InjectedFeedEvent } from "@/components/activity/TestEventMenu";
@@ -215,50 +212,55 @@ function ActivityFeedRow({
   return (
     <li className={fresh ? "soft-rise" : ""}>
       <ReplyAlertFrame active={event.isReply === true} quote={event.replyQuote}>
-      <div className="flex items-start gap-3 py-3.5" dir="ltr">
-        <PlatformIcon platform={event.platform} size={22} />
+      <div className="flex items-start gap-3.5 px-4 py-3.5 transition-colors hover:bg-white/[0.03]" dir="ltr">
+        <div className="mt-0.5 flex-shrink-0">
+          <PlatformIcon platform={event.platform} size={20} />
+        </div>
         <div className="min-w-0 flex-1 text-left">
-          <p className="text-[0.72rem] text-muted-foreground">
-            {label}
-            {event.isTest ? ` · ${t("activity.testEvent")}` : ""}
-            {amount ? ` · ${amount}` : ""}
-            {count > 1 ? ` · ×${count}` : ""}
-          </p>
+          <div className="flex items-baseline justify-between gap-3 mb-0.5">
+            <p className="text-[0.72rem] font-medium text-muted-foreground leading-tight">
+              {label}
+              {event.isTest ? ` · ${t("activity.testEvent")}` : ""}
+              {amount ? ` · ${amount}` : ""}
+            </p>
+            <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+              {relativeTime(event.created_at, justNow)}
+            </span>
+          </div>
           <p className="truncate text-sm font-semibold text-foreground" dir="auto">
             {event.actor_name ?? t("activity.anonymous")}
           </p>
           {event.message ? (
-            <p className="mt-0.5 break-words text-[0.8rem] text-muted-foreground" dir="auto">
-              “{event.message}”
+            <p className="mt-1 break-words text-[0.8rem] text-muted-foreground line-clamp-2" dir="auto">
+              "{event.message}"
             </p>
           ) : null}
           {count > 1 ? (
-            <Collapsible className="mt-1.5">
-              <CollapsibleTrigger className="group flex items-center gap-1.5 text-[0.72rem] font-medium text-muted-foreground outline-none transition-colors hover:text-foreground">
+            <Collapsible className="mt-2">
+              <CollapsibleTrigger className="group flex items-center gap-1 text-[0.7rem] font-medium text-muted-foreground outline-none transition-colors hover:text-foreground">
                 {t("activity.group.count", { count })}
                 <ChevronDown
-                  className="size-3.5 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180"
+                  className="size-3 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180"
                   aria-hidden
                 />
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <ul className="mt-1.5 space-y-0.5 border-s border-white/10 ps-3">
-                  {group.events.map((item) => {
+                <ul className="mt-2 space-y-1 border-s border-white/10 ps-3 pt-1">
+                  {group.events.map((item, idx) => {
                     const detail = [formatFeedAmount(item, t), item.message].filter(Boolean).join(" · ");
                     return (
-                        <li
+                      <li
                         key={item.id}
                         className="py-1 text-[0.75rem] text-muted-foreground"
                       >
                         <ReplyAlertFrame active={item.isReply === true} quote={item.replyQuote}>
-                        <div className="flex items-center gap-2">
-                        <PlatformIcon platform={item.platform} size={12} />
-                        <span className="min-w-0 flex-1 truncate" dir="auto">
-                          {detail || t("activity.group.entry")}
-                        </span>
-                        <span className="shrink-0 tabular-nums" title={item.created_at}>
-                          {relativeTime(item.created_at, justNow)}
-                        </span>
+                        <div className="flex items-center gap-2 justify-between">
+                          <span className="min-w-0 flex-1 truncate" dir="auto">
+                            {idx === 0 ? item.actor_name ?? t("activity.anonymous") : detail || t("activity.group.entry")}
+                          </span>
+                          <span className="shrink-0 tabular-nums" title={item.created_at}>
+                            {relativeTime(item.created_at, justNow)}
+                          </span>
                         </div>
                         </ReplyAlertFrame>
                       </li>
@@ -269,10 +271,6 @@ function ActivityFeedRow({
             </Collapsible>
           ) : null}
         </div>
-
-        <span className="shrink-0 pt-0.5 text-xs tabular-nums text-muted-foreground">
-          {relativeTime(event.created_at, justNow)}
-        </span>
       </div>
       </ReplyAlertFrame>
     </li>
@@ -359,7 +357,7 @@ function ActivityFeedPage() {
     null;
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 150);
+    const onScroll = () => setScrolled(window.scrollY > 300);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -554,172 +552,118 @@ function ActivityFeedPage() {
         />
       }
     >
-      {query.data?.locked ? (
-        <button
-          type="button"
-          onClick={() => requestUpgrade()}
-          className="mb-4 w-full rounded-2xl border border-primary/25 px-4 py-3 text-start text-sm"
-        >
-          {t("plan.channelLocked")}
-        </button>
-      ) : query.data && !query.data.isPro ? (
-        <p className="mb-4 text-[0.75rem] text-muted-foreground">{t("activity.freeLimit")}</p>
-      ) : null}
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-
-        <div ref={filterRef} className="relative flex items-center gap-2">
+      <div className="space-y-6">
+        {/* Plan Alert */}
+        {query.data?.locked ? (
           <button
             type="button"
-            onClick={() => setFilterOpen((open) => !open)}
-            aria-expanded={filterOpen}
-            className="flex items-center gap-2 rounded-xl border border-[oklch(1_0_0/0.1)] bg-[oklch(1_0_0/0.04)] px-4 py-2.5 text-sm font-medium backdrop-blur transition-colors hover:bg-[oklch(1_0_0/0.08)]"
+            onClick={() => requestUpgrade()}
+            className="w-full rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground transition-colors hover:bg-primary/10"
           >
-            <Filter className="size-4 text-muted-foreground" aria-hidden />
-            {t("activity.filter")}
-            <ChevronDown
-              className={`size-3.5 text-muted-foreground transition-transform ${filterOpen ? "rotate-180" : ""}`}
-              aria-hidden
-            />
+            {t("plan.channelLocked")}
           </button>
-          <InfoTip text={t("tooltips.activity.filter")} />
+        ) : query.data && !query.data.isPro ? (
+          <p className="text-xs text-muted-foreground">{t("activity.freeLimit")}</p>
+        ) : null}
 
-          {filterOpen ? (
-            <div
-              role="menu"
-              className="absolute start-0 top-full z-40 mt-2 min-w-64 rounded-xl border p-1.5"
-              style={{
-                background: "rgba(10, 10, 10, 0.95)",
-                backdropFilter: "blur(12px)",
-                borderColor: "rgba(255,255,255,0.1)",
-                boxShadow: "0 16px 40px rgba(0,0,0,0.55)",
-              }}
-            >
-              <button
-                type="button"
-                role="menuitemcheckbox"
-                aria-checked={allActive}
-                onClick={toggleAll}
-                className={`mb-1 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-start text-[0.82rem] font-semibold transition-all hover:bg-neutral-800/80 ${
-                  allActive
-                    ? "bg-neutral-800/80 text-foreground"
-                    : "text-muted-foreground"
-                }`}
-              >
-                <Globe className="size-5 shrink-0" aria-hidden />
-                <span className="size-2 shrink-0 rounded-full bg-primary" aria-hidden />
-                <span className="flex-1">{t("activity.allPlatforms")}</span>
-                <Check
-                  className={`size-4 shrink-0 text-primary transition-opacity ${allActive ? "opacity-100" : "opacity-0"}`}
-                  aria-hidden
-                />
-              </button>
-
-              {FILTER_GROUPS.map((group) => {
-
-                const on = active.includes(group.id);
-                return (
-                  <button
-                    key={group.id}
-                    type="button"
-                    role="menuitemcheckbox"
-                    aria-checked={on}
-                    onClick={() => toggle(group.id)}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-start text-[0.82rem] transition-all hover:bg-neutral-800/80 ${
-                      on
-                        ? "bg-neutral-800/80 text-foreground"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    <span className="flex size-5 shrink-0 items-center justify-center">{group.icon}</span>
-                    <span
-                      aria-hidden
-                      className="size-2 shrink-0 rounded-full"
-                      style={{ background: group.dot }}
-                    />
-                    <span className="flex-1">{t(group.label)}</span>
-                    <Check
-                      className={`size-4 shrink-0 text-primary transition-opacity ${on ? "opacity-100" : "opacity-0"}`}
-                      aria-hidden
-                    />
-                  </button>
-                );
-              })}
-            </div>
-          ) : null}
-        </div>
-
-        <span className="text-xs text-muted-foreground">
-          {visible.length} {visible.length === 1 ? t("activity.event") : t("activity.events")}
-        </span>
-      </div>
-
-      <section className="border-t border-white/5 pt-2">
-        {visible.length === 0 ? (
-          query.isLoading && !testMode ? (
-            <p className="py-14 text-center text-sm text-muted-foreground">{t("activity.loading")}</p>
-          ) : (workspace?.connections?.length ?? 0) === 0 ? (
-            <EmptyState
-              className="mt-2"
-              icon={Plug}
-              title={t("activity.emptyTitle")}
-              description={t("activity.emptyConnectDesc")}
-              actionLabel={t("activity.connectCta")}
-              actionTo="/settings"
-            />
-          ) : (
-            <EmptyState
-              className="mt-2"
-              icon={Activity}
-              title={t("activity.emptyTitle")}
-              description={t("activity.emptyWaitingDesc")}
-            />
-          )
-        ) : (
-          <ul className="divide-y divide-white/5">
-            {groups.map((group) => (
-              <ActivityFeedRow
-                key={group.id}
-                group={group}
-                fresh={group.events.some((event) => freshIds.has(event.id))}
-                justNow={t("activity.justNow")}
-                t={t}
-              />
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {scrolled ? (
-        <>
-          <div
-            className="fixed bottom-6 start-1/2 z-40 -translate-x-1/2 rounded-full border px-4 py-2 text-xs font-medium"
-            style={{
-              background: "rgba(10,10,10,0.9)",
-              backdropFilter: "blur(12px)",
-              borderColor: "rgba(255,255,255,0.12)",
-            }}
-          >
-            <span className="flex items-center gap-2">
-              <Pause className="size-3.5 text-primary" aria-hidden />
-              {t("activity.paused")}
+        {/* Filters Section */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              {t("activity.filter")}
+            </h3>
+            <span className="text-xs font-medium text-muted-foreground">
+              {visible.length} {visible.length === 1 ? t("activity.event") : t("activity.events")}
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="fixed bottom-6 end-6 z-40 flex items-center gap-2 rounded-full border px-4 py-2.5 text-xs font-semibold transition-colors hover:bg-[oklch(1_0_0/0.1)]"
-            style={{
-              background: "rgba(10,10,10,0.9)",
-              backdropFilter: "blur(12px)",
-              borderColor: "rgba(255,255,255,0.12)",
-              boxShadow: "0 12px 30px rgba(0,0,0,0.5)",
-            }}
-          >
-            <ArrowUp className="size-4 text-primary" aria-hidden />
-            {t("activity.scrollTop")}
-          </button>
-        </>
+          {/* Platform Chips */}
+          <div className="flex flex-wrap items-center gap-2" ref={filterRef}>
+            <button
+              type="button"
+              onClick={toggleAll}
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+                allActive
+                  ? "bg-primary/15 text-primary border border-primary/30"
+                  : "bg-white/5 text-muted-foreground border border-white/10 hover:bg-white/10"
+              }`}
+            >
+              <Globe className="size-3.5" aria-hidden />
+              {t("activity.allPlatforms")}
+            </button>
+
+            {FILTER_GROUPS.map((group) => {
+              const on = active.includes(group.id);
+              return (
+                <button
+                  key={group.id}
+                  type="button"
+                  onClick={() => toggle(group.id)}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+                    on
+                      ? "bg-primary/15 text-primary border border-primary/30"
+                      : "bg-white/5 text-muted-foreground border border-white/10 hover:bg-white/10"
+                  }`}
+                >
+                  <span className="flex items-center justify-center w-3.5 h-3.5">
+                    {group.icon}
+                  </span>
+                  <span>{t(group.label)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Main Feed Section */}
+        <section>
+          {visible.length === 0 ? (
+            query.isLoading && !testMode ? (
+              <div className="flex items-center justify-center py-16">
+                <p className="text-sm text-muted-foreground">{t("activity.loading")}</p>
+              </div>
+            ) : (workspace?.connections?.length ?? 0) === 0 ? (
+              <EmptyState
+                icon={Plug}
+                title={t("activity.emptyTitle")}
+                description={t("activity.emptyConnectDesc")}
+                actionLabel={t("activity.connectCta")}
+                actionTo="/settings"
+              />
+            ) : (
+              <EmptyState
+                icon={Activity}
+                title={t("activity.emptyTitle")}
+                description={t("activity.emptyWaitingDesc")}
+              />
+            )
+          ) : (
+            <div className="space-y-2 rounded-lg border border-white/5 bg-white/[0.02] overflow-hidden">
+              <ul className="divide-y divide-white/5">
+                {groups.map((group) => (
+                  <ActivityFeedRow
+                    key={group.id}
+                    group={group}
+                    fresh={group.events.some((event) => freshIds.has(event.id))}
+                    justNow={t("activity.justNow")}
+                    t={t}
+                  />
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      </div>
+
+      {scrolled ? (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-6 end-6 z-40 flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] backdrop-blur px-4 py-2.5 text-xs font-semibold text-foreground transition-all hover:bg-white/10 hover:border-white/20"
+        >
+          <ArrowUp className="size-4 text-primary" aria-hidden />
+          {t("activity.scrollTop")}
+        </button>
       ) : null}
 
     </AppShell>

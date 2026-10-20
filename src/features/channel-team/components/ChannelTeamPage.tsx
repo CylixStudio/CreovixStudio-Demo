@@ -39,31 +39,31 @@ import {
 
 const TEAM_EVENT = 'cylixstudio-demo:team-change'
 
-// Stat Card Component
+// Stat Card Component - improved premium styling
 function StatCard({ icon: Icon, label, value, subtitle }: any) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.02] p-6 transition-colors hover:border-white/20 hover:bg-white/[0.05]">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="h-10 w-10 rounded-lg bg-[#bee1fc]/10 flex items-center justify-center">
+    <div className="rounded-lg border border-[#bee1fc]/20 bg-gradient-to-br from-[#bee1fc]/5 to-transparent p-6 transition-all duration-200 hover:border-[#bee1fc]/40 hover:shadow-lg hover:shadow-[#bee1fc]/10">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-[#bee1fc]/20 to-[#bee1fc]/5 flex items-center justify-center ring-1 ring-[#bee1fc]/30">
           <Icon className="h-5 w-5 text-[#bee1fc]" />
         </div>
       </div>
-      <p className="text-sm text-muted-foreground mb-1">{label}</p>
-      <p className="text-2xl font-bold text-foreground">{value}</p>
-      {subtitle && <p className="text-xs text-muted-foreground mt-2">{subtitle}</p>}
+      <p className="text-xs text-muted-foreground mb-2 font-medium tracking-wide uppercase">{label}</p>
+      <p className="text-3xl font-bold text-foreground">{value}</p>
+      {subtitle && <p className="text-xs text-muted-foreground mt-3">{subtitle}</p>}
     </div>
   )
 }
 
-// Permission Chip Component
+// Permission Chip Component - professional tag-style
 function PermissionChip({ permission, onRemove }: any) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-[#bee1fc]/10 px-2.5 py-1 text-xs font-medium text-[#bee1fc] border border-[#bee1fc]/20">
+    <span className="inline-flex items-center gap-1.5 rounded-md bg-gradient-to-r from-[#bee1fc]/15 to-[#bee1fc]/10 px-3 py-1.5 text-xs font-medium text-[#bee1fc] border border-[#bee1fc]/25 hover:border-[#bee1fc]/40 transition-all duration-200 whitespace-nowrap">
       {permission}
       {onRemove && (
         <button
           onClick={onRemove}
-          className="ml-1 hover:text-[#bee1fc]/70 transition-colors"
+          className="ml-0.5 hover:text-[#bee1fc] transition-colors opacity-70 hover:opacity-100"
         >
           <X className="h-3 w-3" />
         </button>
@@ -72,14 +72,18 @@ function PermissionChip({ permission, onRemove }: any) {
   )
 }
 
-// Avatar Component
+// Avatar Component with HSL-based gradient for premium look
 function Avatar({ userId, size = 'md' }: any) {
   const user = USER_BY_ID[userId]
   const initials = (user?.username || userId).substring(0, 2).toUpperCase()
-  const bgColorClass = 'bg-gradient-to-br from-[#bee1fc] to-[#bee1fc]/50'
+  
+  // Use the user's hue to generate a unique gradient
+  const hue = user?.hue ?? 205
+  const gradientClass = `bg-gradient-to-br from-[hsl(${hue},100%,55%)] to-[hsl(${hue},80%,40%)]`
+  const sizeClass = size === 'lg' ? 'h-12 w-12' : size === 'sm' ? 'h-8 w-8' : 'h-10 w-10'
   
   return (
-    <div className={`${size === 'lg' ? 'h-12 w-12' : size === 'sm' ? 'h-8 w-8' : 'h-10 w-10'} rounded-full ${bgColorClass} flex items-center justify-center text-xs font-semibold text-black`}>
+    <div className={`${sizeClass} rounded-full ${gradientClass} flex items-center justify-center text-xs font-semibold text-white shadow-md ring-1 ring-white/20`}>
       {initials}
     </div>
   )
@@ -335,11 +339,11 @@ export function ChannelTeamPage() {
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { bg: string; text: string }> = {
-      active: { bg: 'bg-green-500/10', text: 'text-green-400' },
-      pending: { bg: 'bg-yellow-500/10', text: 'text-yellow-400' },
-      expired: { bg: 'bg-gray-500/10', text: 'text-gray-400' },
-      revoked: { bg: 'bg-red-500/10', text: 'text-red-400' },
-      declined: { bg: 'bg-red-500/10', text: 'text-red-400' },
+      active: { bg: 'bg-emerald-500/15 border border-emerald-500/40', text: 'text-emerald-300' },
+      pending: { bg: 'bg-amber-500/15 border border-amber-500/40', text: 'text-amber-300' },
+      expired: { bg: 'bg-slate-500/15 border border-slate-500/40', text: 'text-slate-300' },
+      revoked: { bg: 'bg-rose-500/15 border border-rose-500/40', text: 'text-rose-300' },
+      declined: { bg: 'bg-rose-500/15 border border-rose-500/40', text: 'text-rose-300' },
     }
     const { bg, text } = statusMap[status] || statusMap.pending
     return { bg, text }
