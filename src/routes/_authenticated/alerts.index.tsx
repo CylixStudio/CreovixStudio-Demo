@@ -117,6 +117,9 @@ function AlertsPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [variationsOpen, setVariationsOpen] = useState(true);
   const [giftCount, setGiftCount] = useState("5");
+  const [subscriptionMonths, setSubscriptionMonths] = useState("1");
+  const [resubscriptionMonths, setResubscriptionMonths] = useState("3");
+  const [kicksAmount, setKicksAmount] = useState("40");
   const giftInitialized = useRef(false);
   const testPending = useRef(false);
   const stageRef = useRef<AlertStageHandle>(null);
@@ -192,13 +195,39 @@ function AlertsPage() {
 
   const test = async (alertId: AlertKind) => {
     if (!data || !drafts || busy || testPending.current) return;
-    // An empty Gift Count is optional: it falls back to the saved quantity.
+    // Validate gift count
     const rawCount = giftCount.trim();
     const count = rawCount === "" ? data.simulation.count : Number(rawCount);
     if (alertId === "gift" && (!Number.isSafeInteger(count) || count < 1 || count > 100000)) {
       setNotice("alerts.positiveCount");
       return;
     }
+    
+    // Validate subscription/resubscription months
+    if ((alertId === "subscription" || alertId === "resubscription") && subscriptionMonths.trim()) {
+      const months = Number(subscriptionMonths.trim());
+      if (!Number.isSafeInteger(months) || months < 1) {
+        setNotice("alerts.positiveCount");
+        return;
+      }
+    }
+    if (alertId === "resubscription" && resubscriptionMonths.trim()) {
+      const months = Number(resubscriptionMonths.trim());
+      if (!Number.isSafeInteger(months) || months < 1) {
+        setNotice("alerts.positiveCount");
+        return;
+      }
+    }
+    
+    // Validate KICKs amount
+    if (alertId === "kicks" && kicksAmount.trim()) {
+      const amount = Number(kicksAmount.trim());
+      if (!Number.isSafeInteger(amount) || amount < 1) {
+        setNotice("alerts.positiveCount");
+        return;
+      }
+    }
+    
     testPending.current = true;
     setBusy(true);
     try {
@@ -206,12 +235,30 @@ function AlertsPage() {
         const saved = await saveAlertStudio({ simulation: { ...data.simulation, count } });
         queryClient.setQueryData(alertStudioKey, saved);
       }
+      
+      // Build test values based on alert type and custom inputs
+      let testCount = 1;
+      let testMonths = 0;
+      let testAmount = 0;
+      
+      if (alertId === "gift") {
+        testCount = count;
+      } else if (alertId === "subscription") {
+        testMonths = subscriptionMonths.trim() ? Number(subscriptionMonths.trim()) : 1;
+      } else if (alertId === "resubscription") {
+        testMonths = resubscriptionMonths.trim() ? Number(resubscriptionMonths.trim()) : 3;
+      } else if (alertId === "kicks") {
+        testAmount = kicksAmount.trim() ? Number(kicksAmount.trim()) : 40;
+      }
+      
       const response = await fetch("/api/demo/alert-studio/test", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           ...data.simulation,
-          count: alertId === "gift" ? count : data.simulation.count,
+          count: testCount,
+          months: testMonths,
+          amount: testAmount,
           platform,
           alertId,
           requestId: crypto.randomUUID(),
@@ -413,6 +460,45 @@ function AlertsPage() {
                       .then((saved) => queryClient.setQueryData(alertStudioKey, saved))
                       .catch(reportError);
                 }}
+              />
+            </label>
+            <label className="alert-gift-count" dir="ltr">
+              <span>Subscription Months</span>
+              <input
+                aria-label="Subscription Months"
+                type="number"
+                min={1}
+                max={100}
+                step={1}
+                inputMode="numeric"
+                value={subscriptionMonths}
+                onChange={(event) => setSubscriptionMonths(event.target.value)}
+              />
+            </label>
+            <label className="alert-gift-count" dir="ltr">
+              <span>Re-Subscription Months</span>
+              <input
+                aria-label="Re-Subscription Months"
+                type="number"
+                min={1}
+                max={100}
+                step={1}
+                inputMode="numeric"
+                value={resubscriptionMonths}
+                onChange={(event) => setResubscriptionMonths(event.target.value)}
+              />
+            </label>
+            <label className="alert-gift-count" dir="ltr">
+              <span>KICKs Amount</span>
+              <input
+                aria-label="KICKs Amount"
+                type="number"
+                min={1}
+                max={100000}
+                step={1}
+                inputMode="numeric"
+                value={kicksAmount}
+                onChange={(event) => setKicksAmount(event.target.value)}
               />
             </label>
             {visibleAlertCatalog.map((item) => (
