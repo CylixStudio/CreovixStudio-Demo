@@ -12,7 +12,8 @@ import {
   type BotRixLeaderRow,
   type BotRixShopItem,
 } from "@/lib/botrix";
-import { importBotRixCommands, importBotRixLeaderboard, importBotRixShop, lookupBotRixPublic } from "@/lib/botrix.functions";
+import { importBotRixCommands, importBotRixShop, lookupBotRixPublic } from "@/lib/botrix.functions";
+import { importBotRixRows } from "@/lib/botrixImportSummary";
 import { useLanguage, type TranslationKey } from "@/lib/i18n";
 import { isMissingViewerSession } from "@/lib/supabase/sessionError";
 import { isTestMode } from "@/lib/testMode";
@@ -197,14 +198,15 @@ export function BotRixPanel() {
         setImportNotice("widget.signedOut");
         return;
       }
-      const saved = await importBotRixLeaderboard({
-        data: { rows: rows.map((item) => ({ name: item.name, points: item.points, level: null, xp: null, watchtime: null })) },
-      });
-      if (!saved.ok) {
+      const summary = await importBotRixRows(
+        `BotRix · ${result.streamerName} (${result.platform})`,
+        rows.map((item) => ({ ...item, watchSeconds: null })),
+      );
+      if (!summary) {
         toast.error(t("botrix.importFailed"));
         return;
       }
-      toast.success(t("botrix.leaderboardImported", { imported: saved.imported, updated: saved.updated }));
+      toast.success(t("botrix.leaderboardImported", { imported: summary.imported, updated: summary.updated }));
     } catch (error) {
       if (isSignedOutFailure(error)) setImportNotice("widget.signedOut");
       else toast.error(t("botrix.importFailed"));

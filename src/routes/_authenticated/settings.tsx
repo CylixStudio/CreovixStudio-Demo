@@ -15,10 +15,10 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { useLanguage, type TranslationKey } from "@/lib/i18n";
 import {
   importBotRixCommands,
-  importBotRixLeaderboard,
   importBotRixShop,
   lookupBotRixPublic,
 } from "@/lib/botrix.functions";
+import { importBotRixRows } from "@/lib/botrixImportSummary";
 import { supabase } from "@/lib/supabase/client";
 
 const BOTRIX_PROMPT_KEY = "cylix.botrix-import-prompt";
@@ -156,17 +156,10 @@ function SettingsPage() {
         });
       }
       if (looked.leaderboard.ok) {
-        await importBotRixLeaderboard({
-          data: {
-            rows: looked.leaderboard.items.map((item) => ({
-              name: item.name,
-              points: item.points,
-              level: null,
-              xp: null,
-              watchtime: null,
-            })),
-          },
-        });
+        await importBotRixRows(
+          `BotRix · ${kick.username} (kick)`,
+          looked.leaderboard.items.map((item) => ({ ...item, watchSeconds: null })),
+        );
       }
       try {
         window.localStorage.setItem(BOTRIX_PROMPT_KEY, "imported");

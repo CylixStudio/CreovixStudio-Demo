@@ -7,6 +7,7 @@ import {
   type BotRixSection,
   type BotRixShopItem,
 } from "@/lib/botrix";
+import { extraFields } from "@/lib/botrixLeaderboard";
 
 const ORIGIN = "https://botrix.live";
 const HOST = "botrix.live";
@@ -185,6 +186,7 @@ function parseLeaderboard(payload: unknown): BotRixSection<BotRixLeaderRow> {
       points: finiteNumber(record["points"]),
       xp: finiteNumber(record["xp"]),
       watchtime: finiteNumber(record["watchtime"]),
+      extra: extraFields(record),
     });
     if (items.length >= 100) break;
   }

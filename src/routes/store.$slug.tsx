@@ -56,7 +56,7 @@ function PublicStoreRoute() {
           ) : (
             <ul className="mt-6 space-y-3">
               {data.items.map((item) => (
-                <li key={item.name} className="flex gap-4 rounded-2xl border border-white/10 bg-zinc-900 p-4">
+                <li key={item.name} className="surface-card surface-card-pad flex gap-4">
                   <ShopImage url={item.imageUrl} alt={item.name} empty={t("store.public.noImage")} />
                   <div className="min-w-0 flex-1">
                     <p className="text-base font-medium">{item.name}</p>
@@ -82,7 +82,7 @@ function ShopImage({ url, alt, empty }: { url: string | null; alt: string; empty
   const [broken, setBroken] = useState(false);
   if (!url || broken) {
     return (
-      <div className="grid size-20 shrink-0 place-items-center rounded-xl bg-zinc-950 text-center text-[0.65rem] text-zinc-500">
+      <div className="surface-inset grid size-20 shrink-0 place-items-center text-center text-[0.65rem] text-zinc-500">
         {empty}
       </div>
     );

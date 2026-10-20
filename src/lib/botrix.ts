@@ -40,7 +40,10 @@ export type BotRixLeaderRow = {
   level: number | null;
   points: number | null;
   xp: number | null;
+  /** BotRix reports minutes (see botrixLeaderboard.ts). */
   watchtime: number | null;
+  /** Every other field BotRix sent, e.g. `followage.date`. */
+  extra: Record<string, string | number | boolean>;
 };
 
 export type BotRixLookupResult =

@@ -8,6 +8,7 @@ import {
   type BotRixShopItem,
 } from "@/lib/botrix";
 import { lookupBotRixPublicData } from "@/lib/botrix.server";
+import { planLeaderboardImport, toNumber, type BotRixImportRow } from "@/lib/botrixLeaderboard";
 import {
   isReservedCustomCommandName,
   resolveStoredMarker,
@@ -236,16 +237,20 @@ export const importBotRixShop = createServerFn({ method: "POST" })
     }
   });
 
-function readLeaderboard(input: unknown): { rows: BotRixLeaderRow[] } {
+function readLeaderboard(input: unknown): { rows: BotRixImportRow[] } {
   if (!input || typeof input !== "object") return { rows: [] };
   const raw = Array.isArray((input as { rows?: unknown }).rows) ? (input as { rows: unknown[] }).rows : [];
-  const rows: BotRixLeaderRow[] = [];
+  const rows: BotRixImportRow[] = [];
   for (const row of raw) {
     if (!row || typeof row !== "object") continue;
     const item = row as Record<string, unknown>;
     const name = typeof item["name"] === "string" ? item["name"].trim().slice(0, 80) : "";
-    const points = typeof item["points"] === "number" && Number.isFinite(item["points"]) ? item["points"] : null;
-    rows.push({ name, level: null, points, xp: null, watchtime: null });
+    rows.push({
+      name,
+      level: toNumber(item["level"]),
+      points: toNumber(item["points"]),
+      watchSeconds: toNumber(item["watchSeconds"]),
+    });
     if (rows.length >= IMPORT_LIMIT) break;
   }
   return { rows };
@@ -255,7 +260,7 @@ export type BotRixLeaderboardImportResult =
   | { ok: true; imported: number; updated: number; skipped: number }
   | { ok: false; error: "save_failed"; imported: number; updated: number; skipped: number };
 
-/** Upserts leaderboard names and points into loyalty_members. Does not delete missing rows. */
+/** Upserts leaderboard names, points, level and watch time into loyalty_members. Does not delete missing rows. */
 export const importBotRixLeaderboard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(readLeaderboard)
@@ -268,48 +273,28 @@ export const importBotRixLeaderboard = createServerFn({ method: "POST" })
         .eq("user_id", userId);
       if (readError) return { ok: false, error: "save_failed", imported: 0, updated: 0, skipped: 0 };
 
-      const byName = new Map<string, string[]>();
-      for (const row of existing ?? []) {
-        const key = row.display_name.trim().toLowerCase();
-        if (!key) continue;
-        const ids = byName.get(key) ?? [];
-        ids.push(row.id);
-        byName.set(key, ids);
-      }
-
+      const plan = planLeaderboardImport(existing ?? [], data.rows);
       let imported = 0;
       let updated = 0;
-      let skipped = 0;
-      for (const row of data.rows) {
-        const name = row.name.trim().slice(0, 80);
-        if (!name || row.points === null) {
-          skipped += 1;
-          continue;
+      const skipped = plan.skipped;
+      for (const change of plan.updates) {
+        for (const id of change.ids) {
+          const { error } = await supabase
+            .from("loyalty_members")
+            .update({ ...change.patch, updated_at: new Date().toISOString() })
+            .eq("id", id)
+            .eq("user_id", userId);
+          if (error) return { ok: false, error: "save_failed", imported, updated, skipped };
         }
-        const points = Math.min(100_000_000, Math.max(0, Math.round(row.points)));
-        const key = name.toLowerCase();
-        const ids = byName.get(key);
-        if (ids?.length) {
-          let wrote = false;
-          for (const id of ids) {
-            const { error } = await supabase
-              .from("loyalty_members")
-              .update({ points, updated_at: new Date().toISOString() })
-              .eq("id", id)
-              .eq("user_id", userId);
-            if (error) return { ok: false, error: "save_failed", imported, updated, skipped };
-            wrote = true;
-          }
-          if (wrote) updated += 1;
-          continue;
-        }
+        updated += 1;
+      }
+      for (const member of plan.inserts) {
         const { data: inserted, error } = await supabase
           .from("loyalty_members")
-          .insert({ user_id: userId, display_name: name, points })
+          .insert({ user_id: userId, ...member })
           .select("id")
           .maybeSingle();
         if (error || !inserted) return { ok: false, error: "save_failed", imported, updated, skipped };
-        byName.set(key, [inserted.id]);
         imported += 1;
       }
       return { ok: true, imported, updated, skipped };
