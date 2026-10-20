@@ -66,6 +66,7 @@ import { Route as ApiAuthProviderStartRouteImport } from './routes/api/auth/$pro
 import { Route as ApiAuthCallbackTiktokRouteImport } from './routes/api/auth/callback/tiktok'
 import { Route as ApiAuthSessionFinishRouteImport } from './routes/api/auth/session/finish'
 import { Route as ApiDemoAlertStudioIndexRouteImport } from './routes/api/demo/alert-studio/index'
+import { Route as ApiDemoAlertStudioDockTokenRouteImport } from './routes/api/demo/alert-studio/dock-token'
 import { Route as ApiDemoAlertStudioEventsRouteImport } from './routes/api/demo/alert-studio/events'
 import { Route as ApiDemoAlertStudioMediaRouteImport } from './routes/api/demo/alert-studio/media'
 import { Route as ApiDemoAlertStudioSimulateRouteImport } from './routes/api/demo/alert-studio/simulate'
@@ -406,6 +407,12 @@ const ApiDemoAlertStudioIndexRoute = ApiDemoAlertStudioIndexRouteImport.update({
   path: '/api/demo/alert-studio/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDemoAlertStudioDockTokenRoute =
+  ApiDemoAlertStudioDockTokenRouteImport.update({
+    id: '/api/demo/alert-studio/dock-token',
+    path: '/api/demo/alert-studio/dock-token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDemoAlertStudioEventsRoute =
   ApiDemoAlertStudioEventsRouteImport.update({
     id: '/api/demo/alert-studio/events',
@@ -684,6 +691,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$provider/start': typeof ApiAuthProviderStartRoute
   '/api/auth/callback/tiktok': typeof ApiAuthCallbackTiktokRoute
   '/api/auth/session/finish': typeof ApiAuthSessionFinishRoute
+  '/api/demo/alert-studio/dock-token': typeof ApiDemoAlertStudioDockTokenRoute
   '/api/demo/alert-studio/events': typeof ApiDemoAlertStudioEventsRoute
   '/api/demo/alert-studio/media': typeof ApiDemoAlertStudioMediaRouteWithChildren
   '/api/demo/alert-studio/simulate': typeof ApiDemoAlertStudioSimulateRoute
@@ -778,6 +786,7 @@ export interface FileRoutesByTo {
   '/api/auth/$provider/start': typeof ApiAuthProviderStartRoute
   '/api/auth/callback/tiktok': typeof ApiAuthCallbackTiktokRoute
   '/api/auth/session/finish': typeof ApiAuthSessionFinishRoute
+  '/api/demo/alert-studio/dock-token': typeof ApiDemoAlertStudioDockTokenRoute
   '/api/demo/alert-studio/events': typeof ApiDemoAlertStudioEventsRoute
   '/api/demo/alert-studio/media': typeof ApiDemoAlertStudioMediaRouteWithChildren
   '/api/demo/alert-studio/simulate': typeof ApiDemoAlertStudioSimulateRoute
@@ -876,6 +885,7 @@ export interface FileRoutesById {
   '/api/auth/$provider/start': typeof ApiAuthProviderStartRoute
   '/api/auth/callback/tiktok': typeof ApiAuthCallbackTiktokRoute
   '/api/auth/session/finish': typeof ApiAuthSessionFinishRoute
+  '/api/demo/alert-studio/dock-token': typeof ApiDemoAlertStudioDockTokenRoute
   '/api/demo/alert-studio/events': typeof ApiDemoAlertStudioEventsRoute
   '/api/demo/alert-studio/media': typeof ApiDemoAlertStudioMediaRouteWithChildren
   '/api/demo/alert-studio/simulate': typeof ApiDemoAlertStudioSimulateRoute
@@ -974,6 +984,7 @@ export interface FileRouteTypes {
     | '/api/auth/$provider/start'
     | '/api/auth/callback/tiktok'
     | '/api/auth/session/finish'
+    | '/api/demo/alert-studio/dock-token'
     | '/api/demo/alert-studio/events'
     | '/api/demo/alert-studio/media'
     | '/api/demo/alert-studio/simulate'
@@ -1068,6 +1079,7 @@ export interface FileRouteTypes {
     | '/api/auth/$provider/start'
     | '/api/auth/callback/tiktok'
     | '/api/auth/session/finish'
+    | '/api/demo/alert-studio/dock-token'
     | '/api/demo/alert-studio/events'
     | '/api/demo/alert-studio/media'
     | '/api/demo/alert-studio/simulate'
@@ -1165,6 +1177,7 @@ export interface FileRouteTypes {
     | '/api/auth/$provider/start'
     | '/api/auth/callback/tiktok'
     | '/api/auth/session/finish'
+    | '/api/demo/alert-studio/dock-token'
     | '/api/demo/alert-studio/events'
     | '/api/demo/alert-studio/media'
     | '/api/demo/alert-studio/simulate'
@@ -1235,6 +1248,7 @@ export interface RootRouteChildren {
   ApiAuthProviderStartRoute: typeof ApiAuthProviderStartRoute
   ApiAuthCallbackTiktokRoute: typeof ApiAuthCallbackTiktokRoute
   ApiAuthSessionFinishRoute: typeof ApiAuthSessionFinishRoute
+  ApiDemoAlertStudioDockTokenRoute: typeof ApiDemoAlertStudioDockTokenRoute
   ApiDemoAlertStudioEventsRoute: typeof ApiDemoAlertStudioEventsRoute
   ApiDemoAlertStudioMediaRoute: typeof ApiDemoAlertStudioMediaRouteWithChildren
   ApiDemoAlertStudioSimulateRoute: typeof ApiDemoAlertStudioSimulateRoute
@@ -1676,6 +1690,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDemoAlertStudioIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/demo/alert-studio/dock-token': {
+      id: '/api/demo/alert-studio/dock-token'
+      path: '/api/demo/alert-studio/dock-token'
+      fullPath: '/api/demo/alert-studio/dock-token'
+      preLoaderRoute: typeof ApiDemoAlertStudioDockTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/demo/alert-studio/events': {
       id: '/api/demo/alert-studio/events'
       path: '/api/demo/alert-studio/events'
@@ -2090,6 +2111,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthProviderStartRoute: ApiAuthProviderStartRoute,
   ApiAuthCallbackTiktokRoute: ApiAuthCallbackTiktokRoute,
   ApiAuthSessionFinishRoute: ApiAuthSessionFinishRoute,
+  ApiDemoAlertStudioDockTokenRoute: ApiDemoAlertStudioDockTokenRoute,
   ApiDemoAlertStudioEventsRoute: ApiDemoAlertStudioEventsRoute,
   ApiDemoAlertStudioMediaRoute: ApiDemoAlertStudioMediaRouteWithChildren,
   ApiDemoAlertStudioSimulateRoute: ApiDemoAlertStudioSimulateRoute,

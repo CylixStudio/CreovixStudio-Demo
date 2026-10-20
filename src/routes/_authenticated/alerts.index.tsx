@@ -15,6 +15,7 @@ import {
   Pencil,
   Play,
   Plus,
+  RotateCw,
   Save,
   Settings2,
   ShieldCheck,
@@ -27,6 +28,7 @@ import {
   overlayUrl,
   dockUrl,
   saveAlertStudio,
+  regenerateDockTokenDemo,
 } from "@/components/alerts/alertApi";
 import { AlertStage, type AlertStageHandle } from "@/components/alerts/AlertStage";
 import { TestAlertPopover } from "@/components/alerts/TestAlertPopover";
@@ -110,6 +112,8 @@ function AlertsPage() {
   const [drafts, setDrafts] = useState<PlatformAlerts | null>(null);
   const [hidden, setHidden] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [dockHidden, setDockHidden] = useState(true);
+  const [dockCopied, setDockCopied] = useState(false);
   const [notice, setNotice] = useState<TranslationKey | "">("");
   const [busy, setBusy] = useState(false);
   const [advanced, setAdvanced] = useState(false);
@@ -272,6 +276,22 @@ function AlertsPage() {
     }
   };
 
+  const regenerateDockToken = async () => {
+    if (!data || busy || !window.confirm(t("alerts.regenerateConfirm"))) return;
+    setBusy(true);
+    try {
+      const saved = await regenerateDockTokenDemo();
+      queryClient.setQueryData(alertStudioKey, saved);
+      setDockHidden(true);
+      setDockCopied(false);
+      setNotice("alerts.regenerated");
+    } catch {
+      setNotice("alerts.regenerateFail");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const acceptVariation = async () => {
     if (!variation || !config || !drafts || !variationForm.current?.reportValidity()) return;
     const nextConfig = {
@@ -397,7 +417,7 @@ function AlertsPage() {
                 readOnly
                 value={
                   data
-                    ? hidden
+                    ? dockHidden
                       ? dockLink.replace(data.token, "••••••••••••••••")
                       : dockLink
                     : t("alerts.loading")
@@ -405,10 +425,10 @@ function AlertsPage() {
               />
               <button
                 type="button"
-                aria-label={hidden ? t("alerts.showUrl") : t("alerts.hideUrl")}
-                onClick={() => setHidden(!hidden)}
+                aria-label={dockHidden ? t("alerts.showUrl") : t("alerts.hideUrl")}
+                onClick={() => setDockHidden(!dockHidden)}
               >
-                {hidden ? <Eye size={17} /> : <EyeOff size={17} />}
+                {dockHidden ? <Eye size={17} /> : <EyeOff size={17} />}
               </button>
             </div>
             <button
@@ -419,14 +439,24 @@ function AlertsPage() {
                 void navigator.clipboard
                   .writeText(dockLink)
                   .then(() => {
-                    setCopied(true);
-                    window.setTimeout(() => setCopied(false), 1500);
+                    setDockCopied(true);
+                    window.setTimeout(() => setDockCopied(false), 1500);
                   })
                   .catch(() => setNotice("alerts.copyFail"));
               }}
             >
-              {copied ? <Check size={16} /> : <Copy size={16} />}
-              {copied ? t("alerts.copied") : t("alerts.copy")}
+              {dockCopied ? <Check size={16} /> : <Copy size={16} />}
+              {dockCopied ? t("alerts.copied") : t("alerts.copy")}
+            </button>
+            <button
+              type="button"
+              className="alert-button"
+              disabled={!data || busy}
+              title={t("alerts.regenerateHint")}
+              onClick={() => void regenerateDockToken()}
+            >
+              <RotateCw size={16} />
+              {t("alerts.regenerateToken")}{" "}
             </button>
             <a className="alert-button" href={dockLink || undefined} target="_blank" rel="noreferrer">
               <ExternalLink size={16} />
