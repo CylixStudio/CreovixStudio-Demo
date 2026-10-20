@@ -166,7 +166,7 @@ function AlertsPage() {
     ? overlayUrl(typeof window === "undefined" ? "" : window.location.origin, data.token)
     : "";
   const dockLink = data
-    ? dockUrl(typeof window === "undefined" ? "" : window.location.origin, data.token)
+    ? dockUrl(typeof window === "undefined" ? "" : window.location.origin, data.dockToken)
     : "";
   const connected = Boolean(data && data.overlaySeenAt > Date.now() - 12000);
   const patch = (partial: Partial<AlertConfig>) =>
@@ -418,7 +418,7 @@ function AlertsPage() {
                 value={
                   data
                     ? dockHidden
-                      ? dockLink.replace(data.token, "••••••••••••••••")
+                      ? dockLink.replace(data.dockToken, "••••••••••••••••")
                       : dockLink
                     : t("alerts.loading")
                 }

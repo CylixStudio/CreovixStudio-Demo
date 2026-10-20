@@ -1,27 +1,47 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  Activity,
-  CircleAlert,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  CircleDollarSign,
+  Filter as FilterIcon,
+  Gem,
+  Gift,
+  Globe,
+  Heart,
   LoaderCircle,
-  MicOff,
+  Lock,
   Pause,
   Play,
-  RadioTower,
-  RotateCw,
+  RefreshCw,
+  Settings,
   SkipForward,
+  Star,
   Trash2,
+  UserPlus,
+  Users,
   Volume2,
+  VolumeX,
+  Zap,
+  type LucideIcon,
 } from "lucide-react";
 import { PlatformIcon } from "@/components/widgets/PlatformIcon";
-import { useLanguage, type TranslationKey } from "@/lib/i18n";
-import { ALERT_CATALOG, type AlertEvent, type AlertKind } from "@/lib/alertStudio";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  ACTIVITY_FEED_FILTERS,
-  matchesActivityFeedFilter,
-  type ActivityFeedEvent,
-} from "@/lib/activityFeed";
-import { isAllowedPlatformEvent, triggerPhrase } from "@/lib/platformEvents";
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useLanguage, type TranslationKey } from "@/lib/i18n";
+import type { ActivityFeedEvent } from "@/lib/activityFeed";
+import { triggerPhrase } from "@/lib/platformEvents";
 
 export const Route = createFileRoute("/activity-feed/dock/$token")({
   head: () => ({
@@ -34,89 +54,323 @@ export const Route = createFileRoute("/activity-feed/dock/$token")({
   component: ActivityFeedDock,
 });
 
-type DockQueueEvent = Pick<AlertEvent, "id" | "alertId" | "platform" | "username" | "count"> & {
-  durationMs: number;
-  replayOf: string | null;
-};
-
+type DockEvent = ActivityFeedEvent & { replayAvailable: boolean };
 type DockData = {
-  events: (ActivityFeedEvent & { replayAvailable: boolean })[];
-  locked: boolean;
-  isPro: boolean;
+  events: DockEvent[];
   queue: {
     paused: boolean;
     muted: boolean;
-    current: DockQueueEvent | null;
-    pending: DockQueueEvent[];
+    current: { id: string } | null;
     pendingCount: number;
   };
 };
-
-type Filter = (typeof ACTIVITY_FEED_FILTERS)[number]["id"];
 type DockAction = "pause" | "resume" | "skip" | "clear" | "mute" | "unmute";
+type Notice = { key: TranslationKey; tone: "ok" | "error" };
 
-function eventLabel(event: ActivityFeedEvent, t: (key: TranslationKey) => string) {
-  const key = `activity.type.${triggerPhrase(event.platform, event.event_type)}` as TranslationKey;
-  return t(key);
+type FilterId =
+  | "all"
+  | "kick"
+  | "twitch"
+  | "youtube"
+  | "tiktok"
+  | "x"
+  | "streamlabs"
+  | "streamelements"
+  | "other";
+
+const PRIMARY_FILTERS: FilterId[] = ["all", "kick", "twitch", "youtube", "tiktok"];
+const MORE_FILTERS: FilterId[] = ["x", "streamlabs", "streamelements", "other"];
+
+const FILTER_PLATFORM: Record<Exclude<FilterId, "all" | "other">, string> = {
+  kick: "KICK",
+  twitch: "TWITCH",
+  youtube: "YOUTUBE",
+  tiktok: "TIKTOK",
+  x: "X",
+  streamlabs: "STREAMLABS",
+  streamelements: "STREAMELEMENTS",
+};
+const BRAND_NAME: Record<Exclude<FilterId, "all" | "other">, string> = {
+  kick: "Kick",
+  twitch: "Twitch",
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  x: "X",
+  streamlabs: "Streamlabs",
+  streamelements: "StreamElements",
+};
+// Thin edge marker per platform; the logos themselves keep their own colours.
+const PLATFORM_EDGE: Record<string, string> = {
+  KICK: "#53fc18",
+  TWITCH: "#9146ff",
+  YOUTUBE: "#ff0000",
+  TIKTOK: "#25f4ee",
+  X: "#a1a1aa",
+  STREAMLABS: "#80f5d2",
+  STREAMELEMENTS: "#3b6cff",
+};
+const KNOWN_PLATFORMS = new Set(Object.values(FILTER_PLATFORM));
+
+const TYPE_ICON: Record<string, LucideIcon> = {
+  FOLLOW: UserPlus,
+  SUBSCRIPTION: Star,
+  SUBSCRIBE: Star,
+  MEMBERSHIP: Star,
+  GIFT_SUB: Gift,
+  GIFT: Gift,
+  BITS: Gem,
+  KICKS: Zap,
+  DONATION: CircleDollarSign,
+  SUPER_CHAT: CircleDollarSign,
+  RAID: Users,
+  LIKE: Heart,
+};
+
+const PREFS_KEY = "cylix.dock.prefs";
+type Prefs = { showTests: boolean; showMessages: boolean };
+const DEFAULT_PREFS: Prefs = { showTests: true, showMessages: true };
+
+function matchesFilter(event: ActivityFeedEvent, filter: FilterId): boolean {
+  if (filter === "all") return true;
+  if (filter === "other") return !KNOWN_PLATFORMS.has(event.platform);
+  return event.platform === FILTER_PLATFORM[filter];
 }
+
+function formatNumber(value: number): string {
+  return value.toLocaleString("en-US");
+}
+
+function formatMoney(amount: number, currency: string | null): string {
+  if (currency && /^[A-Z]{3}$/.test(currency)) {
+    try {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency,
+        minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+      }).format(amount);
+    } catch {
+      return `${formatNumber(amount)} ${currency}`;
+    }
+  }
+  return formatNumber(amount);
+}
+
+function describeEvent(event: ActivityFeedEvent, t: (key: TranslationKey) => string) {
+  const phrase = triggerPhrase(event.platform, event.event_type);
+  const typeKey = `activity.dock.type.${phrase}` as TranslationKey;
+  const translated = t(typeKey);
+  const label = translated === typeKey ? event.event_type : translated;
+  const quantity = Math.max(1, Math.round(Number(event.quantity) || 1));
+  let text = label;
+  if (phrase === "BITS" || phrase === "KICKS") {
+    text = `${formatNumber(event.amount ?? quantity)} ${label}`;
+  } else if (phrase === "DONATION" || phrase === "SUPER_CHAT") {
+    text = event.amount != null ? `${label} ${formatMoney(event.amount, event.currency)}` : label;
+  } else if (phrase === "RAID" || (phrase === "GIFT_SUB" && quantity > 1) || (phrase === "GIFT" && quantity > 1)) {
+    text = `${label} ×${formatNumber(quantity)}`;
+  }
+  return { phrase, text };
+}
+
+function relativeTime(iso: string, now: number, t: (key: TranslationKey) => string): string {
+  const diff = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000));
+  if (diff < 60) return t("activity.dock.now");
+  if (diff < 3600) return `${Math.floor(diff / 60)}${t("activity.dock.unitMinute")}`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}${t("activity.dock.unitHour")}`;
+  return `${Math.floor(diff / 86400)}${t("activity.dock.unitDay")}`;
+}
+
+function FilterGlyph({ id, size }: { id: FilterId; size: number }) {
+  if (id === "all") return null;
+  return (
+    <span aria-hidden className="inline-flex shrink-0">
+      {id === "other" ? (
+        <Globe style={{ width: size, height: size }} />
+      ) : (
+        <PlatformIcon platform={FILTER_PLATFORM[id]} size={size} />
+      )}
+    </span>
+  );
+}
+
+function IconButton({
+  label,
+  onClick,
+  disabled,
+  active,
+  badge,
+  children,
+}: {
+  label: string;
+  onClick?: () => void;
+  disabled?: boolean;
+  active?: boolean;
+  badge?: number;
+  children: ReactNode;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex">
+          <button
+            type="button"
+            aria-label={label}
+            aria-pressed={active}
+            disabled={disabled}
+            onClick={onClick}
+            className={`relative flex size-8 items-center justify-center rounded-md transition-colors disabled:cursor-not-allowed disabled:opacity-35 max-[379px]:size-7 max-[339px]:size-[26px] ${
+              active
+                ? "bg-[#bee1fc]/15 text-[#bee1fc]"
+                : "text-white/85 hover:bg-white/[0.07] hover:text-white"
+            }`}
+          >
+            {children}
+            {badge ? (
+              <span className="absolute -end-0.5 -top-0.5 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-[#bee1fc] px-1 text-[9px] font-bold leading-none text-[#0a0a0a]">
+                {badge > 99 ? "99+" : badge}
+              </span>
+            ) : null}
+          </button>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent
+        side="bottom"
+        className="rounded-md px-2 py-1 text-[11px] leading-tight"
+        sideOffset={6}
+        collisionPadding={6}
+      >
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+const MENU_CONTENT =
+  "min-w-[10rem] max-w-[min(18rem,calc(100vw-1rem))] rounded-lg border-white/10 bg-[#111] p-1 text-[13px]";
+const MENU_ITEM = "rounded-md px-2 py-1.5 text-[13px]";
 
 function ActivityFeedDock() {
   const { token } = Route.useParams();
-  const { t, dir, lang } = useLanguage();
+  const { t, dir, lang, setLang } = useLanguage();
   const [data, setData] = useState<DockData | null>(null);
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<FilterId>("all");
+  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [loading, setLoading] = useState(true);
   const [online, setOnline] = useState(false);
+  const [invalid, setInvalid] = useState(false);
   const [working, setWorking] = useState(false);
-  const [notice, setNotice] = useState<TranslationKey | "">("");
+  const [replayingId, setReplayingId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
   const refreshing = useRef(false);
+  const stopped = useRef(false);
+  const noticeTimer = useRef<number | null>(null);
+  const confirmRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(PREFS_KEY);
+      if (raw) setPrefs({ ...DEFAULT_PREFS, ...(JSON.parse(raw) as Partial<Prefs>) });
+    } catch {
+      /* ignore unreadable prefs */
+    }
+  }, []);
+
+  const updatePrefs = (patch: Partial<Prefs>) => {
+    setPrefs((current) => {
+      const next = { ...current, ...patch };
+      try {
+        window.localStorage.setItem(PREFS_KEY, JSON.stringify(next));
+      } catch {
+        /* storage may be unavailable in some embedded browsers */
+      }
+      return next;
+    });
+  };
+
+  const flash = useCallback((next: Notice) => {
+    setNotice(next);
+    if (noticeTimer.current) window.clearTimeout(noticeTimer.current);
+    if (next.tone === "ok") {
+      noticeTimer.current = window.setTimeout(() => setNotice(null), 2500);
+    }
+  }, []);
 
   const refresh = useCallback(async () => {
-    if (refreshing.current) return;
+    if (refreshing.current || stopped.current) return;
     refreshing.current = true;
     try {
-      const response = await fetch(`/api/demo/alert-studio/overlay/${encodeURIComponent(token)}/feed`, {
-        cache: "no-store",
-        referrerPolicy: "no-referrer",
-      });
+      const response = await fetch(
+        `/api/demo/alert-studio/overlay/${encodeURIComponent(token)}/feed`,
+        { cache: "no-store", referrerPolicy: "no-referrer" },
+      );
       if (!response.ok) {
-        if (response.status === 404) {
-          setData(null);
-          setNotice("activity.dock.invalid");
-        } else if (response.status === 429) setNotice("activity.dock.rateLimited");
-        else setNotice("activity.dock.offline");
         setOnline(false);
+        if (response.status === 404) {
+          stopped.current = true;
+          setInvalid(true);
+          setData(null);
+        } else {
+          flash({
+            key: response.status === 429 ? "activity.dock.rateLimited" : "activity.dock.offline",
+            tone: "error",
+          });
+        }
         return;
       }
-      const next = (await response.json()) as DockData;
-      setData(next);
+      setData((await response.json()) as DockData);
       setOnline(true);
-      setNotice("");
+      setNotice((current) => (current?.tone === "error" ? null : current));
     } catch {
       setOnline(false);
-      setNotice("activity.dock.offline");
+      flash({ key: "activity.dock.offline", tone: "error" });
     } finally {
       refreshing.current = false;
       setLoading(false);
     }
-  }, [token]);
+  }, [token, flash]);
 
   useEffect(() => {
+    stopped.current = false;
+    setInvalid(false);
     void refresh();
-    const interval = window.setInterval(() => void refresh(), 5000);
-    return () => window.clearInterval(interval);
+    const poll = window.setInterval(() => void refresh(), 3000);
+    const tick = window.setInterval(() => setNow(Date.now()), 30000);
+    return () => {
+      window.clearInterval(poll);
+      window.clearInterval(tick);
+    };
   }, [refresh]);
 
+  useEffect(() => {
+    if (!confirmClear) return;
+    const close = (event: Event) => {
+      if (event instanceof KeyboardEvent && event.key !== "Escape") return;
+      if (event instanceof MouseEvent && confirmRef.current?.contains(event.target as Node)) return;
+      setConfirmClear(false);
+    };
+    document.addEventListener("keydown", close);
+    document.addEventListener("mousedown", close);
+    return () => {
+      document.removeEventListener("keydown", close);
+      document.removeEventListener("mousedown", close);
+    };
+  }, [confirmClear]);
+
   const visibleEvents = useMemo(
-    () => (data?.events ?? []).filter((event) => matchesActivityFeedFilter(event, filter)),
-    [data?.events, filter],
+    () =>
+      (data?.events ?? []).filter(
+        (event) =>
+          matchesFilter(event, filter) &&
+          (prefs.showTests || !event.isTest),
+      ),
+    [data?.events, filter, prefs.showTests],
   );
 
   const performAction = async (action: DockAction) => {
-    if (working) return;
-    if (action === "clear" && !window.confirm(t("activity.dock.clearConfirm"))) return;
+    if (working || invalid) return;
     setWorking(true);
-    setNotice("");
     try {
       const response = await fetch(
         `/api/demo/alert-studio/overlay/${encodeURIComponent(token)}/control`,
@@ -127,19 +381,18 @@ function ActivityFeedDock() {
           body: JSON.stringify({ action }),
         },
       );
-      if (!response.ok) throw new Error("activity.dock.actionFailed");
+      if (!response.ok) throw new Error("failed");
       await refresh();
     } catch {
-      setNotice("activity.dock.actionFailed");
+      flash({ key: "activity.dock.actionFailed", tone: "error" });
     } finally {
       setWorking(false);
     }
   };
 
   const replay = async (eventId: string) => {
-    if (working) return;
-    setWorking(true);
-    setNotice("");
+    if (replayingId || invalid) return;
+    setReplayingId(eventId);
     try {
       const response = await fetch(
         `/api/demo/alert-studio/overlay/${encodeURIComponent(token)}/replay`,
@@ -150,269 +403,403 @@ function ActivityFeedDock() {
           body: JSON.stringify({ eventId }),
         },
       );
-      if (!response.ok) throw new Error("activity.dock.replayFail");
+      if (!response.ok) throw new Error("failed");
       await refresh();
-      setNotice("activity.dock.replayQueued");
+      flash({ key: "activity.dock.replayQueued", tone: "ok" });
     } catch {
-      setNotice("activity.dock.replayFail");
+      flash({ key: "activity.dock.replayFail", tone: "error" });
     } finally {
-      setWorking(false);
+      setReplayingId(null);
     }
   };
 
-  const statusText = online ? t("activity.dock.online") : t("activity.dock.offline");
-  const current = data?.queue.current;
-  const alertName = (alertId: AlertKind) =>
-    ALERT_CATALOG.find((definition) => definition.id === alertId)?.title ?? alertId;
-  const queueLine = (event: DockQueueEvent) =>
-    `${alertName(event.alertId)} — ${event.username} · ${event.platform}`;
+  const paused = data?.queue.paused ?? false;
+  const muted = data?.queue.muted ?? false;
+  const pendingCount = data?.queue.pendingCount ?? 0;
+  const hasCurrent = Boolean(data?.queue.current);
+  const controlsOff = !data || working || invalid;
+  const label = (key: TranslationKey) => t(key);
+  const filterLabel = (id: FilterId) =>
+    id === "all"
+      ? t("activity.dock.all")
+      : id === "other"
+        ? t("activity.dock.other")
+        : BRAND_NAME[id];
+  const activeFilter = filter !== "all";
+  const moreActive = MORE_FILTERS.includes(filter);
 
   return (
-    <main className="min-h-screen bg-[#090a0d] p-3 text-foreground sm:p-5" dir={dir}>
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
-        <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Activity className="size-5" aria-hidden />
-            </span>
-            <div className="min-w-0">
-              <h1 className="truncate text-sm font-semibold">{t("activity.dock.title")}</h1>
-              <p className="text-xs text-muted-foreground">{t("activity.dock.subtitle")}</p>
-            </div>
-          </div>
-          <span
-            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${
-              online
-                ? "border-emerald-400/20 bg-emerald-400/5 text-emerald-200"
-                : "border-white/10 text-muted-foreground"
-            }`}
-            aria-live="polite"
+    <main className="fixed inset-0 overflow-hidden bg-[#0a0a0a] p-1.5 text-white" dir={dir}>
+      <style>{`
+        .dock-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
+        .dock-scroll::-webkit-scrollbar { width: 6px; }
+        .dock-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 999px; }
+        .dock-scroll::-webkit-scrollbar-track { background: transparent; }
+        .dock-filters::-webkit-scrollbar { display: none; }
+      `}</style>
+      <div className="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a]">
+        <header className="relative flex h-12 shrink-0 items-center gap-1 border-b border-white/10 ps-3 pe-2 max-[379px]:ps-2.5 max-[379px]:pe-1.5">
+          <h1 className="flex min-w-0 flex-1 items-center gap-2 text-[17px] font-bold leading-none max-[379px]:text-[15px] max-[339px]:gap-1.5 max-[339px]:text-sm">
+            <span className="truncate">{t("activity.dock.title")}</span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  role="status"
+                  aria-label={online ? t("activity.dock.online") : t("activity.dock.offline")}
+                  className={`size-1.5 shrink-0 rounded-full ${online ? "bg-emerald-400" : "bg-white/25"}`}
+                />
+              </TooltipTrigger>
+              <TooltipContent
+                side="bottom"
+                className="rounded-md px-2 py-1 text-[11px] leading-tight"
+                sideOffset={6}
+              >
+                {online ? t("activity.dock.online") : t("activity.dock.offline")}
+              </TooltipContent>
+            </Tooltip>
+          </h1>
+
+          <IconButton
+            label={paused ? t("activity.dock.resume") : t("activity.dock.pause")}
+            active={paused}
+            disabled={controlsOff}
+            onClick={() => void performAction(paused ? "resume" : "pause")}
           >
-            <RadioTower className="size-3.5" aria-hidden />
-            {statusText}
-          </span>
+            {paused ? <Play className="size-[18px]" fill="currentColor" /> : <Pause className="size-[18px]" fill="currentColor" />}
+          </IconButton>
+          <IconButton
+            label={muted ? t("activity.dock.unmute") : t("activity.dock.mute")}
+            active={muted}
+            disabled={controlsOff}
+            onClick={() => void performAction(muted ? "unmute" : "mute")}
+          >
+            {muted ? <VolumeX className="size-[18px]" /> : <Volume2 className="size-[18px]" />}
+          </IconButton>
+          <IconButton
+            label={hasCurrent ? t("activity.dock.skip") : t("activity.dock.skipIdle")}
+            disabled={controlsOff || !hasCurrent}
+            onClick={() => void performAction("skip")}
+          >
+            <SkipForward className="size-[18px]" fill="currentColor" />
+          </IconButton>
+          <IconButton
+            label={pendingCount ? t("activity.dock.clear") : t("activity.dock.clearNone")}
+            badge={pendingCount}
+            disabled={controlsOff || pendingCount === 0}
+            onClick={() => setConfirmClear(true)}
+          >
+            <Trash2 className="size-[18px]" />
+          </IconButton>
+
+          <span className="mx-0.5 h-5 w-px shrink-0 bg-white/15 max-[379px]:mx-0" aria-hidden />
+
+          <DropdownMenu dir={dir}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={t("activity.dock.filter")}
+                    className={`relative flex size-8 items-center justify-center rounded-md transition-colors max-[379px]:size-7 max-[339px]:size-[26px] ${
+                      activeFilter
+                        ? "bg-[#bee1fc]/15 text-[#bee1fc]"
+                        : "text-white/85 hover:bg-white/[0.07] hover:text-white"
+                    }`}
+                  >
+                    <FilterIcon className="size-[18px]" fill="currentColor" />
+                  </button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent
+                side="bottom"
+                className="rounded-md px-2 py-1 text-[11px] leading-tight"
+                sideOffset={6}
+              >
+                {t("activity.dock.filter")}
+              </TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end" className={MENU_CONTENT}>
+              <DropdownMenuRadioGroup value={filter} onValueChange={(value) => setFilter(value as FilterId)}>
+                {[...PRIMARY_FILTERS, ...MORE_FILTERS].map((id) => (
+                  <DropdownMenuRadioItem key={id} value={id} className={`${MENU_ITEM} gap-2`}>
+                    <span className="flex size-4 items-center justify-center">
+                      <FilterGlyph id={id} size={15} />
+                    </span>
+                    {filterLabel(id)}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu dir={dir}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={t("activity.dock.settings")}
+                    className="flex size-8 items-center justify-center rounded-md text-white/85 transition-colors hover:bg-white/[0.07] hover:text-white max-[379px]:size-7 max-[339px]:size-[26px]"
+                  >
+                    <Settings className="size-[18px]" fill="currentColor" />
+                  </button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent
+                side="bottom"
+                className="rounded-md px-2 py-1 text-[11px] leading-tight"
+                sideOffset={6}
+              >
+                {t("activity.dock.settings")}
+              </TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end" className={`${MENU_CONTENT} w-64`}>
+              <DropdownMenuLabel className="px-2 py-1 text-[11px] font-medium text-white/50">
+                {t("activity.dock.settings.language")}
+              </DropdownMenuLabel>
+              <DropdownMenuRadioGroup value={lang} onValueChange={(value) => setLang(value)}>
+                <DropdownMenuRadioItem value="ar" className={MENU_ITEM}>
+                  العربية
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="en" className={MENU_ITEM}>
+                  English
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuCheckboxItem
+                checked={prefs.showTests}
+                onCheckedChange={(checked) => updatePrefs({ showTests: checked === true })}
+                onSelect={(event) => event.preventDefault()}
+                className={MENU_ITEM}
+              >
+                {t("activity.dock.settings.testEvents")}
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={prefs.showMessages}
+                onCheckedChange={(checked) => updatePrefs({ showMessages: checked === true })}
+                onSelect={(event) => event.preventDefault()}
+                className={MENU_ITEM}
+              >
+                {t("activity.dock.settings.messages")}
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuItem className={MENU_ITEM} onSelect={() => void refresh()}>
+                <RefreshCw className="size-3.5" />
+                {t("activity.dock.settings.refresh")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-white/10" />
+              <p className="px-2 py-1.5 text-[11px] leading-snug text-white/45">
+                {t("activity.dock.settings.syncNote")}
+              </p>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {confirmClear ? (
+            <div
+              ref={confirmRef}
+              role="alertdialog"
+              aria-label={t("activity.dock.clear")}
+              className="absolute end-2 top-[calc(100%+4px)] z-30 w-56 max-w-[calc(100%-1rem)] rounded-lg border border-white/10 bg-[#111] p-3 shadow-xl shadow-black/60"
+            >
+              <p className="text-[13px] font-semibold">
+                {t("activity.dock.clearConfirm", { n: pendingCount })}
+              </p>
+              <p className="mt-0.5 text-[11px] text-white/50">{t("activity.dock.clearHint")}</p>
+              <div className="mt-2.5 flex justify-end gap-1.5">
+                <button
+                  type="button"
+                  autoFocus
+                  onClick={() => setConfirmClear(false)}
+                  className="h-7 rounded-md px-2.5 text-xs text-white/70 hover:bg-white/[0.07]"
+                >
+                  {t("activity.dock.cancel")}
+                </button>
+                <button
+                  type="button"
+                  disabled={working}
+                  onClick={() => {
+                    setConfirmClear(false);
+                    void performAction("clear");
+                  }}
+                  className="h-7 rounded-md bg-[#bee1fc] px-2.5 text-xs font-semibold text-[#0a0a0a] hover:bg-[#bee1fc]/90 disabled:opacity-50"
+                >
+                  {t("activity.dock.confirm")}
+                </button>
+              </div>
+            </div>
+          ) : null}
         </header>
+
+        <div
+          className="dock-filters flex shrink-0 items-center gap-1 overflow-x-auto border-b border-white/10 px-2.5 py-2 max-[379px]:px-2"
+          role="group"
+          aria-label={t("activity.dock.filter")}
+        >
+          {PRIMARY_FILTERS.map((id) => {
+            const selected = filter === id;
+            return (
+              <button
+                type="button"
+                key={id}
+                aria-pressed={selected}
+                aria-label={filterLabel(id)}
+                onClick={() => setFilter(id)}
+                className={`flex h-7 shrink-0 items-center gap-1.5 rounded-lg border px-2 text-[13px] leading-none transition-colors ${
+                  selected
+                    ? "border-[#bee1fc]/45 bg-[#bee1fc]/12 text-white"
+                    : "border-white/12 text-white/80 hover:bg-white/[0.05]"
+                }`}
+              >
+                <FilterGlyph id={id} size={15} />
+                <span className={selected || id === "all" ? "" : "max-[439px]:hidden"}>
+                  {filterLabel(id)}
+                </span>
+              </button>
+            );
+          })}
+          <DropdownMenu dir={dir}>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label={t("activity.dock.morePlatforms")}
+                className={`flex h-7 shrink-0 items-center gap-1 rounded-lg border px-2 text-[13px] leading-none transition-colors ${
+                  moreActive
+                    ? "border-[#bee1fc]/45 bg-[#bee1fc]/12 text-white"
+                    : "border-white/12 text-white/80 hover:bg-white/[0.05]"
+                }`}
+              >
+                {moreActive ? (
+                  <>
+                    <FilterGlyph id={filter} size={15} />
+                    <span>{filterLabel(filter)}</span>
+                  </>
+                ) : null}
+                <ChevronDown className="size-3.5" aria-hidden />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className={MENU_CONTENT}>
+              {MORE_FILTERS.map((id) => (
+                <DropdownMenuItem key={id} className={`${MENU_ITEM} gap-2`} onSelect={() => setFilter(id)}>
+                  <span className="flex size-4 items-center justify-center">
+                    <FilterGlyph id={id} size={15} />
+                  </span>
+                  <span className="flex-1">{filterLabel(id)}</span>
+                  {filter === id ? <Check className="size-3.5 text-[#bee1fc]" /> : null}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         {notice ? (
           <p
             role="status"
-            className="flex items-center gap-2 rounded-xl border border-amber-300/15 bg-amber-300/5 px-3 py-2 text-xs text-amber-100"
+            className={`shrink-0 border-b border-white/10 px-3 py-1.5 text-xs ${
+              notice.tone === "ok" ? "text-[#bee1fc]" : "text-amber-200/90"
+            }`}
           >
-            <CircleAlert className="size-4 shrink-0" aria-hidden />
-            {t(notice)}
+            {t(notice.key)}
           </p>
         ) : null}
 
-        <section className="rounded-2xl border border-white/10 bg-white/[0.025] p-3 sm:p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="me-1 text-xs font-semibold">{t("activity.dock.controls")}</span>
-              {data ? (
-                <span
-                  className={`me-1 rounded-full border px-2 py-1 text-[0.65rem] ${
-                    data.queue.paused
-                      ? "border-amber-300/20 text-amber-100"
-                      : "border-emerald-300/20 text-emerald-100"
-                  }`}
-                  aria-live="polite"
-                >
-                  {data.queue.paused ? t("alerts.control.paused") : t("alerts.control.running")}
-                  {data.queue.muted ? ` · ${t("activity.dock.muted")}` : ""}
-                </span>
-              ) : null}
-              {data?.queue.paused ? (
-                <button
-                  type="button"
-                  disabled={working || !data}
-                  onClick={() => void performAction("resume")}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-xs hover:bg-white/5 disabled:opacity-50"
-                >
-                  <Play className="size-3.5" aria-hidden />
-                  {t("alerts.control.resume")}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  disabled={working || !data}
-                  onClick={() => void performAction("pause")}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-xs hover:bg-white/5 disabled:opacity-50"
-                >
-                  <Pause className="size-3.5" aria-hidden />
-                  {t("alerts.control.pause")}
-                </button>
-              )}
-              <button
-                type="button"
-                disabled={working || !data || !current}
-                onClick={() => void performAction("skip")}
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-xs hover:bg-white/5 disabled:opacity-40"
-              >
-                <SkipForward className="size-3.5" aria-hidden />
-                {t("alerts.control.skip")}
-              </button>
-              <button
-                type="button"
-                disabled={working || !data || !data.queue.pendingCount}
-                onClick={() => void performAction("clear")}
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-xs hover:bg-white/5 disabled:opacity-40"
-              >
-                <Trash2 className="size-3.5" aria-hidden />
-                {t("alerts.control.clear")}
-              </button>
-              <button
-                type="button"
-                disabled={working || !data}
-                onClick={() => void performAction(data?.queue.muted ? "unmute" : "mute")}
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-xs hover:bg-white/5 disabled:opacity-50"
-              >
-                {data?.queue.muted ? (
-                  <Volume2 className="size-3.5" aria-hidden />
-                ) : (
-                  <MicOff className="size-3.5" aria-hidden />
-                )}
-                {t(data?.queue.muted ? "activity.dock.unmute" : "activity.dock.mute")}
-              </button>
-            </div>
-            <button
-              type="button"
-              disabled={working}
-              onClick={() => void refresh()}
-              className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-xs text-muted-foreground hover:bg-white/5 disabled:opacity-50"
-            >
-              <RotateCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} aria-hidden />
-              {t("activity.dock.refresh")}
-            </button>
-          </div>
-
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            <div className="min-w-0 rounded-xl border border-white/5 bg-black/15 px-3 py-2.5">
-              <p className="text-[0.68rem] font-semibold uppercase tracking-wide text-muted-foreground">
-                {t("activity.dock.nowPlaying")}
-              </p>
-              <p className="mt-1 truncate text-xs">
-                {current ? queueLine(current) : t("activity.dock.nothingPlaying")}
-              </p>
-            </div>
-            <div className="min-w-0 rounded-xl border border-white/5 bg-black/15 px-3 py-2.5">
-              <p className="text-[0.68rem] font-semibold uppercase tracking-wide text-muted-foreground">
-                {t("activity.dock.queue")}
-              </p>
-              <p className="mt-1 truncate text-xs">
-                {t("activity.dock.pending", { count: data?.queue.pendingCount ?? 0 })}
-                {data?.queue.pending[0] ? ` · ${queueLine(data.queue.pending[0])}` : ""}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 p-3 sm:p-4">
-            <div>
-              <h2 className="text-sm font-semibold">{t("activity.dock.history")}</h2>
-              {data?.locked ? (
-                <p className="mt-1 text-[0.7rem] text-muted-foreground">
-                  {t("activity.dock.locked")}
-                </p>
-              ) : null}
-            </div>
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("activity.filter")}>
-              {ACTIVITY_FEED_FILTERS.map((item) => (
-                <button
-                  type="button"
-                  key={item.id}
-                  aria-pressed={filter === item.id}
-                  onClick={() => setFilter(item.id)}
-                  className={`min-h-8 rounded-lg px-2.5 text-[0.7rem] ${
-                    filter === item.id
-                      ? "bg-primary/15 text-primary"
-                      : "text-muted-foreground hover:bg-white/5"
-                  }`}
-                >
-                  {t(item.label as TranslationKey)}
-                </button>
-              ))}
-            </div>
-          </div>
-          {loading && !data ? (
-            <div className="flex items-center justify-center gap-2 py-12 text-xs text-muted-foreground">
+        <div className="dock-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+          {invalid ? (
+            <p className="flex items-start gap-2 px-4 py-8 text-[13px] leading-snug text-white/60">
+              <Lock className="mt-0.5 size-4 shrink-0" aria-hidden />
+              {t("activity.dock.invalid")}
+            </p>
+          ) : loading && !data ? (
+            <div className="flex items-center justify-center gap-2 py-12 text-xs text-white/50">
               <LoaderCircle className="size-4 animate-spin" aria-hidden />
-              {t("activity.loading")}
+              {t("activity.dock.loading")}
             </div>
           ) : visibleEvents.length === 0 ? (
-            <p className="px-4 py-12 text-center text-xs text-muted-foreground">
-              {data?.locked ? t("activity.dock.locked") : t("activity.dock.empty")}
+            <p className="px-4 py-12 text-center text-[13px] text-white/50">
+              {data && data.events.length > 0 ? t("activity.dock.emptyFilter") : t("activity.dock.empty")}
             </p>
           ) : (
-            <ul className="max-h-[72vh] divide-y divide-white/5 overflow-y-auto">
+            <ul>
               {visibleEvents.map((event) => {
-                const label = eventLabel(event, (key) => t(key));
-                const eventTime = new Intl.DateTimeFormat(lang, {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  month: "short",
-                  day: "numeric",
-                }).format(new Date(event.created_at));
-                const amount =
-                  event.amount != null
-                    ? `${event.amount}${event.currency ? ` ${event.currency}` : ""}`
-                    : event.quantity > 1
-                      ? `×${event.quantity}`
-                      : "";
+                const { phrase, text } = describeEvent(event, label);
+                const TypeIcon = TYPE_ICON[phrase];
+                const edge = PLATFORM_EDGE[event.platform] ?? "#71717a";
+                const replaying = replayingId === event.id;
+                const replayLabel = event.replayAvailable
+                  ? t("activity.dock.replay")
+                  : t("activity.dock.replayUnavailable");
                 return (
-                  <li key={event.id} className="flex min-w-0 items-start gap-3 px-3 py-3 sm:px-4">
-                    <PlatformIcon platform={event.platform} size={20} />
+                  <li
+                    key={event.id}
+                    className="relative flex min-h-[52px] items-center gap-2.5 border-b border-white/[0.07] py-2 ps-5 pe-1.5 hover:bg-white/[0.025] max-[379px]:gap-2 max-[379px]:ps-4"
+                  >
+                    <span
+                      aria-hidden
+                      className="absolute start-2 top-1/2 h-8 w-[3px] -translate-y-1/2 rounded-full max-[379px]:start-1.5"
+                      style={{ background: edge }}
+                    />
+                    <span className="flex w-7 shrink-0 items-center justify-center">
+                      <PlatformIcon platform={event.platform} size={26} />
+                    </span>
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                        <span className="text-xs font-semibold">
+                      <div className="flex flex-wrap items-center gap-x-1.5 text-[15px] leading-[22px] max-[379px]:flex-col max-[379px]:items-start max-[379px]:gap-0 max-[379px]:text-sm max-[379px]:leading-5">
+                        <bdi className="break-words font-bold">
                           {event.actor_name ?? t("activity.anonymous")}
+                        </bdi>
+                        <ChevronRight className="size-3.5 shrink-0 text-white/35 rtl:rotate-180 max-[379px]:hidden" aria-hidden />
+                        <span className="flex min-w-0 items-center gap-1 text-white/90">
+                          {TypeIcon ? <TypeIcon className="size-3.5 shrink-0 text-white/50" aria-hidden /> : null}
+                          <bdi className="break-words">{text}</bdi>
+                          {event.isTest ? (
+                            <span className="ms-1 rounded bg-white/10 px-1 text-[10px] leading-4 text-white/55">
+                              {t("activity.dock.testBadge")}
+                            </span>
+                          ) : null}
                         </span>
-                        <span className="text-[0.68rem] text-muted-foreground">{label}</span>
-                        {amount ? (
-                          <span className="text-[0.68rem] text-muted-foreground">{amount}</span>
-                        ) : null}
-                        {event.isTest ? (
-                          <span className="rounded bg-white/5 px-1.5 py-0.5 text-[0.62rem] text-muted-foreground">
-                            {t("activity.testEvent")}
-                          </span>
-                        ) : null}
                       </div>
-                      {event.message ? (
-                        <p
-                          className="mt-1 break-words text-[0.72rem] text-muted-foreground"
-                          dir="auto"
-                        >
+                      {prefs.showMessages && event.message ? (
+                        <p className="line-clamp-2 break-words text-[13px] leading-snug text-white/45" dir="auto">
                           {event.message}
                         </p>
                       ) : null}
                     </div>
                     <time
-                      className="shrink-0 text-[0.65rem] text-muted-foreground"
+                      className="shrink-0 text-[13px] tabular-nums text-white/50"
                       dateTime={event.created_at}
                     >
-                      {eventTime}
+                      {relativeTime(event.created_at, now, label)}
                     </time>
-                    {event.replayAvailable ? (
-                      <button
-                        type="button"
-                        disabled={working}
-                        onClick={() => void replay(event.id)}
-                        className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-white/5 hover:text-foreground disabled:opacity-40"
-                        aria-label={t("activity.dock.replay")}
-                        title={t("activity.dock.replay")}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex shrink-0">
+                          <button
+                            type="button"
+                            aria-label={replayLabel}
+                            disabled={!event.replayAvailable || Boolean(replayingId) || invalid}
+                            onClick={() => void replay(event.id)}
+                            className="flex size-8 items-center justify-center rounded-md text-white/85 transition-colors hover:bg-white/[0.07] hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+                          >
+                            {replaying ? (
+                              <LoaderCircle className="size-[17px] animate-spin" aria-hidden />
+                            ) : (
+                              <RefreshCw className="size-[17px]" aria-hidden />
+                            )}
+                          </button>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="left"
+                        className="rounded-md px-2 py-1 text-[11px] leading-tight"
+                        sideOffset={4}
+                        collisionPadding={6}
                       >
-                        {working ? (
-                          <LoaderCircle className="size-4 animate-spin" aria-hidden />
-                        ) : (
-                          <RotateCw className="size-4" aria-hidden />
-                        )}
-                      </button>
-                    ) : null}
+                        {replayLabel}
+                      </TooltipContent>
+                    </Tooltip>
                   </li>
                 );
               })}
             </ul>
           )}
-        </section>
+        </div>
       </div>
     </main>
   );

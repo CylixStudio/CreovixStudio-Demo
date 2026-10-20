@@ -251,6 +251,8 @@ export type AlertSimulation = {
 export type AlertStudioState = {
   plan: AlertPlan;
   token: string;
+  /** Activity Dock link token. Regenerating it never changes the OBS overlay token. */
+  dockToken: string;
   limitBytes: number;
   overlaySeenAt: number;
   simulation: AlertSimulation;
@@ -599,6 +601,10 @@ function applyAvailability(alerts: PlatformAlerts): PlatformAlerts {
 
 export function isAlertToken(value: string): boolean {
   return /^demo-alerts-[a-z0-9]{12,32}$/.test(value);
+}
+
+export function isDockToken(value: string): boolean {
+  return /^demo-dock-[a-z0-9]{12,32}$/.test(value);
 }
 
 const VISUAL = new Set(["png", "jpg", "jpeg", "webp", "gif", "mp4", "webm"]);

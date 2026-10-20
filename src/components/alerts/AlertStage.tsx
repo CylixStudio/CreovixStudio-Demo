@@ -72,6 +72,8 @@ export const AlertStage = forwardRef<
     audioId?: string | null;
     mode: "preview" | "overlay";
     compact?: boolean;
+    /** Silences audio, video sound and speech (Dock mute). */
+    muted?: boolean;
   }
 >(function AlertStage(
   {
@@ -89,6 +91,7 @@ export const AlertStage = forwardRef<
     audioId = null,
     mode,
     compact = false,
+    muted = false,
   },
   ref,
 ) {
@@ -150,7 +153,7 @@ export const AlertStage = forwardRef<
   };
 
   const speak = () => {
-    if (config.tts !== "browser" || typeof window === "undefined" || !window.speechSynthesis)
+    if (muted || config.tts !== "browser" || typeof window === "undefined" || !window.speechSynthesis)
       return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(shown);
@@ -161,7 +164,7 @@ export const AlertStage = forwardRef<
 
   const armMedia = () => {
     stopMedia();
-    if (audioSrc) {
+    if (audioSrc && !muted) {
       const element = audioRef.current ?? new Audio(audioSrc);
       element.src = audioSrc;
       element.volume = config.volume / 100;
@@ -179,7 +182,7 @@ export const AlertStage = forwardRef<
     const clip = videoRef.current;
     if (clip) {
       clip.currentTime = 0;
-      clip.muted = Boolean(audioSrc);
+      clip.muted = muted || Boolean(audioSrc);
       clip.volume = config.volume / 100;
       void clip
         .play()
@@ -229,6 +232,13 @@ export const AlertStage = forwardRef<
       timers.current.push(start);
     },
   }));
+
+  useEffect(() => {
+    if (!muted) return;
+    audioRef.current?.pause();
+    window.speechSynthesis?.cancel();
+    if (videoRef.current) videoRef.current.muted = true;
+  }, [muted]);
 
   useEffect(
     () => () => {

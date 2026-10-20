@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/demo/alert-studio/dock-token")({
     handlers: {
       POST: async () => {
         if (!demoAlertsEnabled()) return denied();
-        const state = regenerateDockToken();
+        const state = await regenerateDockToken();
         return Response.json(state, { headers: { "cache-control": "no-store" } });
       },
     },

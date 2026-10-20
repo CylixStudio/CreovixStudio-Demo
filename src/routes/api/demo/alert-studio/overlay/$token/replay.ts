@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  alertTokenMatches,
+  dockTokenMatches,
   demoAlertsEnabled,
   getAlertControlState,
 } from "@/lib/alertStudio.server";
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/api/demo/alert-studio/overlay/$token/repl
   server: {
     handlers: {
       POST: async ({ params, request }) => {
-        if (!demoAlertsEnabled() || !alertTokenMatches(params.token)) {
+        if (!demoAlertsEnabled() || !dockTokenMatches(params.token)) {
           return Response.json({ error: "not_found" }, { status: 404 });
         }
 
@@ -29,13 +29,13 @@ export const Route = createFileRoute("/api/demo/alert-studio/overlay/$token/repl
 
         if (!result.queued) {
           return Response.json(
-            { error: "replay_failed", queued: false },
-            { status: 409 },
+            { error: "replay_failed", queued: false, reason: result.reason },
+            { status: result.reason === "not_found" ? 404 : 409 },
           );
         }
 
         return Response.json(
-          { ok: true, queued: true, duplicate: result.duplicate },
+          { ok: true, queued: true },
           { headers: { "cache-control": "no-store" } },
         );
       },

@@ -18,6 +18,7 @@ function DemoAlertsOverlay() {
   const { token } = Route.useParams();
   const [current, setCurrent] = useState<AlertEvent | null>(null);
   const [missing, setMissing] = useState(false);
+  const [muted, setMuted] = useState(false);
   const stageRef = useRef<AlertStageHandle>(null);
   const overlayId = useRef<string>("");
   if (!overlayId.current && typeof crypto !== "undefined") overlayId.current = crypto.randomUUID();
@@ -125,8 +126,13 @@ function DemoAlertsOverlay() {
           return;
         }
         if (!response.ok) return;
-        const payload = (await response.json()) as { paused?: boolean; currentId?: string | null };
+        const payload = (await response.json()) as {
+          paused?: boolean;
+          muted?: boolean;
+          currentId?: string | null;
+        };
         paused = Boolean(payload.paused);
+        setMuted(Boolean(payload.muted));
         if (playing && payload.currentId !== currentId) {
           // Skipped from the dashboard: the server cleared the on-screen alert.
           handleControl({ type: "skip", paused, skipId: currentId });
@@ -189,6 +195,7 @@ function DemoAlertsOverlay() {
           visualId={current.visualId}
           visualMime={current.visualMime}
           audioId={current.audioId}
+          muted={muted}
         />
       ) : null}
     </main>

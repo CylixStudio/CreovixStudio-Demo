@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import {
-  alertTokenMatches,
+  controlTokenMatches,
   clearAlertQueue,
   demoAlertsEnabled,
   getAlertControlState,
+  setAlertMuted,
   setAlertPaused,
   skipCurrentAlert,
 } from "@/lib/alertStudio.server";
@@ -18,13 +19,14 @@ export const Route = createFileRoute("/api/demo/alert-studio/overlay/$token/cont
   server: {
     handlers: {
       GET: async ({ params }) => {
-        if (!demoAlertsEnabled() || !alertTokenMatches(params.token)) {
+        if (!demoAlertsEnabled() || !controlTokenMatches(params.token)) {
           return Response.json({ error: "not_found" }, { status: 404 });
         }
         const state = getAlertControlState();
         return Response.json(
           {
             paused: state.paused,
+            muted: state.muted,
             current: state.current,
             pending: state.pending,
             pendingCount: state.pending.length,
@@ -33,7 +35,7 @@ export const Route = createFileRoute("/api/demo/alert-studio/overlay/$token/cont
         );
       },
       POST: async ({ request, params }) => {
-        if (!demoAlertsEnabled() || !alertTokenMatches(params.token)) {
+        if (!demoAlertsEnabled() || !controlTokenMatches(params.token)) {
           return Response.json({ error: "not_found" }, { status: 404 });
         }
         const body = (await request.json().catch(() => ({}))) as { action?: string };
@@ -43,6 +45,12 @@ export const Route = createFileRoute("/api/demo/alert-studio/overlay/$token/cont
             break;
           case "resume":
             await setAlertPaused(false);
+            break;
+          case "mute":
+            await setAlertMuted(true);
+            break;
+          case "unmute":
+            await setAlertMuted(false);
             break;
           case "skip":
             await skipCurrentAlert();
@@ -58,6 +66,7 @@ export const Route = createFileRoute("/api/demo/alert-studio/overlay/$token/cont
           {
             ok: true,
             paused: state.paused,
+            muted: state.muted,
             current: state.current,
             pending: state.pending,
             pendingCount: state.pending.length,

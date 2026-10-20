@@ -18,6 +18,7 @@ import {
   emptyPlatformAlerts,
   inspectUpload,
   isAlertToken,
+  isDockToken,
   mediaLimit,
   normalizeConfig,
   normalizePlatformAlerts,
@@ -50,16 +51,19 @@ function overlaySeenAtNow(): number {
   return Number(kvGet("alerts:overlay-seen")) || 0;
 }
 
-/**
- * Generate a unique token for demo alerts/dock access.
- * Format: demo-alerts-XXXXXXXXX where X is random alphanumeric
- */
-function freshToken(): string {
-  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-  let token = "demo-alerts-";
-  for (let i = 0; i < 9; i++) {
-    token += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
+// The demo server is stateless: every request rebuilds the database from fixtures plus
+// the visitor's saved tables. The first-visit tokens must therefore be constants, or
+// concurrent requests would each invent a different token before anything is saved.
+// Only an explicit regeneration creates a random token, and that one is then stored.
+const DEFAULT_OVERLAY_TOKEN = "demo-alerts-cylixdemo0001";
+const DEFAULT_DOCK_TOKEN = "demo-dock-cylixdemo0001";
+
+/** Random dock token: 24 chars from a 32-symbol alphabet (120 bits, no modulo bias). */
+function freshDockToken(): string {
+  const alphabet = "abcdefghijklmnopqrstuvwxyz234567";
+  const bytes = crypto.getRandomValues(new Uint8Array(24));
+  let token = "demo-dock-";
+  for (const byte of bytes) token += alphabet.charAt(byte & 31);
   return token;
 }
 
@@ -69,7 +73,8 @@ function readStored(): StoredSettings {
   } catch {
     const created: StoredSettings = {
       plan: "pro",
-      token: freshToken(),
+      token: DEFAULT_OVERLAY_TOKEN,
+      dockToken: DEFAULT_DOCK_TOKEN,
       simulation: normalizeSimulation(null),
       alerts: emptyPlatformAlerts(),
       media: [],
@@ -85,7 +90,11 @@ function normalizeStored(raw: unknown): StoredSettings {
   const token =
     typeof record["token"] === "string" && isAlertToken(record["token"])
       ? record["token"]
-      : freshToken();
+      : DEFAULT_OVERLAY_TOKEN;
+  const dockToken =
+    typeof record["dockToken"] === "string" && isDockToken(record["dockToken"])
+      ? record["dockToken"]
+      : DEFAULT_DOCK_TOKEN;
   const alerts = normalizePlatformAlerts(record["alerts"]);
   const media = Array.isArray(record["media"])
     ? record["media"].flatMap((item): MediaAsset[] => {
@@ -113,7 +122,14 @@ function normalizeStored(raw: unknown): StoredSettings {
         ];
       })
     : [];
-  return { plan, token, simulation: normalizeSimulation(record["simulation"]), alerts, media };
+  return {
+    plan,
+    token,
+    dockToken,
+    simulation: normalizeSimulation(record["simulation"]),
+    alerts,
+    media,
+  };
 }
 
 function writeStored(settings: StoredSettings): void {
@@ -165,6 +181,7 @@ export function saveAlertStudio(patch: {
   const next: StoredSettings = {
     plan,
     token: current.token,
+    dockToken: current.dockToken,
     simulation:
       patch.simulation !== undefined ? normalizeSimulation(patch.simulation) : current.simulation,
     alerts,
@@ -181,26 +198,17 @@ export function updateAlertStudio(
 }
 
 /**
- * Regenerate the Demo Dock token and immediately invalidate the previous one.
- * Only the current token is stored. Old tokens are discarded and no longer valid.
- * The new token persists in localStorage and survives page refresh.
+ * Replace the Activity Dock token. The previous token is not kept anywhere, so the
+ * old Dock URL stops validating as soon as the new state is saved. The OBS overlay
+ * token is untouched. Revocation only holds for the browser storage that holds this
+ * state: another browser or OBS profile keeps whatever token it has saved.
  */
-export function regenerateDockToken(): AlertStudioState {
-  const current = readStored();
-  
-  // Generate new token
-  const newToken = freshToken();
-  
-  // Discard old token; only keep current
-  // Do NOT store old tokens in a valid-tokens list
-  // This ensures immediate invalidation
-  const next: StoredSettings = {
-    ...current,
-    token: newToken,
-  };
-  writeStored(next);
-  
-  return { ...next, limitBytes: mediaLimit(next.plan), overlaySeenAt: overlaySeenAtNow() };
+export function regenerateDockToken(): Promise<AlertStudioState> {
+  return withLock(() => {
+    const next: StoredSettings = { ...readStored(), dockToken: freshDockToken() };
+    writeStored(next);
+    return { ...next, limitBytes: mediaLimit(next.plan), overlaySeenAt: overlaySeenAtNow() };
+  });
 }
 
 function readQueue(): AlertEvent[] {
@@ -256,50 +264,6 @@ export function acknowledgeAlert(id: string): Promise<void> {
   });
 }
 
-/**
- * Replay a specific alert event back into the queue.
- * Creates a new event with the same alert type and parameters as the original.
- * Used by the Activity Dock replay button.
- */
-export function replayAlertEvent(eventId: string): { queued: boolean; message: string } {
-  return withLock(() => {
-    const events = listAlertEvents();
-    const original = events.find((e) => e.id === eventId);
-
-    if (!original) {
-      return { queued: false, message: "حدث غير موجود في السجل." };
-    }
-
-    // Create a new event (fresh ID, current timestamp) from the original
-    const replayed: AlertEvent = {
-      id: crypto.randomUUID(),
-      alertId: original.alertId,
-      platform: original.platform,
-      username: original.username,
-      count: original.count,
-      months: original.months,
-      amount: original.amount,
-      message: original.message,
-      variationId: original.variationId,
-      text: original.text,
-      config: original.config,
-      visualId: original.visualId,
-      visualMime: original.visualMime,
-      visualUrl: original.visualUrl,
-      audioId: original.audioId,
-      createdAt: Date.now(),
-    };
-
-    const queue = readQueue();
-    queue.push(replayed);
-    writeQueue(queue);
-
-    for (const listener of listeners) listener(replayed);
-
-    return { queued: true, message: "أُضيف الحدث المعاد تشغيله إلى طابور OBS." };
-  });
-}
-
 // ===== Alert Control =====
 // Server-side control for the OBS alert queue, shared by every dashboard tab and
 // OBS source. Pause/resume, skip and clear live here so they survive a dashboard
@@ -317,6 +281,8 @@ const CLAIM_TIMEOUT_MS = 45_000;
 
 type AlertControl = {
   paused: boolean;
+  // Silences audio and speech on the demo overlay; visuals keep playing.
+  muted: boolean;
   current: { id: string; overlayId: string; startedAt: number } | null;
   // Overlay id that currently owns the display lease. Extra OBS windows stay on
   // standby so one alert is never consumed twice.
@@ -326,6 +292,7 @@ type AlertControl = {
 export type AlertControlSignal = {
   type: "state" | "skip" | "clear";
   paused: boolean;
+  muted: boolean;
   currentId: string | null;
   pendingCount: number;
   skipId?: string | null;
@@ -363,6 +330,7 @@ function readControl(): AlertControl {
       current && typeof current === "object" ? (current as Record<string, unknown>) : null;
     return {
       paused: raw["paused"] === true,
+      muted: raw["muted"] === true,
       current:
         currentRecord && typeof currentRecord["id"] === "string"
           ? {
@@ -376,7 +344,7 @@ function readControl(): AlertControl {
         typeof raw["activeOverlayId"] === "string" ? (raw["activeOverlayId"] as string) : null,
     };
   } catch {
-    return { paused: false, current: null, activeOverlayId: null };
+    return { paused: false, muted: false, current: null, activeOverlayId: null };
   }
 }
 
@@ -397,6 +365,7 @@ function controlSignal(
   return {
     type,
     paused: control.paused,
+    muted: control.muted,
     currentId: control.current?.id ?? null,
     pendingCount: pendingEvents(control, queue).length,
     ...extra,
@@ -415,6 +384,7 @@ export function subscribeAlertControl(listener: (signal: AlertControlSignal) => 
 /** Live queue state for the dashboard (paused, on-screen alert, pending list). */
 export function getAlertControlState(): {
   paused: boolean;
+  muted: boolean;
   current: AlertEvent | null;
   pending: AlertEvent[];
 } {
@@ -423,7 +393,12 @@ export function getAlertControlState(): {
   const current = control.current
     ? (queue.find((event) => event.id === control.current!.id) ?? null)
     : null;
-  return { paused: control.paused, current, pending: pendingEvents(control, queue) };
+  return {
+    paused: control.paused,
+    muted: control.muted,
+    current,
+    pending: pendingEvents(control, queue),
+  };
 }
 
 /**
@@ -534,6 +509,16 @@ export function setAlertPaused(paused: boolean): Promise<boolean> {
     writeControl({ ...control, paused });
     broadcastControl(controlSignal("state"));
     return paused;
+  });
+}
+
+export function setAlertMuted(muted: boolean): Promise<boolean> {
+  return withLock(() => {
+    const control = readControl();
+    if (control.muted === muted) return control.muted;
+    writeControl({ ...control, muted });
+    broadcastControl(controlSignal("state"));
+    return muted;
   });
 }
 
@@ -741,13 +726,20 @@ export function removeAlertMedia(id: string): Promise<AlertStudioState | null> {
   return withLock(() => deleteAlertMedia(id));
 }
 
-/**
- * Check if a token is valid (must match current token).
- * Old tokens are immediately invalidated upon regeneration.
- */
+/** OBS overlay token (claim, ack, live, presence). */
 export function alertTokenMatches(token: string): boolean {
-  const current = readStored().token;
-  return current === token;
+  return readStored().token === token;
+}
+
+/** Activity Dock token (feed, replay). Only the current token is accepted. */
+export function dockTokenMatches(token: string): boolean {
+  return readStored().dockToken === token;
+}
+
+/** Queue controls are used by the dashboard (overlay token) and by the Dock (dock token). */
+export function controlTokenMatches(token: string): boolean {
+  const stored = readStored();
+  return stored.token === token || stored.dockToken === token;
 }
 
 // ===== Platform event ingest =====

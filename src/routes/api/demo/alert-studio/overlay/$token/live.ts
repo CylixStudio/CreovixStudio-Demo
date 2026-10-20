@@ -13,6 +13,7 @@ export const Route = createFileRoute("/api/demo/alert-studio/overlay/$token/live
         return Response.json(
           {
             paused: control.paused,
+            muted: control.muted,
             currentId: control.current?.id ?? null,
             pendingCount: control.pending.length,
           },
