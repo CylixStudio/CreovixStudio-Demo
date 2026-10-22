@@ -98,7 +98,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function DocumentShell({ children }: { children: ReactNode }) {
   const { lang, dir } = useLanguage();
   return (
-    <html lang={lang} dir={dir}>
+    <html lang={lang} dir={dir} suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

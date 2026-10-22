@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
+  Bell,
   ChevronRight,
   CircleDollarSign,
   Filter as FilterIcon,
@@ -13,11 +14,11 @@ import {
   Pause,
   Play,
   RefreshCw,
+  RotateCcw,
   Settings,
   SkipForward,
   Star,
   Trash2,
-  UserPlus,
   Users,
   Volume2,
   VolumeX,
@@ -48,6 +49,7 @@ export const Route = createFileRoute("/widgets/activityfeed/$demoChannelId")({
       { name: "robots", content: "noindex,nofollow" },
       { name: "referrer", content: "no-referrer" },
     ],
+    scripts: [{ children: UI_SIZE_BOOT_SCRIPT }],
   }),
   component: ActivityFeedDock,
 });
@@ -151,7 +153,7 @@ const PLATFORM_EDGE: Record<string, string> = {
 const KNOWN_PLATFORMS = new Set(Object.values(FILTER_PLATFORM));
 
 const TYPE_ICON: Record<string, LucideIcon> = {
-  FOLLOW: UserPlus,
+  FOLLOW: Heart,
   SUBSCRIPTION: Star,
   SUBSCRIBE: Star,
   MEMBERSHIP: Star,
@@ -162,14 +164,35 @@ const TYPE_ICON: Record<string, LucideIcon> = {
   DONATION: CircleDollarSign,
   SUPER_CHAT: CircleDollarSign,
   RAID: Users,
+  HOST: Users,
   LIKE: Heart,
 };
 
 const PREFS_KEY = "cylix.dock.prefs";
+// Logo pixel sizes at 100%; the UI Size factor is applied where they are rendered.
+const ROW_LOGO_PX = 13;
+const FILTER_LOGO_PX = 15;
 const PLATFORM_ICON_MODES = ["left", "right", "color", "none"] as const;
 type PlatformIconMode = (typeof PLATFORM_ICON_MODES)[number];
-type Prefs = { showTests: boolean; showMessages: boolean; platformIcons: PlatformIconMode };
-const DEFAULT_PREFS: Prefs = { showTests: true, showMessages: true, platformIcons: "left" };
+const UI_SIZE_MIN = 60;
+const UI_SIZE_MAX = 130;
+const UI_SIZE_DEFAULT = 100;
+type Prefs = {
+  showTests: boolean;
+  showMessages: boolean;
+  platformIcons: PlatformIconMode;
+  uiSize: number;
+};
+const DEFAULT_PREFS: Prefs = {
+  showTests: true,
+  showMessages: true,
+  platformIcons: "left",
+  uiSize: UI_SIZE_DEFAULT,
+};
+
+function clampUiSize(value: number): number {
+  return Math.min(UI_SIZE_MAX, Math.max(UI_SIZE_MIN, Math.round(value)));
+}
 
 function readPrefs(): Prefs {
   try {
@@ -183,10 +206,95 @@ function readPrefs(): Prefs {
       platformIcons: PLATFORM_ICON_MODES.includes(stored.platformIcons as PlatformIconMode)
         ? (stored.platformIcons as PlatformIconMode)
         : DEFAULT_PREFS.platformIcons,
+      uiSize:
+        typeof stored.uiSize === "number" && Number.isFinite(stored.uiSize)
+          ? clampUiSize(stored.uiSize)
+          : DEFAULT_PREFS.uiSize,
     };
   } catch {
     return DEFAULT_PREFS;
   }
+}
+
+/**
+ * UI Size scales the dock by changing the page's root font size. Every size and spacing in
+ * this page (and in the Radix popovers and tooltips, which portal to the body) is in rem,
+ * so the layout is recomputed instead of being transformed: nothing is clipped and no
+ * unaccounted space is left. The same inline script is run from the route head to avoid a
+ * flash at 100% before hydration.
+ */
+const UI_SIZE_BOOT_SCRIPT = `try{var p=JSON.parse(localStorage.getItem(${JSON.stringify(PREFS_KEY)})||"{}");var s=Number(p.uiSize);if(s>=${UI_SIZE_MIN}&&s<=${UI_SIZE_MAX})document.documentElement.style.fontSize=Math.round(s)+"%"}catch(e){}`;
+
+function UiSizeControl({
+  value,
+  onChange,
+  label,
+  resetLabel,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  label: string;
+  resetLabel: string;
+}) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+
+  const commit = (text: string, final: boolean) => {
+    setDraft(text);
+    const parsed = Number(text);
+    if (text.trim() === "" || !Number.isFinite(parsed)) {
+      if (final) setDraft(String(value));
+      return;
+    }
+    if (final) onChange(clampUiSize(parsed));
+    else if (parsed >= UI_SIZE_MIN && parsed <= UI_SIZE_MAX) onChange(Math.round(parsed));
+  };
+
+  return (
+    <div className="px-2 py-1.5" onKeyDown={(event) => event.stopPropagation()}>
+      <div className="flex items-center gap-2">
+        <input
+          type="range"
+          aria-label={label}
+          min={UI_SIZE_MIN}
+          max={UI_SIZE_MAX}
+          step={1}
+          value={value}
+          onChange={(event) => onChange(clampUiSize(Number(event.target.value)))}
+          className="h-1.5 min-w-0 flex-1 cursor-pointer accent-[#bee1fc]"
+        />
+        <label className="flex shrink-0 items-center gap-0.5 rounded-md border border-white/15 bg-black/30 px-1.5 text-[0.8125rem] tabular-nums focus-within:border-[#bee1fc]/60">
+          <input
+            type="number"
+            dir="ltr"
+            inputMode="numeric"
+            aria-label={`${label} %`}
+            min={UI_SIZE_MIN}
+            max={UI_SIZE_MAX}
+            value={draft}
+            onChange={(event) => commit(event.target.value, false)}
+            onBlur={(event) => commit(event.target.value, true)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") commit((event.target as HTMLInputElement).value, true);
+            }}
+            className="h-6 w-[2.6rem] bg-transparent text-end outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          />
+          <span aria-hidden className="text-white/50">
+            %
+          </span>
+        </label>
+      </div>
+      <button
+        type="button"
+        disabled={value === UI_SIZE_DEFAULT}
+        onClick={() => onChange(UI_SIZE_DEFAULT)}
+        className="mt-1.5 flex h-7 items-center gap-1.5 rounded-md px-1.5 text-[0.8125rem] text-white/80 transition-colors hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+      >
+        <RotateCcw className="size-3.5" aria-hidden />
+        {resetLabel}
+      </button>
+    </div>
+  );
 }
 
 function matchesFilter(event: ActivityFeedEvent, filter: FilterId): boolean {
@@ -233,7 +341,7 @@ function IconButton({
             aria-pressed={active}
             disabled={disabled}
             onClick={onClick}
-            className={`relative flex size-8 items-center justify-center rounded-md transition-colors disabled:cursor-not-allowed disabled:opacity-35 max-[379px]:size-7 max-[339px]:size-[26px] ${
+            className={`relative flex size-8 items-center justify-center rounded-md transition-colors disabled:cursor-not-allowed disabled:opacity-35 group-data-[compact]/dock:size-7 group-data-[tiny]/dock:size-[1.625rem] ${
               active
                 ? "bg-[#bee1fc]/15 text-[#bee1fc]"
                 : "text-white/85 hover:bg-white/[0.07] hover:text-white"
@@ -241,7 +349,7 @@ function IconButton({
           >
             {children}
             {badge ? (
-              <span className="absolute -end-0.5 -top-0.5 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-[#bee1fc] px-1 text-[9px] font-bold leading-none text-[#0a0a0a]">
+                          <span className="absolute -end-0.5 -top-0.5 flex h-[0.9375rem] min-w-[0.9375rem] items-center justify-center rounded-full bg-[#bee1fc] px-1 text-[0.5625rem] font-bold leading-none text-[#0a0a0a]">
                 {badge > 99 ? "99+" : badge}
               </span>
             ) : null}
@@ -250,7 +358,7 @@ function IconButton({
       </TooltipTrigger>
       <TooltipContent
         side="bottom"
-        className="rounded-md px-2 py-1 text-[11px] leading-tight"
+        className={TIP}
         sideOffset={6}
         collisionPadding={6}
       >
@@ -260,9 +368,11 @@ function IconButton({
   );
 }
 
+const TIP = "rounded-md px-2 py-1 text-[0.6875rem] leading-tight";
+const MENU_LABEL = "px-2 py-1 text-[0.6875rem] font-medium text-white/50";
 const MENU_CONTENT =
-  "min-w-[10rem] max-w-[min(18rem,calc(100vw-1rem))] rounded-lg border-white/10 bg-[#111] p-1 text-[13px]";
-const MENU_ITEM = "rounded-md px-2 py-1.5 text-[13px]";
+  "min-w-[10rem] max-w-[min(18rem,calc(100vw-1rem))] rounded-lg border-white/10 bg-[#111] p-1 text-[0.8125rem]";
+const MENU_ITEM = "rounded-md px-2 py-1.5 text-[0.8125rem]";
 
 function ActivityFeedDock() {
   // The fixed demo channel id doubles as the Demo store's dock key; it is not a secret.
@@ -287,9 +397,28 @@ function ActivityFeedDock() {
   const noticeTimer = useRef<number | null>(null);
   const confirmRef = useRef<HTMLDivElement>(null);
 
+  const [prefsReady, setPrefsReady] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(0);
+  useEffect(() => {
+    const update = () => setViewportWidth(window.innerWidth);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
   useEffect(() => {
     setPrefs(readPrefs());
+    setPrefsReady(true);
   }, []);
+
+  // Scale variable: the root font size drives every rem-based size and spacing on this page.
+  useEffect(() => {
+    if (!prefsReady) return;
+    const root = document.documentElement;
+    root.style.fontSize = prefs.uiSize === UI_SIZE_DEFAULT ? "" : `${prefs.uiSize}%`;
+    return () => {
+      root.style.fontSize = "";
+    };
+  }, [prefs.uiSize, prefsReady]);
 
   const updatePrefs = (patch: Partial<Prefs>) => {
     setPrefs((current) => {
@@ -465,21 +594,32 @@ function ActivityFeedDock() {
   // "Left"/"Right" are physical sides, so in a right-to-left layout the logo's flex position is mirrored.
   const showLogo = prefs.platformIcons === "left" || prefs.platformIcons === "right";
   const logoFirst = showLogo && (prefs.platformIcons === "left") === (dir === "ltr");
+  const iconsOnly = prefs.platformIcons === "none";
+  const ui = prefs.uiSize / 100;
+  // Compact layouts depend on the width in unscaled units, so they follow UI Size.
+  const effectiveWidth = viewportWidth / ui;
+  const compact = effectiveWidth > 0 && effectiveWidth < 380;
+  const tiny = effectiveWidth > 0 && effectiveWidth < 340;
 
   return (
-    <main className="fixed inset-0 overflow-hidden bg-[#0a0a0a] p-1.5 text-white" dir={dir}>
+    <main
+      className="group/dock fixed inset-0 overflow-hidden bg-[#0a0a0a] p-1.5 text-white"
+      dir={dir}
+      data-compact={compact ? "" : undefined}
+      data-tiny={tiny ? "" : undefined}
+    >
       <style>{`
         .dock-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
-        .dock-scroll::-webkit-scrollbar { width: 6px; }
+        .dock-scroll::-webkit-scrollbar { width: 0.375rem; }
         .dock-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 999px; }
         .dock-scroll::-webkit-scrollbar-track { background: transparent; }
         .dock-filters { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
-        .dock-filters::-webkit-scrollbar { height: 4px; }
+        .dock-filters::-webkit-scrollbar { height: 0.25rem; }
         .dock-filters::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 999px; }
       `}</style>
       <div className="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a]">
-        <header className="relative flex h-12 shrink-0 items-center gap-1 border-b border-white/10 ps-3 pe-2 max-[379px]:ps-2.5 max-[379px]:pe-1.5">
-          <h1 className="flex min-w-0 flex-1 items-center gap-2 text-[17px] font-bold leading-none max-[379px]:text-[15px] max-[339px]:gap-1.5 max-[339px]:text-sm">
+        <header className="relative flex h-12 shrink-0 items-center gap-1 border-b border-white/10 ps-3 pe-2 group-data-[compact]/dock:ps-2.5 group-data-[compact]/dock:pe-1.5">
+          <h1 className="flex min-w-0 flex-1 items-center gap-2 text-[1.0625rem] font-bold leading-none group-data-[compact]/dock:text-[0.9375rem] group-data-[tiny]/dock:gap-1.5 group-data-[tiny]/dock:text-sm">
             <span className="truncate">{t("activity.dock.title")}</span>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -491,7 +631,7 @@ function ActivityFeedDock() {
               </TooltipTrigger>
               <TooltipContent
                 side="bottom"
-                className="rounded-md px-2 py-1 text-[11px] leading-tight"
+                className={TIP}
                 sideOffset={6}
               >
                 {online ? t("activity.dock.online") : t("activity.dock.offline")}
@@ -505,7 +645,7 @@ function ActivityFeedDock() {
             disabled={controlsOff}
             onClick={() => void performAction(paused ? "resume" : "pause")}
           >
-            {paused ? <Play className="size-[18px]" fill="currentColor" /> : <Pause className="size-[18px]" fill="currentColor" />}
+            {paused ? <Play className="size-[1.125rem]" fill="currentColor" /> : <Pause className="size-[1.125rem]" fill="currentColor" />}
           </IconButton>
           <IconButton
             label={muted ? t("activity.dock.unmute") : t("activity.dock.mute")}
@@ -513,14 +653,14 @@ function ActivityFeedDock() {
             disabled={controlsOff}
             onClick={() => void performAction(muted ? "unmute" : "mute")}
           >
-            {muted ? <VolumeX className="size-[18px]" /> : <Volume2 className="size-[18px]" />}
+            {muted ? <VolumeX className="size-[1.125rem]" /> : <Volume2 className="size-[1.125rem]" />}
           </IconButton>
           <IconButton
             label={hasCurrent ? t("activity.dock.skip") : t("activity.dock.skipIdle")}
             disabled={controlsOff || !hasCurrent}
             onClick={() => void performAction("skip")}
           >
-            <SkipForward className="size-[18px]" fill="currentColor" />
+            <SkipForward className="size-[1.125rem]" fill="currentColor" />
           </IconButton>
           <IconButton
             label={pendingCount ? t("activity.dock.clear") : t("activity.dock.clearNone")}
@@ -528,10 +668,10 @@ function ActivityFeedDock() {
             disabled={controlsOff || pendingCount === 0}
             onClick={() => setConfirmClear(true)}
           >
-            <Trash2 className="size-[18px]" />
+            <Trash2 className="size-[1.125rem]" />
           </IconButton>
 
-          <span className="mx-0.5 h-5 w-px shrink-0 bg-white/15 max-[379px]:mx-0" aria-hidden />
+          <span className="mx-0.5 h-5 w-px shrink-0 bg-white/15 group-data-[compact]/dock:mx-0" aria-hidden />
 
           <DropdownMenu dir={dir}>
             <Tooltip>
@@ -540,26 +680,26 @@ function ActivityFeedDock() {
                   <button
                     type="button"
                     aria-label={t("activity.dock.filterTypes")}
-                    className={`relative flex size-8 items-center justify-center rounded-md transition-colors max-[379px]:size-7 max-[339px]:size-[26px] ${
+                    className={`relative flex size-8 items-center justify-center rounded-md transition-colors group-data-[compact]/dock:size-7 group-data-[tiny]/dock:size-[1.625rem] ${
                       activeFilter
                         ? "bg-[#bee1fc]/15 text-[#bee1fc]"
                         : "text-white/85 hover:bg-white/[0.07] hover:text-white"
                     }`}
                   >
-                    <FilterIcon className="size-[18px]" fill="currentColor" />
+                                        <FilterIcon className="size-[1.125rem]" fill="currentColor" />
                   </button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
               <TooltipContent
                 side="bottom"
-                className="rounded-md px-2 py-1 text-[11px] leading-tight"
+                className={TIP}
                 sideOffset={6}
               >
                 {t("activity.dock.filterTypes")}
               </TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="end" className={`${MENU_CONTENT} w-56`}>
-              <DropdownMenuLabel className="px-2 py-1 text-[11px] font-medium text-white/50">
+              <DropdownMenuLabel className={MENU_LABEL}>
                 {t("activity.dock.eventTypes")}
               </DropdownMenuLabel>
               <DropdownMenuCheckboxItem
@@ -607,22 +747,22 @@ function ActivityFeedDock() {
                   <button
                     type="button"
                     aria-label={t("activity.dock.settings")}
-                    className="flex size-8 items-center justify-center rounded-md text-white/85 transition-colors hover:bg-white/[0.07] hover:text-white max-[379px]:size-7 max-[339px]:size-[26px]"
+                    className="flex size-8 items-center justify-center rounded-md text-white/85 transition-colors hover:bg-white/[0.07] hover:text-white group-data-[compact]/dock:size-7 group-data-[tiny]/dock:size-[1.625rem]"
                   >
-                    <Settings className="size-[18px]" fill="currentColor" />
+                                        <Settings className="size-[1.125rem]" fill="currentColor" />
                   </button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
               <TooltipContent
                 side="bottom"
-                className="rounded-md px-2 py-1 text-[11px] leading-tight"
+                                    className={TIP}
                 sideOffset={6}
               >
                 {t("activity.dock.settings")}
               </TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="end" className={`${MENU_CONTENT} w-64`}>
-              <DropdownMenuLabel className="px-2 py-1 text-[11px] font-medium text-white/50">
+              <DropdownMenuLabel className={MENU_LABEL}>
                 {t("activity.dock.settings.language")}
               </DropdownMenuLabel>
               <DropdownMenuRadioGroup value={lang} onValueChange={(value) => setLang(value)}>
@@ -634,7 +774,7 @@ function ActivityFeedDock() {
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
               <DropdownMenuSeparator className="bg-white/10" />
-              <DropdownMenuLabel className="px-2 py-1 text-[11px] font-medium text-white/50">
+              <DropdownMenuLabel className={MENU_LABEL}>
                 {t("activity.dock.settings.platformIcons")}
               </DropdownMenuLabel>
               <DropdownMenuRadioGroup
@@ -657,6 +797,16 @@ function ActivityFeedDock() {
                 ))}
               </DropdownMenuRadioGroup>
               <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuLabel className={MENU_LABEL}>
+                {t("activity.dock.settings.uiSize")}
+              </DropdownMenuLabel>
+              <UiSizeControl
+                value={prefs.uiSize}
+                onChange={(uiSize) => updatePrefs({ uiSize })}
+                label={t("activity.dock.settings.uiSize")}
+                resetLabel={t("activity.dock.settings.uiSizeReset")}
+              />
+              <DropdownMenuSeparator className="bg-white/10" />
               <DropdownMenuCheckboxItem
                 checked={prefs.showTests}
                 onCheckedChange={(checked) => updatePrefs({ showTests: checked === true })}
@@ -678,7 +828,7 @@ function ActivityFeedDock() {
                 {t("activity.dock.settings.refresh")}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/10" />
-              <p className="px-2 py-1.5 text-[11px] leading-snug text-white/45">
+              <p className="px-2 py-1.5 text-[0.6875rem] leading-snug text-white/45">
                 {t("activity.dock.settings.syncNote")}
               </p>
             </DropdownMenuContent>
@@ -689,12 +839,12 @@ function ActivityFeedDock() {
               ref={confirmRef}
               role="alertdialog"
               aria-label={t("activity.dock.clear")}
-              className="absolute end-2 top-[calc(100%+4px)] z-30 w-56 max-w-[calc(100%-1rem)] rounded-lg border border-white/10 bg-[#111] p-3 shadow-xl shadow-black/60"
+              className="absolute end-2               top-[calc(100%+0.25rem)] z-30 w-56 max-w-[calc(100%-1rem)] rounded-lg border border-white/10 bg-[#111] p-3 shadow-xl shadow-black/60"
             >
-              <p className="text-[13px] font-semibold">
+                            <p className="text-[0.8125rem] font-semibold">
                 {t("activity.dock.clearConfirm", { n: pendingCount })}
               </p>
-              <p className="mt-0.5 text-[11px] text-white/50">{t("activity.dock.clearHint")}</p>
+                            <p className="mt-0.5 text-[0.6875rem] text-white/50">{t("activity.dock.clearHint")}</p>
               <div className="mt-2.5 flex justify-end gap-1.5">
                 <button
                   type="button"
@@ -723,7 +873,7 @@ function ActivityFeedDock() {
         <div
           ref={pillRow}
           onWheel={onPillWheel}
-          className="dock-filters flex shrink-0 scroll-smooth items-center gap-1 overflow-x-auto border-b border-white/10 px-2.5 py-2 max-[379px]:px-2"
+          className="dock-filters flex shrink-0 scroll-smooth items-center gap-1 overflow-x-auto border-b border-white/10 px-2.5 py-2 group-data-[compact]/dock:px-2"
           role="group"
           aria-label={t("activity.dock.filter")}
         >
@@ -737,13 +887,13 @@ function ActivityFeedDock() {
                 aria-pressed={selected}
                 aria-label={filterLabel(id)}
                 onClick={() => selectFilter(id)}
-                className={`flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-2 text-[13px] leading-none transition-colors ${
+                className={`flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-2 text-[0.8125rem] leading-none transition-colors ${
                   selected
                     ? "border-[#bee1fc]/45 bg-[#bee1fc]/12 text-white"
                     : "border-white/12 text-white/80 hover:bg-white/[0.05]"
                 }`}
               >
-                <FilterGlyph id={id} size={15} />
+                <FilterGlyph id={id} size={FILTER_LOGO_PX * ui} />
                 <span>{filterLabel(id)}</span>
               </button>
             );
@@ -763,7 +913,7 @@ function ActivityFeedDock() {
 
         <div className="dock-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
           {invalid ? (
-            <p className="flex items-start gap-2 px-4 py-8 text-[13px] leading-snug text-white/60">
+            <p className="flex items-start gap-2 px-4 py-8 text-[0.8125rem] leading-snug text-white/60">
               <Lock className="mt-0.5 size-4 shrink-0" aria-hidden />
               {t("activity.dock.invalid")}
             </p>
@@ -773,7 +923,7 @@ function ActivityFeedDock() {
               {t("activity.dock.loading")}
             </div>
           ) : visibleEvents.length === 0 ? (
-            <p className="px-4 py-12 text-center text-[13px] text-white/50">
+            <p className="px-4 py-12 text-center text-[0.8125rem] text-white/50">
               {data && data.events.length > 0 ? t("activity.dock.emptyFilter") : t("activity.dock.empty")}
             </p>
           ) : (
@@ -781,6 +931,8 @@ function ActivityFeedDock() {
               {visibleEvents.map((event) => {
                 const { phrase, text } = describeFeedEvent(event, label);
                 const TypeIcon = TYPE_ICON[phrase];
+                // None keeps the event icon in front of the user name; it never falls back to nothing.
+                const LeadIcon = iconsOnly ? (TypeIcon ?? Bell) : null;
                 const edge = PLATFORM_EDGE[event.platform] ?? "#71717a";
                 const replaying = replayingId === event.id;
                 const replayLabel = event.replayAvailable
@@ -789,54 +941,71 @@ function ActivityFeedDock() {
                 const logo = showLogo ? (
                   <span
                     data-platform-icon={prefs.platformIcons}
-                    className="flex w-7 shrink-0 items-center justify-center"
+                    className={`flex w-[0.8125rem] shrink-0 items-center justify-center ${
+                      logoFirst ? "-me-1" : "-ms-1"
+                    }`}
                   >
-                    <PlatformIcon platform={event.platform} size={26} />
+                    <PlatformIcon platform={event.platform} size={ROW_LOGO_PX * ui} />
                   </span>
                 ) : null;
                 return (
                   <li
                     key={event.id}
-                    className={`relative flex min-h-[52px] items-center gap-2.5 border-b border-white/[0.07] py-2 pe-1.5 hover:bg-white/[0.025] max-[379px]:gap-2 ${
+                    className={`relative flex min-h-[3.25rem] items-center gap-2.5 border-b border-white/[0.07] py-2 pe-1.5                     hover:bg-white/[0.025] group-data-[compact]/dock:gap-2 ${
                       prefs.platformIcons === "color"
-                        ? "ps-5 max-[379px]:ps-4"
-                        : "ps-2.5 max-[379px]:ps-2"
+                                            ? "ps-5 group-data-[compact]/dock:ps-4"
+                                            : "ps-2.5 group-data-[compact]/dock:ps-2"
                     }`}
                   >
                     {prefs.platformIcons === "color" ? (
                       <span
                         aria-hidden
                         data-platform-color={event.platform}
-                        className="absolute start-2 top-1/2 h-8 w-[3px] -translate-y-1/2 rounded-full max-[379px]:start-1.5"
+                        className="absolute start-2 top-1/2 h-8 w-[0.1875rem] -translate-y-1/2 rounded-full group-data-[compact]/dock:start-1.5"
                         style={{ background: edge }}
                       />
                     ) : null}
                     {logoFirst ? logo : null}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-x-1.5 text-[15px] leading-[22px] max-[379px]:flex-col max-[379px]:items-start max-[379px]:gap-0 max-[379px]:text-sm max-[379px]:leading-5">
-                        <bdi className="break-words font-bold">
-                          {event.actor_name ?? t("activity.anonymous")}
-                        </bdi>
-                        <ChevronRight className="size-3.5 shrink-0 text-white/35 rtl:rotate-180 max-[379px]:hidden" aria-hidden />
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-x-1.5 text-[0.9375rem] leading-[1.375rem] group-data-[compact]/dock:flex-col group-data-[compact]/dock:items-start group-data-[compact]/dock:gap-0 group-data-[compact]/dock:text-sm group-data-[compact]/dock:leading-5">
+                        <span className="flex min-w-0 items-center gap-1.5">
+                          {LeadIcon ? (
+                            <LeadIcon
+                              data-event-icon={phrase}
+                              className="size-4 shrink-0 text-white/75"
+                              aria-hidden
+                            />
+                          ) : null}
+                          <bdi className="break-words font-bold">
+                            {event.actor_name ?? t("activity.anonymous")}
+                          </bdi>
+                        </span>
+                        <ChevronRight className="size-3.5 shrink-0 text-white/35 rtl:rotate-180 group-data-[compact]/dock:hidden" aria-hidden />
                         <span className="flex min-w-0 items-center gap-1 text-white/90">
-                          {TypeIcon ? <TypeIcon className="size-3.5 shrink-0 text-white/50" aria-hidden /> : null}
+                          {TypeIcon && !iconsOnly ? (
+                            <TypeIcon
+                              data-event-icon={phrase}
+                              className="size-3.5 shrink-0 text-white/50"
+                              aria-hidden
+                            />
+                          ) : null}
                           <bdi className="break-words">{text}</bdi>
                           {event.isTest ? (
-                            <span className="ms-1 rounded bg-white/10 px-1 text-[10px] leading-4 text-white/55">
+                            <span className="ms-1 rounded bg-white/10 px-1 text-[0.625rem] leading-4 text-white/55">
                               {t("activity.dock.testBadge")}
                             </span>
                           ) : null}
                         </span>
                       </div>
                       {prefs.showMessages && event.message ? (
-                        <p className="line-clamp-2 break-words text-[13px] leading-snug text-white/45" dir="auto">
+                        <p className="line-clamp-2 break-words text-[0.8125rem] leading-snug text-white/45" dir="auto">
                           {event.message}
                         </p>
                       ) : null}
                     </div>
                     {!logoFirst ? logo : null}
                     <time
-                      className="shrink-0 text-[13px] tabular-nums text-white/50"
+                      className="ms-auto shrink-0 ps-1 text-[0.8125rem] tabular-nums text-white/50"
                       dateTime={event.created_at}
                     >
                       {relativeFeedTime(event.created_at, now, label)}
@@ -852,16 +1021,16 @@ function ActivityFeedDock() {
                             className="flex size-8 items-center justify-center rounded-md text-white/85 transition-colors hover:bg-white/[0.07] hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
                           >
                             {replaying ? (
-                              <LoaderCircle className="size-[17px] animate-spin" aria-hidden />
+                              <LoaderCircle className="size-[1.0625rem] animate-spin" aria-hidden />
                             ) : (
-                              <RefreshCw className="size-[17px]" aria-hidden />
+                              <RefreshCw className="size-[1.0625rem]" aria-hidden />
                             )}
                           </button>
                         </span>
                       </TooltipTrigger>
                       <TooltipContent
                         side="left"
-                        className="rounded-md px-2 py-1 text-[11px] leading-tight"
+                        className={TIP}
                         sideOffset={4}
                         collisionPadding={6}
                       >
