@@ -18,7 +18,7 @@ import {
   emptyPlatformAlerts,
   inspectUpload,
   isAlertToken,
-  isDockToken,
+  DEMO_DOCK_CHANNEL_ID,
   mediaLimit,
   normalizeConfig,
   normalizePlatformAlerts,
@@ -51,21 +51,9 @@ function overlaySeenAtNow(): number {
   return Number(kvGet("alerts:overlay-seen")) || 0;
 }
 
-// The demo server is stateless: every request rebuilds the database from fixtures plus
-// the visitor's saved tables. The first-visit tokens must therefore be constants, or
-// concurrent requests would each invent a different token before anything is saved.
-// Only an explicit regeneration creates a random token, and that one is then stored.
+// The first-visit overlay token must be a constant, or concurrent requests would each
+// invent a different token before anything is saved. The dock channel id is fixed too.
 const DEFAULT_OVERLAY_TOKEN = "demo-alerts-cylixdemo0001";
-const DEFAULT_DOCK_TOKEN = "demo-dock-cylixdemo0001";
-
-/** Random dock token: 24 chars from a 32-symbol alphabet (120 bits, no modulo bias). */
-function freshDockToken(): string {
-  const alphabet = "abcdefghijklmnopqrstuvwxyz234567";
-  const bytes = crypto.getRandomValues(new Uint8Array(24));
-  let token = "demo-dock-";
-  for (const byte of bytes) token += alphabet.charAt(byte & 31);
-  return token;
-}
 
 function readStored(): StoredSettings {
   try {
@@ -74,7 +62,7 @@ function readStored(): StoredSettings {
     const created: StoredSettings = {
       plan: "pro",
       token: DEFAULT_OVERLAY_TOKEN,
-      dockToken: DEFAULT_DOCK_TOKEN,
+      dockChannelId: DEMO_DOCK_CHANNEL_ID,
       simulation: normalizeSimulation(null),
       alerts: emptyPlatformAlerts(),
       media: [],
@@ -91,10 +79,6 @@ function normalizeStored(raw: unknown): StoredSettings {
     typeof record["token"] === "string" && isAlertToken(record["token"])
       ? record["token"]
       : DEFAULT_OVERLAY_TOKEN;
-  const dockToken =
-    typeof record["dockToken"] === "string" && isDockToken(record["dockToken"])
-      ? record["dockToken"]
-      : DEFAULT_DOCK_TOKEN;
   const alerts = normalizePlatformAlerts(record["alerts"]);
   const media = Array.isArray(record["media"])
     ? record["media"].flatMap((item): MediaAsset[] => {
@@ -125,7 +109,7 @@ function normalizeStored(raw: unknown): StoredSettings {
   return {
     plan,
     token,
-    dockToken,
+    dockChannelId: DEMO_DOCK_CHANNEL_ID,
     simulation: normalizeSimulation(record["simulation"]),
     alerts,
     media,
@@ -181,7 +165,7 @@ export function saveAlertStudio(patch: {
   const next: StoredSettings = {
     plan,
     token: current.token,
-    dockToken: current.dockToken,
+    dockChannelId: DEMO_DOCK_CHANNEL_ID,
     simulation:
       patch.simulation !== undefined ? normalizeSimulation(patch.simulation) : current.simulation,
     alerts,
@@ -195,20 +179,6 @@ export function updateAlertStudio(
   patch: Parameters<typeof saveAlertStudio>[0],
 ): Promise<AlertStudioState> {
   return withLock(() => saveAlertStudio(patch));
-}
-
-/**
- * Replace the Activity Dock token. The previous token is not kept anywhere, so the
- * old Dock URL stops validating as soon as the new state is saved. The OBS overlay
- * token is untouched. Revocation only holds for the browser storage that holds this
- * state: another browser or OBS profile keeps whatever token it has saved.
- */
-export function regenerateDockToken(): Promise<AlertStudioState> {
-  return withLock(() => {
-    const next: StoredSettings = { ...readStored(), dockToken: freshDockToken() };
-    writeStored(next);
-    return { ...next, limitBytes: mediaLimit(next.plan), overlaySeenAt: overlaySeenAtNow() };
-  });
 }
 
 function readQueue(): AlertEvent[] {
@@ -731,15 +701,14 @@ export function alertTokenMatches(token: string): boolean {
   return readStored().token === token;
 }
 
-/** Activity Dock token (feed, replay). Only the current token is accepted. */
+/** Activity Dock channel id (feed, replay). Only the fixed demo channel is accepted. */
 export function dockTokenMatches(token: string): boolean {
-  return readStored().dockToken === token;
+  return token === DEMO_DOCK_CHANNEL_ID;
 }
 
-/** Queue controls are used by the dashboard (overlay token) and by the Dock (dock token). */
+/** Queue controls are used by the dashboard (overlay token) and by the Dock (channel id). */
 export function controlTokenMatches(token: string): boolean {
-  const stored = readStored();
-  return stored.token === token || stored.dockToken === token;
+  return readStored().token === token || token === DEMO_DOCK_CHANNEL_ID;
 }
 
 // ===== Platform event ingest =====

@@ -41,7 +41,7 @@ import { useLanguage, type TranslationKey } from "@/lib/i18n";
 import { describeFeedEvent, relativeFeedTime, type ActivityFeedEvent } from "@/lib/activityFeed";
 import { PLATFORM_EVENT_ALLOWLIST, triggerPhrase } from "@/lib/platformEvents";
 
-export const Route = createFileRoute("/activity-feed/dock/$token")({
+export const Route = createFileRoute("/widgets/activityfeed/$demoChannelId")({
   head: () => ({
     meta: [
       { title: "CylixStudio — Activity Feed Dock" },
@@ -166,8 +166,28 @@ const TYPE_ICON: Record<string, LucideIcon> = {
 };
 
 const PREFS_KEY = "cylix.dock.prefs";
-type Prefs = { showTests: boolean; showMessages: boolean };
-const DEFAULT_PREFS: Prefs = { showTests: true, showMessages: true };
+const PLATFORM_ICON_MODES = ["left", "right", "color", "none"] as const;
+type PlatformIconMode = (typeof PLATFORM_ICON_MODES)[number];
+type Prefs = { showTests: boolean; showMessages: boolean; platformIcons: PlatformIconMode };
+const DEFAULT_PREFS: Prefs = { showTests: true, showMessages: true, platformIcons: "left" };
+
+function readPrefs(): Prefs {
+  try {
+    const raw = window.localStorage.getItem(PREFS_KEY);
+    if (!raw) return DEFAULT_PREFS;
+    const stored = JSON.parse(raw) as Partial<Prefs>;
+    return {
+      showTests: typeof stored.showTests === "boolean" ? stored.showTests : DEFAULT_PREFS.showTests,
+      showMessages:
+        typeof stored.showMessages === "boolean" ? stored.showMessages : DEFAULT_PREFS.showMessages,
+      platformIcons: PLATFORM_ICON_MODES.includes(stored.platformIcons as PlatformIconMode)
+        ? (stored.platformIcons as PlatformIconMode)
+        : DEFAULT_PREFS.platformIcons,
+    };
+  } catch {
+    return DEFAULT_PREFS;
+  }
+}
 
 function matchesFilter(event: ActivityFeedEvent, filter: FilterId): boolean {
   if (filter === "all") return true;
@@ -245,7 +265,8 @@ const MENU_CONTENT =
 const MENU_ITEM = "rounded-md px-2 py-1.5 text-[13px]";
 
 function ActivityFeedDock() {
-  const { token } = Route.useParams();
+  // The fixed demo channel id doubles as the Demo store's dock key; it is not a secret.
+  const { demoChannelId: token } = Route.useParams();
   const { t, dir, lang, setLang } = useLanguage();
   const [data, setData] = useState<DockData | null>(null);
   const [filter, setFilter] = useState<FilterId>("all");
@@ -267,12 +288,7 @@ function ActivityFeedDock() {
   const confirmRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(PREFS_KEY);
-      if (raw) setPrefs({ ...DEFAULT_PREFS, ...(JSON.parse(raw) as Partial<Prefs>) });
-    } catch {
-      /* ignore unreadable prefs */
-    }
+    setPrefs(readPrefs());
   }, []);
 
   const updatePrefs = (patch: Partial<Prefs>) => {
@@ -446,6 +462,9 @@ function ActivityFeedDock() {
         ? t("activity.dock.other")
         : BRAND_NAME[id];
   const activeFilter = types.length > 0;
+  // "Left"/"Right" are physical sides, so in a right-to-left layout the logo's flex position is mirrored.
+  const showLogo = prefs.platformIcons === "left" || prefs.platformIcons === "right";
+  const logoFirst = showLogo && (prefs.platformIcons === "left") === (dir === "ltr");
 
   return (
     <main className="fixed inset-0 overflow-hidden bg-[#0a0a0a] p-1.5 text-white" dir={dir}>
@@ -615,6 +634,29 @@ function ActivityFeedDock() {
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
               <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuLabel className="px-2 py-1 text-[11px] font-medium text-white/50">
+                {t("activity.dock.settings.platformIcons")}
+              </DropdownMenuLabel>
+              <DropdownMenuRadioGroup
+                value={prefs.platformIcons}
+                onValueChange={(value) => {
+                  if (PLATFORM_ICON_MODES.includes(value as PlatformIconMode)) {
+                    updatePrefs({ platformIcons: value as PlatformIconMode });
+                  }
+                }}
+              >
+                {PLATFORM_ICON_MODES.map((mode) => (
+                  <DropdownMenuRadioItem
+                    key={mode}
+                    value={mode}
+                    className={MENU_ITEM}
+                    onSelect={(event) => event.preventDefault()}
+                  >
+                    {t(`activity.dock.platformIcons.${mode}` as TranslationKey)}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator className="bg-white/10" />
               <DropdownMenuCheckboxItem
                 checked={prefs.showTests}
                 onCheckedChange={(checked) => updatePrefs({ showTests: checked === true })}
@@ -744,19 +786,32 @@ function ActivityFeedDock() {
                 const replayLabel = event.replayAvailable
                   ? t("activity.dock.replay")
                   : t("activity.dock.replayUnavailable");
+                const logo = showLogo ? (
+                  <span
+                    data-platform-icon={prefs.platformIcons}
+                    className="flex w-7 shrink-0 items-center justify-center"
+                  >
+                    <PlatformIcon platform={event.platform} size={26} />
+                  </span>
+                ) : null;
                 return (
                   <li
                     key={event.id}
-                    className="relative flex min-h-[52px] items-center gap-2.5 border-b border-white/[0.07] py-2 ps-5 pe-1.5 hover:bg-white/[0.025] max-[379px]:gap-2 max-[379px]:ps-4"
+                    className={`relative flex min-h-[52px] items-center gap-2.5 border-b border-white/[0.07] py-2 pe-1.5 hover:bg-white/[0.025] max-[379px]:gap-2 ${
+                      prefs.platformIcons === "color"
+                        ? "ps-5 max-[379px]:ps-4"
+                        : "ps-2.5 max-[379px]:ps-2"
+                    }`}
                   >
-                    <span
-                      aria-hidden
-                      className="absolute start-2 top-1/2 h-8 w-[3px] -translate-y-1/2 rounded-full max-[379px]:start-1.5"
-                      style={{ background: edge }}
-                    />
-                    <span className="flex w-7 shrink-0 items-center justify-center">
-                      <PlatformIcon platform={event.platform} size={26} />
-                    </span>
+                    {prefs.platformIcons === "color" ? (
+                      <span
+                        aria-hidden
+                        data-platform-color={event.platform}
+                        className="absolute start-2 top-1/2 h-8 w-[3px] -translate-y-1/2 rounded-full max-[379px]:start-1.5"
+                        style={{ background: edge }}
+                      />
+                    ) : null}
+                    {logoFirst ? logo : null}
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-x-1.5 text-[15px] leading-[22px] max-[379px]:flex-col max-[379px]:items-start max-[379px]:gap-0 max-[379px]:text-sm max-[379px]:leading-5">
                         <bdi className="break-words font-bold">
@@ -779,6 +834,7 @@ function ActivityFeedDock() {
                         </p>
                       ) : null}
                     </div>
+                    {!logoFirst ? logo : null}
                     <time
                       className="shrink-0 text-[13px] tabular-nums text-white/50"
                       dateTime={event.created_at}

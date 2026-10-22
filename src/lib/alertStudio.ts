@@ -5,9 +5,13 @@
  * A future production port must use userHasActivePro for the upload cap.
  */
 
+import { DEMO_USER_ID } from "@/lib/demoMode";
+
 export const ALERT_ACCENT = "#bee1fc";
 export const FREE_MEDIA_BYTES = 5 * 1024 * 1024;
 export const PRO_MEDIA_BYTES = 60 * 1024 * 1024;
+/** Stable per-account dock id: the demo account id, so the link never changes. */
+export const DEMO_DOCK_CHANNEL_ID = DEMO_USER_ID;
 export const ALERT_FONT_HREF =
   "https://fonts.googleapis.com/css2?family=Cairo:wght@600;700&family=Tajawal:wght@500;700&display=swap";
 
@@ -251,8 +255,8 @@ export type AlertSimulation = {
 export type AlertStudioState = {
   plan: AlertPlan;
   token: string;
-  /** Activity Dock link token. Regenerating it never changes the OBS overlay token. */
-  dockToken: string;
+  /** Fixed Activity Dock channel id. It identifies the demo channel and never changes. */
+  dockChannelId: string;
   limitBytes: number;
   overlaySeenAt: number;
   simulation: AlertSimulation;
@@ -603,8 +607,8 @@ export function isAlertToken(value: string): boolean {
   return /^demo-alerts-[a-z0-9]{12,32}$/.test(value);
 }
 
-export function isDockToken(value: string): boolean {
-  return /^demo-dock-[a-z0-9]{12,32}$/.test(value);
+export function isDockChannelId(value: string): boolean {
+  return value === DEMO_DOCK_CHANNEL_ID;
 }
 
 const VISUAL = new Set(["png", "jpg", "jpeg", "webp", "gif", "mp4", "webm"]);

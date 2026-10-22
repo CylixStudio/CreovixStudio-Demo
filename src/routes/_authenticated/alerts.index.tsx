@@ -15,7 +15,6 @@ import {
   Pencil,
   Play,
   Plus,
-  RotateCw,
   Save,
   Settings2,
   ShieldCheck,
@@ -28,7 +27,6 @@ import {
   overlayUrl,
   dockUrl,
   saveAlertStudio,
-  regenerateDockTokenDemo,
 } from "@/components/alerts/alertApi";
 import { AlertStage, type AlertStageHandle } from "@/components/alerts/AlertStage";
 import { TestAlertPopover } from "@/components/alerts/TestAlertPopover";
@@ -134,7 +132,6 @@ function AlertsPage() {
   const [drafts, setDrafts] = useState<PlatformAlerts | null>(null);
   const [hidden, setHidden] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [dockHidden, setDockHidden] = useState(true);
   const [dockCopied, setDockCopied] = useState(false);
   const [notice, setNotice] = useState<TranslationKey | "">("");
   const [busy, setBusy] = useState(false);
@@ -179,7 +176,7 @@ function AlertsPage() {
     ? overlayUrl(typeof window === "undefined" ? "" : window.location.origin, data.token)
     : "";
   const dockLink = data
-    ? dockUrl(typeof window === "undefined" ? "" : window.location.origin, data.dockToken)
+    ? dockUrl(typeof window === "undefined" ? "" : window.location.origin, data.dockChannelId)
     : "";
   const connected = Boolean(data && data.overlaySeenAt > Date.now() - 12000);
   const patch = (partial: Partial<AlertConfig>) =>
@@ -270,22 +267,6 @@ function AlertsPage() {
       reportError(error);
     } finally {
       testPending.current = false;
-      setBusy(false);
-    }
-  };
-
-  const regenerateDockToken = async () => {
-    if (!data || busy || !window.confirm(t("alerts.regenerateConfirm"))) return;
-    setBusy(true);
-    try {
-      const saved = await regenerateDockTokenDemo();
-      queryClient.setQueryData(alertStudioKey, saved);
-      setDockHidden(true);
-      setDockCopied(false);
-      setNotice("alerts.regenerated");
-    } catch {
-      setNotice("alerts.regenerateFail");
-    } finally {
       setBusy(false);
     }
   };
@@ -417,21 +398,8 @@ function AlertsPage() {
                 id="alert-dock-url"
                 dir="ltr"
                 readOnly
-                value={
-                  data
-                    ? dockHidden
-                      ? dockLink.replace(data.dockToken, "••••••••••••••••")
-                      : dockLink
-                    : t("alerts.loading")
-                }
+                value={data ? dockLink : t("alerts.loading")}
               />
-              <button
-                type="button"
-                aria-label={dockHidden ? t("alerts.showUrl") : t("alerts.hideUrl")}
-                onClick={() => setDockHidden(!dockHidden)}
-              >
-                {dockHidden ? <Eye size={17} /> : <EyeOff size={17} />}
-              </button>
             </div>
             <button
               type="button"
@@ -449,16 +417,6 @@ function AlertsPage() {
             >
               {dockCopied ? <Check size={16} /> : <Copy size={16} />}
               {dockCopied ? t("alerts.copied") : t("alerts.copy")}
-            </button>
-            <button
-              type="button"
-              className="alert-button"
-              disabled={!data || busy}
-              title={t("alerts.regenerateHint")}
-              onClick={() => void regenerateDockToken()}
-            >
-              <RotateCw size={16} />
-              {t("alerts.regenerateToken")}{" "}
             </button>
             <a className="alert-button" href={dockLink || undefined} target="_blank" rel="noreferrer">
               <ExternalLink size={16} />

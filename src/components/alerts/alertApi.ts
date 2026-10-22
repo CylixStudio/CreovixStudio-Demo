@@ -29,17 +29,10 @@ export async function saveAlertStudio(body: {
   return payload;
 }
 
-export async function regenerateDockTokenDemo(): Promise<AlertStudioState> {
-  const response = await fetch("/api/demo/alert-studio/dock-token", { method: "POST" });
-  const payload = (await response.json()) as AlertStudioState & { message?: string };
-  if (!response.ok) throw new Error("alerts.regenerateFail");
-  return payload;
-}
-
 export function overlayUrl(origin: string, token: string): string {
   return `${origin}/overlay/demo-alerts/${token}`;
 }
 
-export function dockUrl(origin: string, token: string): string {
-  return `${origin}/activity-feed/dock/${token}`;
+export function dockUrl(origin: string, channelId: string): string {
+  return `${origin}/widgets/activityfeed/${channelId}`;
 }

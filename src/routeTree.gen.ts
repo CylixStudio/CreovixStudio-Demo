@@ -50,10 +50,10 @@ import { Route as AuthenticatedAlertsAlertIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedToolsToolRouteImport } from './routes/_authenticated/tools.$tool'
 import { Route as AuthenticatedWidgetsIndexRouteImport } from './routes/_authenticated/widgets.index'
 import { Route as AuthenticatedWidgetsWidgetIdRouteImport } from './routes/_authenticated/widgets.$widgetId'
-import { Route as ActivityFeedDockTokenRouteImport } from './routes/activity-feed.dock.$token'
 import { Route as ApiLiveCounterLookupRouteImport } from './routes/api/live-counter/lookup'
 import { Route as MarksTokenMarkIdRouteImport } from './routes/marks.$token.$markId'
 import { Route as OverlayDemoAlertsTokenRouteImport } from './routes/overlay.demo-alerts.$token'
+import { Route as WidgetsActivityfeedDemoChannelIdRouteImport } from './routes/widgets.activityfeed.$demoChannelId'
 import { Route as AuthenticatedSubathonsIdControlRouteImport } from './routes/_authenticated/subathons.$id.control'
 import { Route as AuthenticatedSubathonsIdOverlayRouteImport } from './routes/_authenticated/subathons.$id.overlay'
 import { Route as AuthenticatedSubathonsIdRulesRouteImport } from './routes/_authenticated/subathons.$id.rules'
@@ -66,7 +66,6 @@ import { Route as ApiAuthProviderStartRouteImport } from './routes/api/auth/$pro
 import { Route as ApiAuthCallbackTiktokRouteImport } from './routes/api/auth/callback/tiktok'
 import { Route as ApiAuthSessionFinishRouteImport } from './routes/api/auth/session/finish'
 import { Route as ApiDemoAlertStudioIndexRouteImport } from './routes/api/demo/alert-studio/index'
-import { Route as ApiDemoAlertStudioDockTokenRouteImport } from './routes/api/demo/alert-studio/dock-token'
 import { Route as ApiDemoAlertStudioEventsRouteImport } from './routes/api/demo/alert-studio/events'
 import { Route as ApiDemoAlertStudioMediaRouteImport } from './routes/api/demo/alert-studio/media'
 import { Route as ApiDemoAlertStudioSimulateRouteImport } from './routes/api/demo/alert-studio/simulate'
@@ -320,11 +319,6 @@ const AuthenticatedWidgetsWidgetIdRoute =
     path: '/widgets/$widgetId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ActivityFeedDockTokenRoute = ActivityFeedDockTokenRouteImport.update({
-  id: '/activity-feed/dock/$token',
-  path: '/activity-feed/dock/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiLiveCounterLookupRoute = ApiLiveCounterLookupRouteImport.update({
   id: '/api/live-counter/lookup',
   path: '/api/live-counter/lookup',
@@ -340,6 +334,12 @@ const OverlayDemoAlertsTokenRoute = OverlayDemoAlertsTokenRouteImport.update({
   path: '/overlay/demo-alerts/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WidgetsActivityfeedDemoChannelIdRoute =
+  WidgetsActivityfeedDemoChannelIdRouteImport.update({
+    id: '/widgets/activityfeed/$demoChannelId',
+    path: '/widgets/activityfeed/$demoChannelId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedSubathonsIdControlRoute =
   AuthenticatedSubathonsIdControlRouteImport.update({
     id: '/subathons/$id/control',
@@ -407,12 +407,6 @@ const ApiDemoAlertStudioIndexRoute = ApiDemoAlertStudioIndexRouteImport.update({
   path: '/api/demo/alert-studio/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiDemoAlertStudioDockTokenRoute =
-  ApiDemoAlertStudioDockTokenRouteImport.update({
-    id: '/api/demo/alert-studio/dock-token',
-    path: '/api/demo/alert-studio/dock-token',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiDemoAlertStudioEventsRoute =
   ApiDemoAlertStudioEventsRouteImport.update({
     id: '/api/demo/alert-studio/events',
@@ -675,10 +669,10 @@ export interface FileRoutesByFullPath {
   '/alerts/$alertId': typeof AuthenticatedAlertsAlertIdRoute
   '/tools/$tool': typeof AuthenticatedToolsToolRoute
   '/widgets/$widgetId': typeof AuthenticatedWidgetsWidgetIdRouteWithChildren
-  '/activity-feed/dock/$token': typeof ActivityFeedDockTokenRoute
   '/api/live-counter/lookup': typeof ApiLiveCounterLookupRoute
   '/marks/$token/$markId': typeof MarksTokenMarkIdRoute
   '/overlay/demo-alerts/$token': typeof OverlayDemoAlertsTokenRoute
+  '/widgets/activityfeed/$demoChannelId': typeof WidgetsActivityfeedDemoChannelIdRoute
   '/alerts/': typeof AuthenticatedAlertsIndexRoute
   '/widgets/': typeof AuthenticatedWidgetsIndexRoute
   '/subathons/$id/control': typeof AuthenticatedSubathonsIdControlRoute
@@ -691,7 +685,6 @@ export interface FileRoutesByFullPath {
   '/api/auth/$provider/start': typeof ApiAuthProviderStartRoute
   '/api/auth/callback/tiktok': typeof ApiAuthCallbackTiktokRoute
   '/api/auth/session/finish': typeof ApiAuthSessionFinishRoute
-  '/api/demo/alert-studio/dock-token': typeof ApiDemoAlertStudioDockTokenRoute
   '/api/demo/alert-studio/events': typeof ApiDemoAlertStudioEventsRoute
   '/api/demo/alert-studio/media': typeof ApiDemoAlertStudioMediaRouteWithChildren
   '/api/demo/alert-studio/simulate': typeof ApiDemoAlertStudioSimulateRoute
@@ -770,10 +763,10 @@ export interface FileRoutesByTo {
   '/u/$slug': typeof USlugRoute
   '/alerts/$alertId': typeof AuthenticatedAlertsAlertIdRoute
   '/tools/$tool': typeof AuthenticatedToolsToolRoute
-  '/activity-feed/dock/$token': typeof ActivityFeedDockTokenRoute
   '/api/live-counter/lookup': typeof ApiLiveCounterLookupRoute
   '/marks/$token/$markId': typeof MarksTokenMarkIdRoute
   '/overlay/demo-alerts/$token': typeof OverlayDemoAlertsTokenRoute
+  '/widgets/activityfeed/$demoChannelId': typeof WidgetsActivityfeedDemoChannelIdRoute
   '/alerts': typeof AuthenticatedAlertsIndexRoute
   '/widgets': typeof AuthenticatedWidgetsIndexRoute
   '/subathons/$id/control': typeof AuthenticatedSubathonsIdControlRoute
@@ -786,7 +779,6 @@ export interface FileRoutesByTo {
   '/api/auth/$provider/start': typeof ApiAuthProviderStartRoute
   '/api/auth/callback/tiktok': typeof ApiAuthCallbackTiktokRoute
   '/api/auth/session/finish': typeof ApiAuthSessionFinishRoute
-  '/api/demo/alert-studio/dock-token': typeof ApiDemoAlertStudioDockTokenRoute
   '/api/demo/alert-studio/events': typeof ApiDemoAlertStudioEventsRoute
   '/api/demo/alert-studio/media': typeof ApiDemoAlertStudioMediaRouteWithChildren
   '/api/demo/alert-studio/simulate': typeof ApiDemoAlertStudioSimulateRoute
@@ -869,10 +861,10 @@ export interface FileRoutesById {
   '/_authenticated/alerts/$alertId': typeof AuthenticatedAlertsAlertIdRoute
   '/_authenticated/tools/$tool': typeof AuthenticatedToolsToolRoute
   '/_authenticated/widgets/$widgetId': typeof AuthenticatedWidgetsWidgetIdRouteWithChildren
-  '/activity-feed/dock/$token': typeof ActivityFeedDockTokenRoute
   '/api/live-counter/lookup': typeof ApiLiveCounterLookupRoute
   '/marks/$token/$markId': typeof MarksTokenMarkIdRoute
   '/overlay/demo-alerts/$token': typeof OverlayDemoAlertsTokenRoute
+  '/widgets/activityfeed/$demoChannelId': typeof WidgetsActivityfeedDemoChannelIdRoute
   '/_authenticated/alerts/': typeof AuthenticatedAlertsIndexRoute
   '/_authenticated/widgets/': typeof AuthenticatedWidgetsIndexRoute
   '/_authenticated/subathons/$id/control': typeof AuthenticatedSubathonsIdControlRoute
@@ -885,7 +877,6 @@ export interface FileRoutesById {
   '/api/auth/$provider/start': typeof ApiAuthProviderStartRoute
   '/api/auth/callback/tiktok': typeof ApiAuthCallbackTiktokRoute
   '/api/auth/session/finish': typeof ApiAuthSessionFinishRoute
-  '/api/demo/alert-studio/dock-token': typeof ApiDemoAlertStudioDockTokenRoute
   '/api/demo/alert-studio/events': typeof ApiDemoAlertStudioEventsRoute
   '/api/demo/alert-studio/media': typeof ApiDemoAlertStudioMediaRouteWithChildren
   '/api/demo/alert-studio/simulate': typeof ApiDemoAlertStudioSimulateRoute
@@ -968,10 +959,10 @@ export interface FileRouteTypes {
     | '/alerts/$alertId'
     | '/tools/$tool'
     | '/widgets/$widgetId'
-    | '/activity-feed/dock/$token'
     | '/api/live-counter/lookup'
     | '/marks/$token/$markId'
     | '/overlay/demo-alerts/$token'
+    | '/widgets/activityfeed/$demoChannelId'
     | '/alerts/'
     | '/widgets/'
     | '/subathons/$id/control'
@@ -984,7 +975,6 @@ export interface FileRouteTypes {
     | '/api/auth/$provider/start'
     | '/api/auth/callback/tiktok'
     | '/api/auth/session/finish'
-    | '/api/demo/alert-studio/dock-token'
     | '/api/demo/alert-studio/events'
     | '/api/demo/alert-studio/media'
     | '/api/demo/alert-studio/simulate'
@@ -1063,10 +1053,10 @@ export interface FileRouteTypes {
     | '/u/$slug'
     | '/alerts/$alertId'
     | '/tools/$tool'
-    | '/activity-feed/dock/$token'
     | '/api/live-counter/lookup'
     | '/marks/$token/$markId'
     | '/overlay/demo-alerts/$token'
+    | '/widgets/activityfeed/$demoChannelId'
     | '/alerts'
     | '/widgets'
     | '/subathons/$id/control'
@@ -1079,7 +1069,6 @@ export interface FileRouteTypes {
     | '/api/auth/$provider/start'
     | '/api/auth/callback/tiktok'
     | '/api/auth/session/finish'
-    | '/api/demo/alert-studio/dock-token'
     | '/api/demo/alert-studio/events'
     | '/api/demo/alert-studio/media'
     | '/api/demo/alert-studio/simulate'
@@ -1161,10 +1150,10 @@ export interface FileRouteTypes {
     | '/_authenticated/alerts/$alertId'
     | '/_authenticated/tools/$tool'
     | '/_authenticated/widgets/$widgetId'
-    | '/activity-feed/dock/$token'
     | '/api/live-counter/lookup'
     | '/marks/$token/$markId'
     | '/overlay/demo-alerts/$token'
+    | '/widgets/activityfeed/$demoChannelId'
     | '/_authenticated/alerts/'
     | '/_authenticated/widgets/'
     | '/_authenticated/subathons/$id/control'
@@ -1177,7 +1166,6 @@ export interface FileRouteTypes {
     | '/api/auth/$provider/start'
     | '/api/auth/callback/tiktok'
     | '/api/auth/session/finish'
-    | '/api/demo/alert-studio/dock-token'
     | '/api/demo/alert-studio/events'
     | '/api/demo/alert-studio/media'
     | '/api/demo/alert-studio/simulate'
@@ -1241,14 +1229,13 @@ export interface RootRouteChildren {
   OverlayTiktokTappersRoute: typeof OverlayTiktokTappersRoute
   StoreSlugRoute: typeof StoreSlugRoute
   USlugRoute: typeof USlugRoute
-  ActivityFeedDockTokenRoute: typeof ActivityFeedDockTokenRoute
   ApiLiveCounterLookupRoute: typeof ApiLiveCounterLookupRoute
   OverlayDemoAlertsTokenRoute: typeof OverlayDemoAlertsTokenRoute
+  WidgetsActivityfeedDemoChannelIdRoute: typeof WidgetsActivityfeedDemoChannelIdRoute
   ApiAuthProviderCallbackRoute: typeof ApiAuthProviderCallbackRoute
   ApiAuthProviderStartRoute: typeof ApiAuthProviderStartRoute
   ApiAuthCallbackTiktokRoute: typeof ApiAuthCallbackTiktokRoute
   ApiAuthSessionFinishRoute: typeof ApiAuthSessionFinishRoute
-  ApiDemoAlertStudioDockTokenRoute: typeof ApiDemoAlertStudioDockTokenRoute
   ApiDemoAlertStudioEventsRoute: typeof ApiDemoAlertStudioEventsRoute
   ApiDemoAlertStudioMediaRoute: typeof ApiDemoAlertStudioMediaRouteWithChildren
   ApiDemoAlertStudioSimulateRoute: typeof ApiDemoAlertStudioSimulateRoute
@@ -1578,13 +1565,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWidgetsWidgetIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/activity-feed/dock/$token': {
-      id: '/activity-feed/dock/$token'
-      path: '/activity-feed/dock/$token'
-      fullPath: '/activity-feed/dock/$token'
-      preLoaderRoute: typeof ActivityFeedDockTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/live-counter/lookup': {
       id: '/api/live-counter/lookup'
       path: '/api/live-counter/lookup'
@@ -1604,6 +1584,13 @@ declare module '@tanstack/react-router' {
       path: '/overlay/demo-alerts/$token'
       fullPath: '/overlay/demo-alerts/$token'
       preLoaderRoute: typeof OverlayDemoAlertsTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/widgets/activityfeed/$demoChannelId': {
+      id: '/widgets/activityfeed/$demoChannelId'
+      path: '/widgets/activityfeed/$demoChannelId'
+      fullPath: '/widgets/activityfeed/$demoChannelId'
+      preLoaderRoute: typeof WidgetsActivityfeedDemoChannelIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/subathons/$id/control': {
@@ -1688,13 +1675,6 @@ declare module '@tanstack/react-router' {
       path: '/api/demo/alert-studio'
       fullPath: '/api/demo/alert-studio/'
       preLoaderRoute: typeof ApiDemoAlertStudioIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/demo/alert-studio/dock-token': {
-      id: '/api/demo/alert-studio/dock-token'
-      path: '/api/demo/alert-studio/dock-token'
-      fullPath: '/api/demo/alert-studio/dock-token'
-      preLoaderRoute: typeof ApiDemoAlertStudioDockTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/demo/alert-studio/events': {
@@ -2104,14 +2084,13 @@ const rootRouteChildren: RootRouteChildren = {
   OverlayTiktokTappersRoute: OverlayTiktokTappersRoute,
   StoreSlugRoute: StoreSlugRoute,
   USlugRoute: USlugRoute,
-  ActivityFeedDockTokenRoute: ActivityFeedDockTokenRoute,
   ApiLiveCounterLookupRoute: ApiLiveCounterLookupRoute,
   OverlayDemoAlertsTokenRoute: OverlayDemoAlertsTokenRoute,
+  WidgetsActivityfeedDemoChannelIdRoute: WidgetsActivityfeedDemoChannelIdRoute,
   ApiAuthProviderCallbackRoute: ApiAuthProviderCallbackRoute,
   ApiAuthProviderStartRoute: ApiAuthProviderStartRoute,
   ApiAuthCallbackTiktokRoute: ApiAuthCallbackTiktokRoute,
   ApiAuthSessionFinishRoute: ApiAuthSessionFinishRoute,
-  ApiDemoAlertStudioDockTokenRoute: ApiDemoAlertStudioDockTokenRoute,
   ApiDemoAlertStudioEventsRoute: ApiDemoAlertStudioEventsRoute,
   ApiDemoAlertStudioMediaRoute: ApiDemoAlertStudioMediaRouteWithChildren,
   ApiDemoAlertStudioSimulateRoute: ApiDemoAlertStudioSimulateRoute,
