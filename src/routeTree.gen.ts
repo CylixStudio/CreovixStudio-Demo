@@ -51,8 +51,10 @@ import { Route as AuthenticatedToolsToolRouteImport } from './routes/_authentica
 import { Route as AuthenticatedWidgetsIndexRouteImport } from './routes/_authenticated/widgets.index'
 import { Route as AuthenticatedWidgetsWidgetIdRouteImport } from './routes/_authenticated/widgets.$widgetId'
 import { Route as ApiLiveCounterLookupRouteImport } from './routes/api/live-counter/lookup'
+import { Route as KUsernameShopRouteImport } from './routes/k.$username.shop'
 import { Route as MarksTokenMarkIdRouteImport } from './routes/marks.$token.$markId'
 import { Route as OverlayDemoAlertsTokenRouteImport } from './routes/overlay.demo-alerts.$token'
+import { Route as TUsernameShopRouteImport } from './routes/t.$username.shop'
 import { Route as WidgetsActivityfeedDemoChannelIdRouteImport } from './routes/widgets.activityfeed.$demoChannelId'
 import { Route as AuthenticatedSubathonsIdControlRouteImport } from './routes/_authenticated/subathons.$id.control'
 import { Route as AuthenticatedSubathonsIdOverlayRouteImport } from './routes/_authenticated/subathons.$id.overlay'
@@ -324,6 +326,11 @@ const ApiLiveCounterLookupRoute = ApiLiveCounterLookupRouteImport.update({
   path: '/api/live-counter/lookup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KUsernameShopRoute = KUsernameShopRouteImport.update({
+  id: '/k/$username/shop',
+  path: '/k/$username/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MarksTokenMarkIdRoute = MarksTokenMarkIdRouteImport.update({
   id: '/$markId',
   path: '/$markId',
@@ -332,6 +339,11 @@ const MarksTokenMarkIdRoute = MarksTokenMarkIdRouteImport.update({
 const OverlayDemoAlertsTokenRoute = OverlayDemoAlertsTokenRouteImport.update({
   id: '/overlay/demo-alerts/$token',
   path: '/overlay/demo-alerts/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TUsernameShopRoute = TUsernameShopRouteImport.update({
+  id: '/t/$username/shop',
+  path: '/t/$username/shop',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WidgetsActivityfeedDemoChannelIdRoute =
@@ -670,8 +682,10 @@ export interface FileRoutesByFullPath {
   '/tools/$tool': typeof AuthenticatedToolsToolRoute
   '/widgets/$widgetId': typeof AuthenticatedWidgetsWidgetIdRouteWithChildren
   '/api/live-counter/lookup': typeof ApiLiveCounterLookupRoute
+  '/k/$username/shop': typeof KUsernameShopRoute
   '/marks/$token/$markId': typeof MarksTokenMarkIdRoute
   '/overlay/demo-alerts/$token': typeof OverlayDemoAlertsTokenRoute
+  '/t/$username/shop': typeof TUsernameShopRoute
   '/widgets/activityfeed/$demoChannelId': typeof WidgetsActivityfeedDemoChannelIdRoute
   '/alerts/': typeof AuthenticatedAlertsIndexRoute
   '/widgets/': typeof AuthenticatedWidgetsIndexRoute
@@ -764,8 +778,10 @@ export interface FileRoutesByTo {
   '/alerts/$alertId': typeof AuthenticatedAlertsAlertIdRoute
   '/tools/$tool': typeof AuthenticatedToolsToolRoute
   '/api/live-counter/lookup': typeof ApiLiveCounterLookupRoute
+  '/k/$username/shop': typeof KUsernameShopRoute
   '/marks/$token/$markId': typeof MarksTokenMarkIdRoute
   '/overlay/demo-alerts/$token': typeof OverlayDemoAlertsTokenRoute
+  '/t/$username/shop': typeof TUsernameShopRoute
   '/widgets/activityfeed/$demoChannelId': typeof WidgetsActivityfeedDemoChannelIdRoute
   '/alerts': typeof AuthenticatedAlertsIndexRoute
   '/widgets': typeof AuthenticatedWidgetsIndexRoute
@@ -862,8 +878,10 @@ export interface FileRoutesById {
   '/_authenticated/tools/$tool': typeof AuthenticatedToolsToolRoute
   '/_authenticated/widgets/$widgetId': typeof AuthenticatedWidgetsWidgetIdRouteWithChildren
   '/api/live-counter/lookup': typeof ApiLiveCounterLookupRoute
+  '/k/$username/shop': typeof KUsernameShopRoute
   '/marks/$token/$markId': typeof MarksTokenMarkIdRoute
   '/overlay/demo-alerts/$token': typeof OverlayDemoAlertsTokenRoute
+  '/t/$username/shop': typeof TUsernameShopRoute
   '/widgets/activityfeed/$demoChannelId': typeof WidgetsActivityfeedDemoChannelIdRoute
   '/_authenticated/alerts/': typeof AuthenticatedAlertsIndexRoute
   '/_authenticated/widgets/': typeof AuthenticatedWidgetsIndexRoute
@@ -960,8 +978,10 @@ export interface FileRouteTypes {
     | '/tools/$tool'
     | '/widgets/$widgetId'
     | '/api/live-counter/lookup'
+    | '/k/$username/shop'
     | '/marks/$token/$markId'
     | '/overlay/demo-alerts/$token'
+    | '/t/$username/shop'
     | '/widgets/activityfeed/$demoChannelId'
     | '/alerts/'
     | '/widgets/'
@@ -1054,8 +1074,10 @@ export interface FileRouteTypes {
     | '/alerts/$alertId'
     | '/tools/$tool'
     | '/api/live-counter/lookup'
+    | '/k/$username/shop'
     | '/marks/$token/$markId'
     | '/overlay/demo-alerts/$token'
+    | '/t/$username/shop'
     | '/widgets/activityfeed/$demoChannelId'
     | '/alerts'
     | '/widgets'
@@ -1151,8 +1173,10 @@ export interface FileRouteTypes {
     | '/_authenticated/tools/$tool'
     | '/_authenticated/widgets/$widgetId'
     | '/api/live-counter/lookup'
+    | '/k/$username/shop'
     | '/marks/$token/$markId'
     | '/overlay/demo-alerts/$token'
+    | '/t/$username/shop'
     | '/widgets/activityfeed/$demoChannelId'
     | '/_authenticated/alerts/'
     | '/_authenticated/widgets/'
@@ -1230,7 +1254,9 @@ export interface RootRouteChildren {
   StoreSlugRoute: typeof StoreSlugRoute
   USlugRoute: typeof USlugRoute
   ApiLiveCounterLookupRoute: typeof ApiLiveCounterLookupRoute
+  KUsernameShopRoute: typeof KUsernameShopRoute
   OverlayDemoAlertsTokenRoute: typeof OverlayDemoAlertsTokenRoute
+  TUsernameShopRoute: typeof TUsernameShopRoute
   WidgetsActivityfeedDemoChannelIdRoute: typeof WidgetsActivityfeedDemoChannelIdRoute
   ApiAuthProviderCallbackRoute: typeof ApiAuthProviderCallbackRoute
   ApiAuthProviderStartRoute: typeof ApiAuthProviderStartRoute
@@ -1572,6 +1598,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiLiveCounterLookupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/k/$username/shop': {
+      id: '/k/$username/shop'
+      path: '/k/$username/shop'
+      fullPath: '/k/$username/shop'
+      preLoaderRoute: typeof KUsernameShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/marks/$token/$markId': {
       id: '/marks/$token/$markId'
       path: '/$markId'
@@ -1584,6 +1617,13 @@ declare module '@tanstack/react-router' {
       path: '/overlay/demo-alerts/$token'
       fullPath: '/overlay/demo-alerts/$token'
       preLoaderRoute: typeof OverlayDemoAlertsTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/t/$username/shop': {
+      id: '/t/$username/shop'
+      path: '/t/$username/shop'
+      fullPath: '/t/$username/shop'
+      preLoaderRoute: typeof TUsernameShopRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/widgets/activityfeed/$demoChannelId': {
@@ -2085,7 +2125,9 @@ const rootRouteChildren: RootRouteChildren = {
   StoreSlugRoute: StoreSlugRoute,
   USlugRoute: USlugRoute,
   ApiLiveCounterLookupRoute: ApiLiveCounterLookupRoute,
+  KUsernameShopRoute: KUsernameShopRoute,
   OverlayDemoAlertsTokenRoute: OverlayDemoAlertsTokenRoute,
+  TUsernameShopRoute: TUsernameShopRoute,
   WidgetsActivityfeedDemoChannelIdRoute: WidgetsActivityfeedDemoChannelIdRoute,
   ApiAuthProviderCallbackRoute: ApiAuthProviderCallbackRoute,
   ApiAuthProviderStartRoute: ApiAuthProviderStartRoute,

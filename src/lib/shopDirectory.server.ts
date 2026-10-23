@@ -4,11 +4,27 @@ import { sendKickChatMessage } from "@/lib/kickChat.server";
 import { publishedSlugForUser } from "@/lib/publicChannel.server";
 import { parseShopDirectoryCommand } from "@/lib/shopBuy";
 import { supabaseAdmin } from "@/lib/supabase/client.server";
+import { isDemoBuild } from "@/lib/demoMode";
+import { createSeededDb } from "@/demo/overlay";
+import {
+  demoShopIdentities,
+  primaryShopIdentity,
+  resolveLegacyShopChannel,
+  shortShopPath,
+} from "@/lib/demoShopLinks";
 
 export { parseShopDirectoryCommand };
 
 export function shopDirectoryMessage(slug: string, names: string[]): string {
-  const url = `https://cylixstudio.com/store/${encodeURIComponent(slug)}`;
+  const read = (id: string) => createSeededDb(id).snapshot();
+  const identities = demoShopIdentities(read);
+  const identity = primaryShopIdentity(
+    resolveLegacyShopChannel(slug, read, identities) ?? "",
+    identities,
+  );
+  const url = isDemoBuild()
+    ? `https://creovix-studio-demo.vercel.app${identity ? shortShopPath(identity) : `/store/${encodeURIComponent(slug)}`}`
+    : `https://cylixstudio.com/store/${encodeURIComponent(slug)}`;
   let body = `Store ${url}`;
   for (const name of names) {
     const piece = ` | !buy ${name}`;
@@ -44,7 +60,11 @@ export async function handleShopDirectoryCommand(input: {
       broadcasterUserId: input.broadcasterUserId,
     })
   ) {
-    const sent = await sendKickChatMessage(input.userId, input.broadcasterUserId, COMMAND_PERMISSION_DENIED);
+    const sent = await sendKickChatMessage(
+      input.userId,
+      input.broadcasterUserId,
+      COMMAND_PERMISSION_DENIED,
+    );
     return sent
       ? { status: "replied", reason: "not_permitted", command: "!shop" }
       : { status: "error", reason: "not_permitted", command: "!shop" };

@@ -8,18 +8,17 @@ import { AdminCodesPanel } from "@/components/settings/AdminCodesPanel";
 import { AdminVersionPanel } from "@/components/settings/AdminVersionPanel";
 import { ConnectionsPanel } from "@/components/settings/ConnectionsPanel";
 import { DemoDataPanel } from "@/components/settings/DemoDataPanel";
+import { DemoAdminPanel } from "@/components/settings/DemoAdminPanel";
 import { SettingsBackupPanel } from "@/components/settings/SettingsBackupPanel";
 import { SubscriptionPanel } from "@/components/settings/SubscriptionPanel";
 import { useIsAdmin } from "@/hooks/useSubscription";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useLanguage, type TranslationKey } from "@/lib/i18n";
-import {
-  importBotRixCommands,
-  importBotRixShop,
-  lookupBotRixPublic,
-} from "@/lib/botrix.functions";
+import { importBotRixCommands, importBotRixShop, lookupBotRixPublic } from "@/lib/botrix.functions";
 import { importBotRixRows } from "@/lib/botrixImportSummary";
 import { supabase } from "@/lib/supabase/client";
+import { isDemoBuild } from "@/lib/demoMode";
+import { ADMIN_COPY } from "@/lib/i18n.admin";
 
 const BOTRIX_PROMPT_KEY = "cylix.botrix-import-prompt";
 
@@ -57,11 +56,12 @@ const BASE_TABS = [
   { id: "Connections", label: "settings.tab.connections" },
 ] as const satisfies ReadonlyArray<{ id: string; label: TranslationKey }>;
 
-const ADMIN_TABS = [
-  { id: "Admin", label: "settings.tab.admin" },
-] as const satisfies ReadonlyArray<{ id: string; label: TranslationKey }>;
+const ADMIN_TABS = [{ id: "Admin", label: "settings.tab.admin" }] as const satisfies ReadonlyArray<{
+  id: string;
+  label: TranslationKey;
+}>;
 
-type Tab = (typeof BASE_TABS)[number]["id"] | (typeof ADMIN_TABS)[number]["id"];
+type Tab = (typeof BASE_TABS)[number]["id"] | (typeof ADMIN_TABS)[number]["id"] | "DemoAdmin";
 
 function initialTab(search: SettingsSearch): Tab {
   if (search.setup === "connections" || search.connected) return "Connections";
@@ -74,7 +74,7 @@ function SettingsPage() {
   const search = Route.useSearch();
   const { data } = useWorkspace(user.id);
   const isAdmin = useIsAdmin(user.id);
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [tab, setTab] = useState<Tab>(() => initialTab(search));
   const [emailVisible, setEmailVisible] = useState(false);
   const [botrixOpen, setBotrixOpen] = useState(false);
@@ -92,7 +92,9 @@ function SettingsPage() {
     const nameMissing = !profile.name || profile.name === "CylixStudio";
     const meta = linked.metadata;
     const avatar =
-      meta && typeof meta === "object" && typeof (meta as { avatar_url?: unknown }).avatar_url === "string"
+      meta &&
+      typeof meta === "object" &&
+      typeof (meta as { avatar_url?: unknown }).avatar_url === "string"
         ? (meta as { avatar_url: string }).avatar_url
         : "";
     const patch: { name?: string; image?: string } = {};
@@ -126,7 +128,9 @@ function SettingsPage() {
     if (!kick?.username) return;
     setBotrixBusy(true);
     try {
-      const looked = await lookupBotRixPublic({ data: { streamerName: kick.username, platform: "kick" } });
+      const looked = await lookupBotRixPublic({
+        data: { streamerName: kick.username, platform: "kick" },
+      });
       if (!looked.ok) {
         toast.error(t("botrix.importFailed"));
         return;
@@ -175,7 +179,11 @@ function SettingsPage() {
     }
   };
 
-  const tabs = isAdmin.data ? [...BASE_TABS, ...ADMIN_TABS] : [...BASE_TABS];
+  const tabs: { id: Tab; label: TranslationKey | null }[] = [
+    ...BASE_TABS,
+    ...(isAdmin.data ? ADMIN_TABS : []),
+    ...(isDemoBuild() ? [{ id: "DemoAdmin" as const, label: null }] : []),
+  ];
 
   return (
     <AppShell
@@ -184,22 +192,29 @@ function SettingsPage() {
       title={t("settings.title")}
       subtitle={t("settings.subtitle")}
     >
-      <div className="mb-8 inline-flex flex-wrap gap-1 rounded-full border border-white/5 p-1">
+      <div
+        className="mb-8 inline-flex flex-wrap gap-1 rounded-xl border border-white/10 bg-white/[0.02] p-1"
+        role="group"
+        aria-label={t("settings.title")}
+      >
         {tabs.map((entry) => (
           <button
             key={entry.id}
             type="button"
             onClick={() => setTab(entry.id)}
-            className={`rounded-full px-4 py-1.5 text-[0.8rem] font-medium transition-colors ${
+            aria-pressed={tab === entry.id}
+            className={`rounded-lg px-4 py-2 text-[0.8rem] font-medium transition-colors ${
               tab === entry.id
-                ? "bg-primary text-primary-foreground"
+                ? "bg-white/10 text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {t(entry.label)}
+            {entry.label ? t(entry.label) : ADMIN_COPY[lang].tab}
           </button>
         ))}
       </div>
+
+      {tab === "DemoAdmin" && isDemoBuild() ? <DemoAdminPanel /> : null}
 
       {tab === "Admin" && isAdmin.data ? (
         <>
@@ -208,7 +223,7 @@ function SettingsPage() {
         </>
       ) : null}
 
-      {botrixOpen ? (
+      {botrixOpen && tab !== "DemoAdmin" && tab !== "Admin" ? (
         <div className="mb-6 max-w-2xl rounded-2xl border border-white/10 bg-card p-4">
           <p className="text-sm font-semibold">{t("settings.botrixPrompt.title")}</p>
           <p className="mt-1 text-sm text-muted-foreground">{t("settings.botrixPrompt.body")}</p>
@@ -240,7 +255,9 @@ function SettingsPage() {
           <div className="mt-6 divide-y divide-white/5 border-y border-white/5">
             <div className="flex flex-wrap items-center justify-between gap-3 py-4">
               <p className="text-[0.8rem] text-muted-foreground">{t("settings.profile.name")}</p>
-              <p className="text-sm font-medium" dir="auto">{data?.profile?.name ?? "CylixStudio"}</p>
+              <p className="text-sm font-medium" dir="auto">
+                {data?.profile?.name ?? "CylixStudio"}
+              </p>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-3 py-4">
               <p className="text-[0.8rem] text-muted-foreground">{t("settings.profile.email")}</p>
@@ -253,9 +270,15 @@ function SettingsPage() {
                   onClick={() => setEmailVisible((visible) => !visible)}
                   className="grid size-8 place-items-center rounded-lg border border-white/10 text-muted-foreground hover:text-foreground"
                   aria-pressed={emailVisible}
-                  aria-label={emailVisible ? t("settings.profile.hideEmail") : t("settings.profile.showEmail")}
+                  aria-label={
+                    emailVisible ? t("settings.profile.hideEmail") : t("settings.profile.showEmail")
+                  }
                 >
-                  {emailVisible ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
+                  {emailVisible ? (
+                    <EyeOff className="size-4" aria-hidden />
+                  ) : (
+                    <Eye className="size-4" aria-hidden />
+                  )}
                 </button>
               </div>
             </div>

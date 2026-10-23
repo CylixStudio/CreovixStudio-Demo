@@ -4,8 +4,15 @@ import { useEffect, useState } from "react";
 import { PublicChannelShell } from "@/components/public/PublicChannelShell";
 import { useLanguage } from "@/lib/i18n";
 import { loadPublicStorePage, type PublicStorePage } from "@/lib/publicChannel.functions";
+import { DemoShopRoute } from "@/components/public/DemoShopRoute";
+import { checkDemoShopRoute, DEMO_SHOP_HEADERS } from "@/lib/demoShopRoute";
+import { isDemoBuild } from "@/lib/demoMode";
 
 export const Route = createFileRoute("/store/$slug")({
+  headers: () => DEMO_SHOP_HEADERS,
+  beforeLoad: async ({ params }) => {
+    if (isDemoBuild()) await checkDemoShopRoute(params.slug);
+  },
   head: ({ params }) => ({
     meta: [
       { title: `CylixStudio — ${params.slug}` },
@@ -14,10 +21,15 @@ export const Route = createFileRoute("/store/$slug")({
     ],
   }),
   component: PublicStoreRoute,
+  notFoundComponent: PublicStoreRoute,
 });
 
 function PublicStoreRoute() {
   const { slug } = Route.useParams();
+  return isDemoBuild() ? <DemoShopRoute username={slug} /> : <PublicStorePageView slug={slug} />;
+}
+
+function PublicStorePageView({ slug }: { slug: string }) {
   const { t } = useLanguage();
   const [data, setData] = useState<PublicStorePage | null>(null);
   const [missing, setMissing] = useState(false);
@@ -57,15 +69,25 @@ function PublicStoreRoute() {
             <ul className="mt-6 space-y-3">
               {data.items.map((item) => (
                 <li key={item.name} className="surface-card surface-card-pad flex gap-4">
-                  <ShopImage url={item.imageUrl} alt={item.name} empty={t("store.public.noImage")} />
+                  <ShopImage
+                    url={item.imageUrl}
+                    alt={item.name}
+                    empty={t("store.public.noImage")}
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="text-base font-medium">{item.name}</p>
                     {item.description ? (
-                      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-zinc-400">{item.description}</p>
+                      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-zinc-400">
+                        {item.description}
+                      </p>
                     ) : null}
-                    <p className="mt-2 text-sm text-zinc-200">{t("store.public.price", { count: item.cost })}</p>
+                    <p className="mt-2 text-sm text-zinc-200">
+                      {t("store.public.price", { count: item.cost })}
+                    </p>
                     {typeof item.stock === "number" ? (
-                      <p className="mt-1 text-xs text-zinc-500">{t("store.public.stock", { count: item.stock })}</p>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        {t("store.public.stock", { count: item.stock })}
+                      </p>
                     ) : null}
                   </div>
                 </li>

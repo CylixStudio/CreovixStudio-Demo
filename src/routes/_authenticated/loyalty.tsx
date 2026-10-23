@@ -7,6 +7,8 @@ import { StudioPageTabs } from "@/components/layout/StudioPageTabs";
 import { RankingTab } from "@/components/loyalty/RankingTab";
 import { SalesTab } from "@/components/loyalty/SalesTab";
 import { ShopTab } from "@/components/loyalty/ShopTab";
+import { DemoShopLinks } from "@/components/loyalty/DemoShopLinks";
+import { isDemoBuild } from "@/lib/demoMode";
 import type { Member, Sale, ShopItem } from "@/components/loyalty/shared";
 import { SessionAwareError } from "@/components/widgets/SessionAwareError";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -95,14 +97,19 @@ function LoyaltyPage() {
       />
 
       {tab === "shop" ? (
-        <ShopTab
-          rows={blocked ? [] : (shop.data ?? [])}
-          loading={!blocked && shop.isLoading}
-          error={blocked ? null : shop.error}
-          userId={user?.id ?? ""}
-          guest={blocked}
-          onChanged={() => void queryClient.invalidateQueries({ queryKey: ["loyalty-shop", user?.id] })}
-        />
+        <>
+          {isDemoBuild() ? <DemoShopLinks /> : null}
+          <ShopTab
+            rows={blocked ? [] : (shop.data ?? [])}
+            loading={!blocked && shop.isLoading}
+            error={blocked ? null : shop.error}
+            userId={user?.id ?? ""}
+            guest={blocked}
+            onChanged={() =>
+              void queryClient.invalidateQueries({ queryKey: ["loyalty-shop", user?.id] })
+            }
+          />
+        </>
       ) : blocked ? (
         <SessionAwareError error={SIGNED_OUT_ERROR} signedOutLabel={t("loyalty.signedOut")} />
       ) : tab === "ranking" ? (
@@ -114,7 +121,9 @@ function LoyaltyPage() {
             rows={members.data?.members ?? []}
             loading={members.isLoading}
             error={members.error}
-            onChanged={() => void queryClient.invalidateQueries({ queryKey: ["loyalty-members", user?.id] })}
+            onChanged={() =>
+              void queryClient.invalidateQueries({ queryKey: ["loyalty-members", user?.id] })
+            }
           />
         </>
       ) : (

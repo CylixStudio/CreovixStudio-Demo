@@ -1,4 +1,6 @@
 import type { DemoDb } from "@/demo/db";
+import { demoShopIdentities } from "@/lib/demoShopLinks";
+import { writeShopRoutingHints } from "@/lib/demoShopRoutingHints";
 import { DENIED_EVENT, installGuard } from "@/features/channel-team/guard";
 import { readActiveChannelId, readClientActor } from "@/features/channel-team/storage";
 import {
@@ -36,8 +38,14 @@ function announce(): void {
 function buildClientDb(): DemoDb {
   const db = createSeededDb(readActiveChannelId());
   applyOverlay(db, readStoredOverlay());
+  if (readActiveChannelId() === "own") {
+    writeShopRoutingHints(
+      demoShopIdentities((id) => (id === "own" ? db.snapshot() : createSeededDb(id).snapshot())),
+    );
+  }
   installGuard(db, readClientActor, {
-    audit: (entry) => void import("@/features/channel-team/adapter").then((m) => m.recordOperation(entry)),
+    audit: (entry) =>
+      void import("@/features/channel-team/adapter").then((m) => m.recordOperation(entry)),
     denied: (key) => window.dispatchEvent(new CustomEvent(DENIED_EVENT, { detail: { key } })),
   });
   const dirty = new Set<string>();
@@ -50,6 +58,13 @@ function buildClientDb(): DemoDb {
       scheduled = false;
       const overlay = readStoredOverlay();
       for (const name of dirty) overlay.tables[name] = capRows(name, db.rows(name));
+      if (dirty.has("platform_connections") && readActiveChannelId() === "own") {
+        writeShopRoutingHints(
+          demoShopIdentities((id) =>
+            id === "own" ? db.snapshot() : createSeededDb(id).snapshot(),
+          ),
+        );
+      }
       dirty.clear();
       writeStoredOverlay(overlay);
       announce();
