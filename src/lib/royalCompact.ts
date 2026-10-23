@@ -4,7 +4,6 @@
  * Expired Pro falls back at read time; the stored object is left in place.
  */
 
-import { withAlpha } from "@/lib/overlayTheme";
 import { parseChatConfig, type ChatLayout } from "@/lib/widgets";
 
 export const ROYAL_COMPACT_THEME_ID = "royal-compact";
@@ -42,7 +41,9 @@ const AVATAR_KEYS = [
 ] as const;
 
 function asRecord(raw: unknown): Record<string, unknown> {
-  return raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
+  return raw && typeof raw === "object" && !Array.isArray(raw)
+    ? (raw as Record<string, unknown>)
+    : {};
 }
 
 function num(value: unknown, fallback: number, min: number, max: number) {
@@ -130,16 +131,16 @@ export type RoyalCompactLayout = {
 
 export function royalCompactLayout(settings: RoyalCompactSettings): RoyalCompactLayout {
   const avatar = settings.showAvatar ? settings.avatarSize : 0;
-  const gap = settings.showAvatar ? 4 : 0;
+  const gap = settings.showAvatar ? 10 : 0;
   const roomy = settings.density === "normal";
   return {
     avatar,
     gap,
-    padding: roomy ? "4px 22px 4px 14px" : "2px 18px 2px 12px",
-    minHeight: avatar > 0 ? avatar : roomy ? 36 : 30,
-    radius: 0,
+    padding: roomy ? "9px 13px 9px 11px" : "6px 11px 6px 10px",
+    minHeight: roomy ? 40 : 34,
+    radius: 11,
     fontSize: settings.fontSize,
-    badgeSize: 15,
+    badgeSize: Math.round(settings.fontSize * 1.12),
     messageGap: settings.messageGap,
     background: "transparent",
     width: "fit-content",
@@ -155,12 +156,23 @@ export function royalCompactLayout(settings: RoyalCompactSettings): RoyalCompact
   };
 }
 
-/** Dark wash plus a short user-color tint. The right edge is fully transparent. */
-export function royalCompactFill(userColor: string, bubbleOpacity: number): string {
-  const dark = Math.min(56, Math.max(30, Math.round(bubbleOpacity * 0.5)));
-  const tint = Math.min(16, Math.round(dark * 0.22));
-  const color = userColor.trim().startsWith("#") ? userColor.trim() : "#ffffff";
-  return `linear-gradient(to right, ${withAlpha(color, tint)} 0%, rgba(8,10,14,${(dark / 100).toFixed(2)}) 6%, rgba(8,10,14,${((dark * 0.22) / 100).toFixed(2)}) 38%, transparent 100%)`;
+/** Neutral translucent panel; user color belongs on the edge, not a glow. */
+export function royalCompactFill(_userColor: string, bubbleOpacity: number): string {
+  return `rgba(12, 12, 16, ${Math.min(1, Math.max(0.4, bubbleOpacity / 100))})`;
+}
+
+export function royalUserColor(
+  color: string | null | undefined,
+  badges: readonly string[],
+): string {
+  const supplied = color?.trim();
+  if (supplied && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(supplied)) return supplied;
+  const roles = new Set(badges.map((badge) => badge.toLowerCase().replace(/[\s-]+/g, "_")));
+  if (roles.has("broadcaster") || roles.has("owner")) return "#E5C780";
+  if (roles.has("moderator") || roles.has("mod")) return "#64D9B0";
+  if (roles.has("vip")) return "#D9A0D4";
+  if (roles.has("subscriber") || roles.has("founder") || roles.has("og")) return "#A8B6ED";
+  return "#BEE1FC";
 }
 
 /** No badge row, no leftover gap, when badges are hidden or the payload has none. */

@@ -324,6 +324,8 @@ body.overlay-transparent {
   to { opacity: 0; transform: translateY(-10px); }
 }
 .overlay-royal-in { animation: overlay-royal-in 200ms ease-out both; }
+.royal-chat-badges { display: inline-flex; align-items: center; gap: 2px; margin-right: 4px; vertical-align: -0.18em; }
+[data-royal-face] [data-royal-text] img { height: 1.5em !important; max-width: 100%; object-fit: contain; margin: 0 2px !important; }
 .overlay-anim-fade { animation: overlay-chat-in 420ms ease-out both; }
 .overlay-anim-fade-out { animation: overlay-chat-out 260ms ease-in forwards; pointer-events: none; }
 .overlay-chat-row { transition: transform 320ms ease; }

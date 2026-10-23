@@ -1,5 +1,7 @@
 import { CHAT_LAYOUTS, type ChatLayout } from "@/lib/widgets";
-import { ROYAL_COMPACT_THEME_ID } from "@/lib/royalCompact";
+import { ROYAL_COMPACT_DEFAULTS, ROYAL_COMPACT_THEME_ID } from "@/lib/royalCompact";
+import { RoyalChatRow } from "./RoyalChatRow";
+import { RoleBadgeIcon } from "./RoleBadgeIcon";
 import { useLanguage } from "@/lib/i18n";
 
 function LayoutMini({ id }: { id: ChatLayout }) {
@@ -39,13 +41,29 @@ function LayoutMini({ id }: { id: ChatLayout }) {
 
 function RoyalMini() {
   return (
-    <div className="flex h-14 items-center gap-1 bg-transparent px-2">
-      <span className="size-5 shrink-0 rounded-full border-2 border-white/30 bg-[rgba(17,20,25,0.88)]" />
-      <span className="inline-flex max-w-full items-center gap-1 rounded-xl bg-[rgba(17,20,25,0.88)] px-2 py-1 text-[10px] text-white shadow-[0_1px_2px_rgba(0,0,0,0.16)]">
-        <span className="size-2 rounded-sm bg-amber-300" />
-        <span className="font-bold text-amber-200">Nova</span>
-        <span>hello</span>
-      </span>
+    <div
+      className="flex h-14 items-center overflow-hidden bg-transparent px-2"
+      dir="ltr"
+      aria-label="Demo chat preview"
+    >
+      <div
+        style={{
+          width: 200,
+          flexShrink: 0,
+          transform: "scale(0.55)",
+          transformOrigin: "left center",
+        }}
+      >
+        <RoyalChatRow
+          settings={{ ...ROYAL_COMPACT_DEFAULTS, fontSize: 14, avatarSize: 38 }}
+          name="Nova"
+          color="#64D9B0"
+          textColor="#ffffff"
+          badges={<RoleBadgeIcon role="moderator" platform="KICK" size={16} />}
+        >
+          hello
+        </RoyalChatRow>
+      </div>
     </div>
   );
 }

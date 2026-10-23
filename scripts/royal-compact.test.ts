@@ -13,11 +13,13 @@ import {
   royalBadgeGap,
   royalCompactFill,
   royalCompactLayout,
+  royalUserColor,
   royalCompactPayload,
   readChatPresentation,
   chatUsesRoyalCompact,
 } from "../src/lib/royalCompact.ts";
 import { subscriptionIsActive } from "../src/lib/subscription.server.ts";
+import { normalizeDemoFile } from "../src/lib/demoState.ts";
 
 test("royal-compact theme id is present beside the existing layouts", () => {
   assert.equal(ROYAL_COMPACT_THEME_ID, "royal-compact");
@@ -77,7 +79,7 @@ test("showAvatar false removes the avatar and its gap", () => {
   assert.equal(hidden.avatar, 0);
   assert.equal(hidden.gap, 0);
   assert.equal(shown.avatar, 38);
-  assert.equal(shown.gap, 4);
+  assert.equal(shown.gap, 10);
 });
 
 test("hiding badges removes their gap and duplicate badges collapse", () => {
@@ -98,24 +100,33 @@ test("long messages wrap inside one fit-content bubble", () => {
   assert.equal(layout.overflowX, "visible");
   assert.equal(layout.whiteSpace, "normal");
   assert.equal(layout.overflowWrap, "anywhere");
-  assert.equal(layout.minHeight, 38);
-  assert.equal(layout.padding, "2px 18px 2px 12px");
-  assert.equal(layout.radius, 0);
+  assert.equal(layout.minHeight, 34);
+  assert.equal(layout.padding, "6px 11px 6px 10px");
+  assert.equal(layout.radius, 11);
   assert.equal(layout.fontSize, 14);
   assert.equal(layout.messageGap, 7);
   assert.equal(layout.background, "transparent");
   assert.equal(layout.shadow, "none");
   const fill = royalCompactFill("#f5c16c", 88);
-  assert.match(fill, /^linear-gradient\(to right,/);
-  assert.match(fill, /transparent 100%\)$/);
+  assert.equal(fill, "rgba(12, 12, 16, 0.88)");
+  assert.doesNotMatch(fill, /gradient|glow/);
   assert.doesNotMatch(fill, /border-radius/);
   assert.equal(layout.textDirection, "auto");
   assert.equal(layout.unicodeBidi, "plaintext");
   assert.equal(layout.rowDirection, "ltr");
   assert.equal(layout.animationMs, 200);
   const roomy = royalCompactLayout({ ...ROYAL_COMPACT_DEFAULTS, density: "normal" });
-  assert.equal(roomy.padding, "4px 22px 4px 14px");
-  assert.equal(roomy.minHeight, 38);
+  assert.equal(roomy.padding, "9px 13px 9px 11px");
+  assert.equal(roomy.minHeight, 40);
+});
+
+test("real name colors win; missing colors use role data without inventing badges", () => {
+  assert.equal(royalUserColor("#55aabb", ["broadcaster"]), "#55aabb");
+  assert.equal(royalUserColor(null, ["moderator"]), "#64D9B0");
+  assert.equal(royalUserColor(null, ["vip"]), "#D9A0D4");
+  assert.equal(royalUserColor(null, ["broadcaster"]), "#E5C780");
+  assert.equal(royalUserColor(null, ["subscriber"]), "#A8B6ED");
+  assert.equal(royalUserColor("url(invalid)", []), "#BEE1FC");
 });
 
 test("royal settings round-trip through the config shape", () => {
@@ -128,6 +139,21 @@ test("royal settings round-trip through the config shape", () => {
       messageGap: 12,
       avatarSize: 44,
     },
+  });
+
+  test("Demo persistence keeps provider-supplied badge artwork without creating counts or roles", () => {
+    const state = normalizeDemoFile({
+      messages: {
+        "demo-chat-box": [{
+          id: "custom", author: "Viewer", text: "hello", badges: [],
+          badgeList: [{ type: "custom", imageUrl: "https://cdn.example.com/badge.png" }],
+        }],
+      },
+    });
+    const badges = state.messages["demo-chat-box"]![0]!.badgeList!;
+    assert.equal(badges.length, 1);
+    assert.equal(badges[0]!.imageUrl, "https://cdn.example.com/badge.png");
+    assert.equal(badges[0]!.count, null);
   });
   const stored = royalCompactPayload(settings);
   assert.deepEqual(parseRoyalCompactSettings(stored), settings);
@@ -182,13 +208,22 @@ test("speech bubbles and the other chat layouts stay on the previous markup", ()
   assert.match(sourceSlice(demo, bubbleStart, islandStart), /data-chat-fill=""/);
   const royal = sourceSlice(demo, "if (royal)", bubbleStart);
   assert.match(royal, /data-chat-theme="royal-compact"/);
-  assert.match(royal, /data-royal-arc=""/);
-  assert.match(royal, /data-royal-fill=""/);
+  assert.match(royal, /<RoyalChatRow/);
   assert.doesNotMatch(royal, /data-chat-arc/);
   assert.doesNotMatch(royal, /data-chat-fill/);
-  const glassStart = demo.indexOf(islandStart);
-  const productGlass = product.indexOf(islandStart);
-  const demoTail = demo.slice(glassStart, glassStart + 4000);
-  const productTail = product.slice(productGlass, productGlass + 4000);
-  assert.equal(demoTail, productTail);
+  assert.equal(
+    sourceSlice(demo, islandStart, "  const quiet ="),
+    sourceSlice(product, islandStart, "  const quiet ="),
+  );
+});
+
+test("picker and actual renderer share the compact face, isolated text and avatar fallback", () => {
+  const face = readFileSync(new URL("../src/components/widgets/RoyalChatRow.tsx", import.meta.url), "utf8");
+  const picker = readFileSync(new URL("../src/components/widgets/ChatThemePicker.tsx", import.meta.url), "utf8");
+  assert.match(picker, /<RoyalChatRow/);
+  assert.match(face, /borderLeft: `2px solid \$\{color\}`/);
+  assert.match(face, /borderRadius: layout.radius/);
+  assert.match(face, /data-royal-name=""\s+dir="auto"/);
+  assert.match(face, /data-royal-text=""\s+dir="auto"/);
+  assert.doesNotMatch(face, /boxShadow|gradient|filter:|https:\/\/.*avatar/i);
 });

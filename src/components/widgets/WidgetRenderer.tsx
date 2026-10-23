@@ -9,6 +9,7 @@ import { StreamEventsScheduleView } from "@/components/widgets/StreamEventsSched
 import { PollOverlay } from "@/components/widgets/PollOverlay";
 import { PredictionOverlay } from "@/components/widgets/PredictionOverlay";
 import { ChatSpotlightView } from "@/components/widgets/ChatSpotlightView";
+import { RoyalChatRow } from "@/components/widgets/RoyalChatRow";
 
 export { ChatSpotlightView };
 import { ViewerCountFace } from "@/components/widgets/ViewerCountFace";
@@ -41,9 +42,8 @@ import {
   chatUsesRoyalCompact,
   parseRoyalCompactSettings,
   readChatThemeId,
-  royalBadgeGap,
-  royalCompactFill,
   royalCompactLayout,
+  royalUserColor,
 } from "@/lib/royalCompact";
 import type { StreamEventsRuntime } from "@/lib/streamEventsSchedule";
 import type { PollRuntime, PredictionRuntime } from "@/lib/interactiveWidgets";
@@ -958,54 +958,6 @@ function useChatStackShift(signature: string, reduced: boolean) {
 }
 
 
-function RoyalAvatar({
-  url,
-  size,
-  letter,
-  color,
-}: {
-  url: string | null;
-  size: number;
-  letter: string;
-  color: string;
-}) {
-  const [failed, setFailed] = useState(false);
-  const safe = url && /^(https:|data:image\/)/i.test(url) && !failed ? url : null;
-  const ring = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(color) ? color : "#ffffff";
-  return (
-    <span
-      data-royal-avatar=""
-      style={{
-        width: size,
-        height: size,
-        borderRadius: 999,
-        border: `2.5px solid ${ring}`,
-        boxShadow: "0 1px 3px rgba(0,0,0,0.45)",
-        overflow: "hidden",
-        flex: "0 0 auto",
-        display: "grid",
-        placeItems: "center",
-        background: "rgba(12, 14, 18, 0.9)",
-        color: ring,
-        fontSize: Math.max(11, Math.round(size * 0.38)),
-        fontWeight: 700,
-        lineHeight: 1,
-      }}
-    >
-      {safe ? (
-        <img
-          src={safe}
-          alt=""
-          onError={() => setFailed(true)}
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-        />
-      ) : (
-        letter
-      )}
-    </span>
-  );
-}
-
 /**
  * Chat Box renders viewer text messages ONLY. Stream activity (follows, subs,
  * cheers, raids, gifts) is deliberately never rendered here — those payloads
@@ -1272,7 +1224,16 @@ export function ChatBoxView({
           ? (message?.badgeList ?? [])
           : badges.map((type) => ({ type }) as KickBadge)
         : []
-    ).filter((badge) => badge && (style.showPlatform || !isPlatformMark(badge?.type)));
+    ).filter((badge) => badge && ((!royal && style.showPlatform) || !isPlatformMark(badge?.type)));
+    if (royal && isKick) {
+      const present = new Set(kickBadges.map((badge) => badge.type.toLowerCase()));
+      for (const type of badges) {
+        if (!isPlatformMark(type) && !present.has(type.toLowerCase())) {
+          kickBadges.push({ type });
+          present.add(type.toLowerCase());
+        }
+      }
+    }
 
     const roleKeys = badges.filter((role) => style.showPlatform || !isPlatformMark(role));
     const imagedKickLabels = new Set(
@@ -1315,8 +1276,8 @@ export function ChatBoxView({
             );
           })
         : resolveBadgeRoles(
-            roleKeys.filter((role) => !shortRoleLabel(role)),
-            3,
+            roleKeys.filter((role) => royal || !shortRoleLabel(role)),
+            royal ? roleKeys.length : 3,
           ).map((role) => (
             <RoleBadgeIcon
               key={role}
@@ -1330,7 +1291,7 @@ export function ChatBoxView({
             />
           ));
 
-    const badgeNodes = [...pillNodes, ...artNodes];
+    const badgeNodes = [...(royal && !isKick ? [] : pillNodes), ...artNodes];
     const badgesBlock =
       badgeNodes.filter(Boolean).length > 0 ? (
         <span
@@ -1372,19 +1333,7 @@ export function ChatBoxView({
 
     if (royal) {
       const visibleBadges = badgeNodes.filter(Boolean);
-      const badgeGap = royalBadgeGap(style.showBadges, visibleBadges.length);
-      const bubbleMax = royalLayout.avatar > 0 ? `calc(100% - ${royalLayout.avatar + royalLayout.gap}px)` : "100%";
-      const userColor = message?.color && message.color.trim() ? message.color : "#F4F1EA";
-      const lineText: React.CSSProperties = {
-        fontSize: royalLayout.fontSize,
-        lineHeight: 1.25,
-        unicodeBidi: royalLayout.unicodeBidi,
-        maxWidth: "100%",
-        minWidth: 0,
-        overflowWrap: royalLayout.overflowWrap,
-        wordBreak: "break-word",
-        whiteSpace: royalLayout.whiteSpace,
-      };
+      const userColor = royalUserColor(message?.color, [...badges, ...kickBadges.map((badge) => badge.type)]);
       return replyWrap(
         <div
           data-chat-id={leaving ? undefined : message?.id}
@@ -1394,12 +1343,6 @@ export function ChatBoxView({
           className={`overlay-chat-row ${motion}`}
           dir="ltr"
           style={{
-            display: "flex",
-            flexDirection: "row",
-            direction: "ltr",
-            alignItems: "center",
-            justifyContent: "flex-start",
-            gap: royalLayout.gap,
             width: "fit-content",
             maxWidth: "100%",
             minWidth: 0,
@@ -1408,106 +1351,28 @@ export function ChatBoxView({
             boxShadow: "none",
           }}
         >
-          {royalSettings.showAvatar ? (
-            <RoyalAvatar
-              url={typeof message?.avatarUrl === "string" ? message.avatarUrl : null}
-              size={royalLayout.avatar}
-              letter={chatInitial(author)}
-              color={userColor}
-            />
-          ) : null}
-          <div
-            dir="ltr"
-            data-royal-row=""
-            style={{
-              position: "relative",
-              isolation: "isolate",
-              boxSizing: "border-box",
-              direction: "ltr",
-              width: "fit-content",
-              maxWidth: bubbleMax,
-              minWidth: 0,
-              minHeight: royalLayout.minHeight,
-              padding: royalLayout.padding,
-              borderRadius: 0,
-              background: "transparent",
-              border: "none",
-              boxShadow: "none",
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              columnGap: 5,
-              rowGap: 2,
-              overflow: "visible",
-            }}
+          <RoyalChatRow
+            settings={royalSettings}
+            name={author}
+            nameContent={<ChatLineText
+              text={author}
+              {...(message?.altAuthor ? { altText: message.altAuthor } : {})}
+              reduced={reducedMotion}
+              render={(value) => value}
+            />}
+            color={userColor}
+            textColor={style.textColor}
+            avatarUrl={message?.avatarUrl}
+            badges={visibleBadges.length ? visibleBadges : null}
+            platform={style.showPlatform ? platformBlock : null}
           >
-            <svg
-              aria-hidden
-              data-royal-arc=""
-              viewBox="0 0 16 48"
-              preserveAspectRatio="none"
-              style={{
-                position: "absolute",
-                left: 0,
-                top: 0,
-                width: 14,
-                height: "100%",
-                overflow: "visible",
-                pointerEvents: "none",
-                zIndex: 2,
-                color: userColor,
-              }}
-            >
-              <path
-                d="M13 3 C 3 12, 3 36, 13 45"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.25"
-                strokeLinecap="round"
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-            <span
-              aria-hidden
-              data-royal-fill=""
-              style={{
-                position: "absolute",
-                top: 0,
-                bottom: 0,
-                left: 7,
-                right: 0,
-                border: "none",
-                borderRadius: 0,
-                backgroundColor: "transparent",
-                backgroundImage: royalCompactFill(userColor, royalSettings.bubbleOpacity),
-                pointerEvents: "none",
-                zIndex: 0,
-              }}
-            />
-            {visibleBadges.length > 0 ? (
-              <span style={{ position: "relative", zIndex: 1, display: "inline-flex", alignItems: "center", gap: badgeGap, flexShrink: 0, maxWidth: "100%" }}>
-                {visibleBadges}
-              </span>
-            ) : null}
-            {style.showPlatform ? <span style={{ position: "relative", zIndex: 1 }}>{platformBlock}</span> : null}
-            <span dir="ltr" style={{ ...lineText, position: "relative", zIndex: 1, color: userColor, fontWeight: 700, flexShrink: 0 }}>
-              <ChatLineText
-                text={author}
-                {...(message?.altAuthor ? { altText: message.altAuthor } : {})}
-                reduced={reducedMotion}
-                render={(value) => value}
-              />
-            </span>
-            <span style={{ position: "relative", zIndex: 1, color: style.textColor, opacity: 0.9, flexShrink: 0 }}>:</span>
-            <span dir="auto" style={{ ...lineText, position: "relative", zIndex: 1, color: style.textColor, fontWeight: 500, flex: "1 1 auto" }}>
               <ChatLineText
                 text={text}
                 {...(message?.altText ? { altText: message.altText } : {})}
                 reduced={reducedMotion}
                 render={renderChatText}
               />
-            </span>
-          </div>
+          </RoyalChatRow>
         </div>,
       );
     }
@@ -1691,7 +1556,7 @@ export function ChatBoxView({
         fontSize: `${royal ? royalLayout.fontSize : style.fontSize}px`,
         background: royal ? "transparent" : undefined,
         overflow: royal ? "visible" : undefined,
-        direction: !royal && layout === "bubble" ? "ltr" : undefined,
+        direction: royal || layout === "bubble" ? "ltr" : undefined,
       }}
     >
       {shownChat.map((message) => renderMessage(message, false))}

@@ -26,6 +26,7 @@ export type DemoGoal = {
 
 export type DemoBadge = {
   type: string;
+  imageUrl?: string | null;
   text?: string | null;
   count?: number | null;
 };
@@ -127,13 +128,16 @@ export function normalizeDemoFile(raw: unknown): DemoFile {
         author: typeof row["author"] === "string" ? row["author"].slice(0, 40) : "DemoUser",
         color: typeof row["color"] === "string" ? row["color"] : null,
         badges: Array.isArray(row["badges"]) ? row["badges"].filter((badge) => typeof badge === "string").slice(0, 12) : [],
-        badgeList: Array.isArray(row["badgeList"])
-          ? row["badgeList"].map((badge) => asRecord(badge)).filter((badge) => typeof badge["type"] === "string").slice(0, 12).map((badge) => ({
+        ...(Array.isArray(row["badgeList"]) ? {
+          badgeList: row["badgeList"].map((badge) => asRecord(badge)).filter((badge) => typeof badge["type"] === "string").slice(0, 12).map((badge) => ({
               type: String(badge["type"]),
               text: typeof badge["text"] === "string" ? badge["text"] : null,
               count: typeof badge["count"] === "number" ? badge["count"] : null,
-            }))
-          : undefined,
+              imageUrl: typeof badge["imageUrl"] === "string" && badge["imageUrl"].startsWith("https://")
+                ? badge["imageUrl"]
+                : null,
+            })),
+        } : {}),
         avatarUrl: typeof row["avatarUrl"] === "string" ? row["avatarUrl"] : null,
         text: String(row["text"]).slice(0, 800),
         at: typeof row["at"] === "number" ? row["at"] : Date.now(),
