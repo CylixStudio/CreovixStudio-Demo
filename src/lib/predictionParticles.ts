@@ -9,9 +9,27 @@ export const PARTICLE_DEFAULTS = {
   particleBounce: 25,
   particleMotion: true,
   particleLowPower: false,
+  particleOpeningAnimation: true,
+  particleWinnerAnimation: true,
+  particleWinnerDuration: 2600,
+  particleResultDuration: 6000,
 };
 
 export type ParticleSettings = typeof PARTICLE_DEFAULTS;
+
+export const WINNER_REVEAL_PAUSE_MS = 250;
+export const WINNER_REVEAL_DURATION_MS = 1100;
+
+export function winnerCoverProgress(elapsedMs: number) {
+  const progress = Math.max(
+    0,
+    Math.min(
+      1,
+      (elapsedMs - WINNER_REVEAL_PAUSE_MS) / (WINNER_REVEAL_DURATION_MS - WINNER_REVEAL_PAUSE_MS),
+    ),
+  );
+  return progress * progress * (3 - 2 * progress);
+}
 
 export function parseParticleSettings(raw: Record<string, unknown>): ParticleSettings {
   const bounded = (key: keyof ParticleSettings, min: number, max: number) => {
@@ -35,6 +53,10 @@ export function parseParticleSettings(raw: Record<string, unknown>): ParticleSet
     particleBounce: bounded("particleBounce", 0, 100),
     particleMotion: raw["particleMotion"] !== false,
     particleLowPower: raw["particleLowPower"] === true,
+    particleOpeningAnimation: raw["particleOpeningAnimation"] !== false,
+    particleWinnerAnimation: raw["particleWinnerAnimation"] !== false,
+    particleWinnerDuration: bounded("particleWinnerDuration", 2000, 3000),
+    particleResultDuration: bounded("particleResultDuration", 5000, 8000),
   };
 }
 

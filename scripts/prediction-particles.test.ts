@@ -7,8 +7,22 @@ import {
   PARTICLE_SEEDS,
   parseParticleSettings,
   particleShare,
+  winnerCoverProgress,
+  WINNER_REVEAL_DURATION_MS,
 } from "../src/lib/predictionParticles.ts";
 import { PredictionParticlePhysics } from "../src/lib/predictionParticlePhysics.ts";
+
+test("winner cover pauses 250ms then smoothly completes within 1100ms", () => {
+  assert.equal(winnerCoverProgress(0), 0);
+  assert.equal(winnerCoverProgress(249), 0);
+  assert.equal(winnerCoverProgress(250), 0);
+  assert.ok(winnerCoverProgress(500) > 0 && winnerCoverProgress(500) < 1);
+  assert.equal(winnerCoverProgress(WINNER_REVEAL_DURATION_MS), 1);
+  assert.equal(winnerCoverProgress(5000), 1);
+  for (let time = 0; time < WINNER_REVEAL_DURATION_MS; time += 10) {
+    assert.ok(winnerCoverProgress(time + 10) >= winnerCoverProgress(time));
+  }
+});
 
 test("legacy prediction remains classic; particle config is bounded and survives JSON persistence", () => {
   assert.equal(parsePredictionConfig({}).layout, "classic");

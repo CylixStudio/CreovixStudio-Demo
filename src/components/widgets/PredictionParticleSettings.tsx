@@ -50,10 +50,24 @@ export function PredictionParticleSettings({
       : ([
           {
             key: "particleSpeed",
-            label: ar ? "سرعة الحركة" : "Motion speed",
+            label: ar ? "سرعة السقوط" : "Falling speed",
             min: 10,
             max: 100,
             unit: "%",
+          },
+          {
+            key: "particleWinnerDuration",
+            label: ar ? "مدة إعلان الفائز" : "Winner reveal duration",
+            min: 2000,
+            max: 3000,
+            unit: "ms",
+          },
+          {
+            key: "particleResultDuration",
+            label: ar ? "مدة عرض النتيجة" : "Result display duration",
+            min: 5000,
+            max: 8000,
+            unit: "ms",
           },
           {
             key: "particleBounce",
@@ -107,18 +121,33 @@ export function PredictionParticleSettings({
         ))
       ) : (
         <>
-          {(["particleMotion", "particleLowPower"] as const).map((key) => (
+          {(
+            [
+              "particleOpeningAnimation",
+              "particleWinnerAnimation",
+              "particleMotion",
+              "particleLowPower",
+            ] as const
+          ).map((key) => (
             <label
               key={key}
               className="flex items-center justify-between gap-3 text-xs text-muted-foreground"
             >
-              {key === "particleMotion"
+              {key === "particleOpeningAnimation"
                 ? ar
-                  ? "تفعيل الحركة"
-                  : "Enable motion"
-                : ar
-                  ? "أداء منخفض (دوائر أقل)"
-                  : "Low power (fewer circles)"}
+                  ? "أنيميشن الافتتاح"
+                  : "Opening animation"
+                : key === "particleWinnerAnimation"
+                  ? ar
+                    ? "أنيميشن إعلان الفائز"
+                    : "Winner reveal animation"
+                  : key === "particleMotion"
+                    ? ar
+                      ? "تفعيل الحركة"
+                      : "Enable motion"
+                    : ar
+                      ? "أداء منخفض (دوائر أقل)"
+                      : "Low power (fewer circles)"}
               <input
                 type="checkbox"
                 checked={settings[key]}

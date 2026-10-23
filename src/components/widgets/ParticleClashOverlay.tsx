@@ -6,10 +6,15 @@ import {
   fontScale,
   formatClock,
   formatCount,
-  usePresence,
   wholePercents,
 } from "@/components/widgets/overlayKit";
-import { predictionCardVisible, type PredictionRuntime } from "@/lib/interactiveWidgets";
+import { type PredictionRuntime } from "@/lib/interactiveWidgets";
+import {
+  PredictionParticleLifecycle,
+  emptyPresentation,
+  officialWinner,
+  readPredictionReceipt,
+} from "@/lib/predictionParticleLifecycle";
 import { type PredictionConfig } from "@/lib/widgets";
 import { useLanguage } from "@/lib/i18n";
 
@@ -27,16 +32,68 @@ export function ParticleClashOverlay({
   const [now, setNow] = useState(Date.now);
   // Classic's historical showcase is not an actual prediction.
   const live = runtime?.eventName === "demo-fixture" ? null : runtime;
-  const visible = predictionCardVisible(live, now);
-  const last = useRef<PredictionRuntime | null>(null);
-  if (visible && live) last.current = live;
-  const { mounted, leaving } = usePresence(visible);
-  const shown = visible ? live : last.current;
+  const controller = useRef<PredictionParticleLifecycle | null>(null);
+  const [presentation, setPresentation] = useState(emptyPresentation);
+  const [storageError, setStorageError] = useState(false);
+  const settings = useRef(config);
+  settings.current = config;
   useEffect(() => {
-    if (!live?.endsAt && !live?.hideAt) return;
+    const key = `cylixstudio-demo:prediction-presentation:v1:${location.pathname}`;
+    if (!controller.current) {
+      try {
+        controller.current = new PredictionParticleLifecycle(
+          preview ? null : readPredictionReceipt(sessionStorage, key),
+        );
+      } catch (error) {
+        console.error("[prediction-particles] lifecycle_receipt_read_failed", error);
+        setStorageError(true);
+        controller.current = new PredictionParticleLifecycle(null);
+      }
+    }
+    const machine = controller.current;
+    machine.receive(
+      live,
+      Date.now(),
+      config.particleWinnerAnimation ? config.particleWinnerDuration : 0,
+      config.particleOpeningAnimation,
+    );
+    try {
+      if (!preview && machine.receipt) sessionStorage.setItem(key, JSON.stringify(machine.receipt));
+    } catch (error) {
+      console.error("[prediction-particles] lifecycle_receipt_write_failed", error);
+      setStorageError(true);
+    }
+    setPresentation(machine.presentation);
+  }, [
+    live,
+    preview,
+    config.particleOpeningAnimation,
+    config.particleWinnerAnimation,
+    config.particleWinnerDuration,
+  ]);
+  useEffect(() => {
+    if (!presentation.until) return;
+    const tick = window.setTimeout(
+      () => {
+        const machine = controller.current;
+        if (!machine) return;
+        machine.tick(Date.now(), settings.current.particleResultDuration);
+        setPresentation(machine.presentation);
+      },
+      Math.max(0, presentation.until - Date.now()),
+    );
+    return () => window.clearTimeout(tick);
+  }, [presentation.until]);
+  const shown = presentation.runtime;
+  const leaving = presentation.phase === "CLOSING";
+  const winner = officialWinner(shown);
+  const announcing =
+    presentation.phase === "REVEALING_WINNER" || presentation.phase === "RESULT_DISPLAY";
+  useEffect(() => {
+    if (shown?.status !== "open" || !shown.endsAt || leaving) return;
     const timer = window.setInterval(() => setNow(Date.now()), 250);
     return () => window.clearInterval(timer);
-  }, [live?.endsAt, live?.hideAt]);
+  }, [shown?.status, shown?.endsAt, leaving]);
   const stage = {
     mode: preview ? ("box" as const) : ("viewport" as const),
     dir,
@@ -47,25 +104,17 @@ export function ParticleClashOverlay({
     fontFamily: config.fontFamily,
     textShadow: "0 2px 6px #000",
   };
-  if (!mounted || !shown) {
+  if (!shown || ["IDLE", "WAITING_FOR_RESULT", "HIDDEN"].includes(presentation.phase)) {
     return (
       <OverlayStage {...stage}>
-        {live?.status === "resolved" ? null : (
-          <p
-            data-testid="prediction-idle"
-            style={{
-              ...textStyle,
-              position: "absolute",
-              bottom: 40,
-              left: 80,
-              right: 80,
-              textAlign: "center",
-              fontSize: 24,
-            }}
-          >
-            {t("widget.prediction.idle")}
+        <span data-testid="prediction-lifecycle" data-phase={presentation.phase} />
+        {preview && storageError ? (
+          <p role="alert" style={textStyle}>
+            {ar
+              ? "تعذر حفظ حالة الإعلان في المتصفح؛ قد يتكرر بعد التحديث."
+              : "Could not save reveal receipt; refresh may replay it."}
           </p>
-        )}
+        ) : null}
       </OverlayStage>
     );
   }
@@ -85,18 +134,36 @@ export function ParticleClashOverlay({
   const test = shown.eventName === "demo-prediction-test";
   return (
     <OverlayStage {...stage}>
+      <style>{`
+        @keyframes particle-text-enter { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+        .particle-text-enter { animation: particle-text-enter 450ms ease-out both; }
+        @media (prefers-reduced-motion: reduce) { .particle-text-enter { animation: none; } .particle-lifecycle { transition: none !important; } }
+      `}</style>
       <div
         data-testid="particle-clash-overlay"
         data-status={shown.status}
+        data-phase={presentation.phase}
+        className="particle-lifecycle"
         style={{
           position: "absolute",
           inset: 0,
           opacity: leaving ? 0 : 1,
-          transition: "opacity 450ms",
+          transform: leaving ? "translateY(20px)" : "none",
+          transition: "opacity 750ms ease, transform 750ms ease",
         }}
       >
-        <PredictionParticles settings={config} points={points} />
+        <PredictionParticles
+          settings={config}
+          key={presentation.key}
+          points={points}
+          winnerSide={winner}
+          cinematicWinner={winner >= 0}
+          frozen={leaving}
+          instantOpening={!config.particleOpeningAnimation}
+        />
         <div
+          key={`text-${presentation.key}`}
+          className={config.particleOpeningAnimation || announcing ? "particle-text-enter" : ""}
           style={{
             ...textStyle,
             position: "absolute",
@@ -142,6 +209,20 @@ export function ParticleClashOverlay({
               ) : null}
               {test ? <> · {ar ? "اختبار محلي" : "Local test"}</> : null}
             </p>
+            {announcing && winner >= 0 ? (
+              <p
+                data-testid="prediction-winner"
+                dir="auto"
+                style={{
+                  margin: "8px 0 0",
+                  fontSize: 28 * size,
+                  fontWeight: 650,
+                  color: winner === 0 ? config.particleGreen : config.particleRed,
+                }}
+              >
+                {ar ? "الفائز:" : "Winner:"} {outcomes[winner]?.label}
+              </p>
+            ) : null}
           </div>
           <div
             dir="ltr"

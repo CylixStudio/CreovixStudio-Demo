@@ -21,8 +21,8 @@ tiling these whole images; its default colors are their actual fills,
 `#2bfbb7` and `#fe8a8a`. Seeded varying sizes and positions persist across votes.
 The first two runtime outcomes define left/right sides regardless of their names;
 their existing point shares drive spread, population and limited smooth overlap.
-No-vote data shows a waiting message and no particles or invented percentages.
-Idle, locked, resolved/winner and hideAt use Prediction's existing lifecycle.
+Open no-vote data shows a waiting message and no particles or invented percentages.
+Idle and closed/waiting states are fully transparent, including after source refresh.
 The actual title, first two outcome names, points, voters, status and available
 countdown come from the existing `PredictionRuntime`; all displayed numbers use
 Latin digits, including in Arabic. Long names wrap within bounded lower-third text.
@@ -34,7 +34,7 @@ custom outcome IDs/names. The same explicitly labeled test panel can edit test
 titles/names and create a zero-point state. It saves to the existing widget state,
 not a second Prediction store. Lock/Resolve/Idle are simulations, not Kick requests
 or point settlement. The Demo stream reads saved Prediction state. Without it,
-Particle Clash waits instead of displaying Classic's historical showcase fixture.
+Particle Clash stays hidden instead of displaying Classic's historical showcase fixture.
 Layout-picker samples are explicitly marked as test previews and defer to actual
 runtime data when present. A saved local test is also marked "Local test" in its
 overlay; external runtime data is not relabeled or replaced.
@@ -74,8 +74,48 @@ roll off the side before their slots are reused for the new top-spawned batch.
 There is no fade or teleport retirement. The final resting contact projection
 prevents overlaps from being frozen into sleeping bodies.
 
+The presentation state machine follows source events:
+`IDLE -> OPENING -> VOTING -> CLOSING -> WAITING_FOR_RESULT`, then only an
+official `resolved` runtime with a valid `winnerId` can trigger
+`REVEALING_WINNER -> RESULT_DISPLAY -> CLOSING -> HIDDEN`.
+The existing `locked` runtime is the closed-voting event; it never implies a
+winner. Cancellation (`idle` or resolution without a winner) exits without one.
+Text enters with a 450ms fade/slide. Closing freezes vote input, lets in-flight
+physics continue beneath a 750ms fade/down exit, then unmounts the canvas.
+Neither idle nor waiting renders any placeholder, title, numbers or particles.
+
+Winner announcements are separate scenes using the same physics engine and
+approved small circles. A short batch falls from the top and settles first,
+then `winnerRevealMode = "cover"` advances the winner color across the losing
+circles. This decorative sample includes both colors even with zero/unanimous
+votes; the displayed data still comes unmodified from the actual runtime.
+The last segment contains the 250ms pause and 850ms cover transition;
+the total announcement defaults to 2600ms (Extra: 2000–3000ms). The winning
+outcome's actual label is shown. Original numbers/percentages are never changed
+to 100/0. The final scene sleeps for 6000ms (Extra: 5000–8000ms), then fades out.
+Extra also provides Opening Animation and Winner Reveal Animation toggles and
+Falling Speed (the existing speed setting). Disabled winner motion/reduced motion
+shows the final cover immediately; disabling opening shows the initial settled
+pile immediately while retaining subsequent vote batches.
+
+Browser Sources save a compact replay receipt in per-tab `sessionStorage`,
+scoped by source pathname. The current runtime has no top-level Prediction ID,
+so identity uses its outcome IDs; the observed OPEN cycle's timestamp/revision
+distinguishes successive predictions with reused IDs. The chosen winner is
+claimed at announcement start, so refresh/reconnect cannot replay it. Closed
+reloads stay hidden; voting reloads open the current scene; a late official
+result still starts its announcement. Repeated data/title/count updates do not
+restart transitions. A new observed OPEN after close/cancel/result starts a new
+cycle. An expired source `hideAt` suppresses stale announcements.
+Unseen cycles with reused outcome IDs cannot be distinguished without a provider
+Prediction ID or event history; clearing/denying session storage also removes
+replay protection (storage errors are logged explicitly).
+Editor previews keep in-memory receipts so layout-card previews cannot consume
+the actual source's receipt. Receipts are not shared across OBS profiles/devices,
+and do not add a shared backend or change Demo's local-only synchronization.
+
 ```sh
-node --experimental-transform-types --import ./scripts/register-alias.mjs --test scripts/prediction-particles.test.ts
+node --experimental-transform-types --import ./scripts/register-alias.mjs --test scripts/prediction-particles.test.ts scripts/prediction-particle-lifecycle.test.ts
 ```
 
 ## Demo administration
