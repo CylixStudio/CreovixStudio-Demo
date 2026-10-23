@@ -8,6 +8,76 @@ Keep two projects: Demo and Main. Do not create a third full copy.
 
 Do not deploy to production, and do not apply a production database migration, without a separate approval.
 
+## Prediction: Particle Clash
+
+Prediction's Layout tab offers the unchanged Classic renderer and Particle Clash
+(Arabic: صراع الدوائر). The layout picker, editor preview and `/overlay/{token}`
+all use `PredictionOverlay` and the same Canvas renderer. Save the widget to
+persist its layout and Display/Extra controls in the existing local Demo store.
+
+The eight supplied `public/widgets/prediction/Prediction_*.svg` files contain
+static circles/groups. Particle Clash draws individual circles rather than
+tiling these whole images; its default colors are their actual fills,
+`#2bfbb7` and `#fe8a8a`. Seeded varying sizes and positions persist across votes.
+The first two runtime outcomes define left/right sides regardless of their names;
+their existing point shares drive spread, population and limited smooth overlap.
+No-vote data shows a waiting message and no particles or invented percentages.
+Idle, locked, resolved/winner and hideAt use Prediction's existing lifecycle.
+The actual title, first two outcome names, points, voters, status and available
+countdown come from the existing `PredictionRuntime`; all displayed numbers use
+Latin digits, including in Arabic. Long names wrap within bounded lower-third text.
+
+Display controls size, density, height, colors and overlap; Extra controls motion,
+speed, bounce, low-power mode and reset. Local test presets (50/50, 70/30, 90/10
+and their reverses) update the widget's existing `state.prediction`, including
+custom outcome IDs/names. The same explicitly labeled test panel can edit test
+titles/names and create a zero-point state. It saves to the existing widget state,
+not a second Prediction store. Lock/Resolve/Idle are simulations, not Kick requests
+or point settlement. The Demo stream reads saved Prediction state. Without it,
+Particle Clash waits instead of displaying Classic's historical showcase fixture.
+Layout-picker samples are explicitly marked as test previews and defer to actual
+runtime data when present. A saved local test is also marked "Local test" in its
+overlay; external runtime data is not relabeled or replaced.
+
+The transparent 1920×1080 canvas starts empty. Individual circles spawn above the
+top of the source, fall under gravity, collide with the floor/other circles,
+bounce slightly and stack. The fixed 120Hz solver uses a spatial contact grid;
+rendering is capped at 40fps (24fps in low-power mode, with fewer circles).
+Resting bodies sleep with exactly zero velocity. After the contact island settles,
+the animation loop stops completely: there is no idle drift, repeated spawning or
+opacity-only entrance. Hidden/offscreen renderers pause without accumulating time.
+Disabled animation and reduced-motion use the same solver to show a settled pile
+without displaying the fall. Unmount cancels frames and observers.
+Same-origin tabs in one browser profile receive the existing local store's storage
+events. Separate browser profiles/devices, including OBS's separate browser
+storage, do not share local Demo tests or settings. Demo does not connect to a
+live Kick/Twitch prediction provider. Export/import can transfer a local snapshot,
+but it does not provide live synchronization.
+This is not a claim of validation inside the OBS application.
+
+The rebuilt small-circle engine follows the supplied Illustrator reference:
+most default diameters are 10–22px, with some 6–9px and rare 28–32px circles.
+Diameter is capped at 32px even with Size increased; vote share never changes it.
+Seeded continuous spawn distributions create unequal organic piles through actual
+contacts, not predetermined final Y coordinates or repeated SVG groups.
+Height is bounded to 70–160px; older saved heights (such as 300px) are safely
+clamped on read, without altering saved voting data. Existing Display/Extra
+controls remain available. Height controls the preferred concentration of spawn
+positions; it is not an invisible ceiling that interferes with falling bodies.
+
+A changed point share drops a small batch (3–16 circles) for the gaining side,
+never one circle per vote. A temporary horizontal force redistributes the existing
+pile toward its new share, then turns off. New circles interact with existing
+circles without recreating them. Unchanged shares and text-only updates do not
+restart motion. The pool is capped at 320 bodies; at capacity, outermost bodies
+roll off the side before their slots are reused for the new top-spawned batch.
+There is no fade or teleport retirement. The final resting contact projection
+prevents overlaps from being frozen into sleeping bodies.
+
+```sh
+node --experimental-transform-types --import ./scripts/register-alias.mjs --test scripts/prediction-particles.test.ts
+```
+
 ## Demo administration
 
 Open **Settings → Demo administration** to preview releases, Early Access

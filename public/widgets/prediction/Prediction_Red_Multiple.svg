@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 500 500" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:affinity="https://www.affinity.studio/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,0,-550)">
+        <rect id="Prediction_Red_Multiple" x="0" y="550" width="500" height="500" style="fill:none;"/>
+        <g id="Prediction_Red_Multiple1" affinity:id="Prediction_Red_Multiple">
+            <g transform="matrix(2.463059,0,0,2.463059,-1529.871669,1922.638895)">
+                <g transform="matrix(0.925777,0,0,0.925777,677.377471,15.484082)">
+                    <circle cx="83.128" cy="-545.921" r="61.074" style="fill:rgb(254,138,138);"/>
+                </g>
+                <g transform="matrix(0.725915,0,0,0.725915,618.367191,-16.411968)">
+                    <circle cx="83.128" cy="-545.921" r="61.074" style="fill:rgb(254,138,138);"/>
+                </g>
+                <g transform="matrix(0.505952,0,0,0.505952,737.917171,-119.814465)">
+                    <circle cx="83.128" cy="-545.921" r="61.074" style="fill:rgb(254,138,138);"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

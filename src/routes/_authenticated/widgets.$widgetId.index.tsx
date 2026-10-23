@@ -18,6 +18,9 @@ import { SpotlightControlPanel } from "@/components/widgets/SpotlightControlPane
 import { StreamEventsScheduleControlPanel } from "@/components/widgets/StreamEventsScheduleControlPanel";
 import { PollControlPanel } from "@/components/widgets/PollControlPanel";
 import { PredictionControlPanel } from "@/components/widgets/PredictionControlPanel";
+import { PredictionParticleSettings } from "@/components/widgets/PredictionParticleSettings";
+import { PredictionParticleTest } from "@/components/widgets/PredictionParticleTest";
+import { parsePredictionConfig } from "@/lib/widgets";
 import { parsePollRuntime, parsePredictionRuntime } from "@/lib/interactiveWidgets";
 import { isDynamicGoalWidget, isSplitGoalKind, parseSpotlightConfig, parseStreamEventsScheduleState } from "@/lib/widgets";
 import { STANDALONE_TOOLS } from "@/lib/standaloneTools";
@@ -459,7 +462,15 @@ function WidgetBuilder() {
           stream.streamEvents ?? (widget ? parseStreamEventsScheduleState(widget.state) : null)
         }
         poll={stream.poll ?? (widget ? parsePollRuntime(widget.state) : null)}
-        prediction={stream.prediction ?? (widget ? parsePredictionRuntime(widget.state) : null)}
+        prediction={widget.type === "PREDICTION" && override["layout"] &&
+          (!stream.prediction || stream.prediction.eventName === "demo-fixture" || stream.prediction.status === "idle") ? {
+          status: "open", title: lang === "ar" ? "من سيفوز؟" : "Who will win?",
+          outcomes: [
+            { id: "a", label: "A", points: 7000, voters: 70 },
+            { id: "b", label: "B", points: 3000, voters: 30 },
+          ], endsAt: null, hideAt: null, winnerId: null, updatedAt: null,
+          eventName: "demo-prediction-test", lastMessageId: null, revision: 0,
+        } : stream.prediction ?? parsePredictionRuntime(widget.state)}
         tappers={stream.tappers}
         tapGoal={stream.tapGoal}
         chat={stream.chat}
@@ -1146,21 +1157,48 @@ function WidgetBuilder() {
             {widget.type === "PREDICTION" ? (
               <div className="space-y-3">
                 <BuilderTabs
-                  value={predictionPane === "layout" ? "display" : predictionPane}
+                  value={predictionPane}
                   onChange={setPredictionPane}
                   label={t("builder.prediction.settings")}
-                  panes={["display", "extra"]}
                 />
-                {predictionPane === "extra" ? (
+                {predictionPane === "layout" ? (
+                  <BuilderCard>
+                    <LayoutCards
+                      ariaLabel={t("builder.layoutPicker")}
+                      options={[
+                        { value: "classic", label: lang === "ar" ? "التصميم الأصلي" : "Classic" },
+                        { value: "particle-clash", label: lang === "ar" ? "صراع الدوائر" : "Particle Clash",
+                          hint: lang === "ar" ? "معاينة اختبار عند غياب التوقع" : "Test preview when no prediction is available" },
+                      ]}
+                      value={parsePredictionConfig(config).layout}
+                      onSelect={next => set("layout", next)}
+                      renderPreview={next => miniPreview({ layout: next })}
+                    />
+                  </BuilderCard>
+                ) : predictionPane === "extra" ? (
+                  <>
+                  {parsePredictionConfig(config).layout === "particle-clash" ? (
+                    <PredictionParticleTest widgetId={widget.id}
+                      runtime={stream.prediction?.eventName === "demo-fixture" ? parsePredictionRuntime(widget.state) :
+                        stream.prediction ?? parsePredictionRuntime(widget.state)} />
+                  ) : null}
+                  {parsePredictionConfig(config).layout === "particle-clash" ? (
+                    <PredictionParticleSettings pane="extra" config={config} onChange={patch => setConfig(current => ({ ...current, ...patch }))} />
+                  ) : null}
                   <BuilderCard>
                     <PredictionControlPanel
                       state={widget.state}
-                      live={stream.prediction}
+                      live={parsePredictionConfig(config).layout === "particle-clash" && stream.prediction?.eventName === "demo-fixture" ? null : stream.prediction}
                       chat={stream.chat}
                       kickConnected={Boolean(stream.chat?.kickChatroomId)}
                     />
                   </BuilderCard>
+                  </>
                 ) : (
+                  <>
+                  {parsePredictionConfig(config).layout === "particle-clash" ? (
+                    <PredictionParticleSettings pane="display" config={config} onChange={patch => setConfig(current => ({ ...current, ...patch }))} />
+                  ) : null}
                   <BuilderCard>
                     <RangeField
                       label={t("builder.fontSize")}
@@ -1172,6 +1210,7 @@ function WidgetBuilder() {
                       onChange={(next) => set("fontSize", next)}
                     />
                   </BuilderCard>
+                  </>
                 )}
               </div>
             ) : null}
@@ -1214,7 +1253,7 @@ function WidgetBuilder() {
             )}
           </section>
 
-          <section className="grid min-h-[420px] min-w-0 place-items-center overflow-hidden rounded-2xl border border-border bg-[repeating-conic-gradient(#161616_0%_25%,#101010_0%_50%)] bg-[length:32px_32px] p-6">
+          <section className={`grid min-h-[420px] min-w-0 place-items-center overflow-hidden rounded-2xl border border-border bg-[repeating-conic-gradient(#161616_0%_25%,#101010_0%_50%)] bg-[length:32px_32px] p-6 ${widget.type === "PREDICTION" && parsePredictionConfig(config).layout === "particle-clash" ? "self-start" : ""}`}>
             <WidgetRenderer
               type={widget.type}
               config={config}

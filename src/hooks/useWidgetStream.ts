@@ -25,7 +25,7 @@ import {
 } from "@/lib/overlayChat";
 import { readReplyMeta } from "@/lib/replyAlert";
 import type { StreamEventsRuntime } from "@/lib/streamEventsSchedule";
-import type { PollRuntime, PredictionRuntime } from "@/lib/interactiveWidgets";
+import { parsePredictionRuntime, type PollRuntime, type PredictionRuntime } from "@/lib/interactiveWidgets";
 import type { TimerFrame } from "@/lib/timer";
 import { isDynamicGoalWidget } from "@/lib/widgets";
 import type {
@@ -148,6 +148,27 @@ export function useWidgetStream(publicToken: string | null) {
       }
       const spinState = found.state["spin"];
       setSpin(spinState && typeof spinState === "object" ? (spinState as SpinState) : null);
+      if (found.type === "PREDICTION") {
+        setPredictionRuntime(
+          Object.hasOwn(found.state, "prediction") || found.config["layout"] === "particle-clash"
+            ? parsePredictionRuntime(found.state)
+            : {
+                status: "open",
+                title: "Will we beat the boss on the first try?",
+                outcomes: [
+                  { id: "yes", label: "Yes", points: 18400, voters: 41 },
+                  { id: "no", label: "No", points: 26100, voters: 58 },
+                ],
+                endsAt: new Date(Date.now() + 3_600_000).toISOString(),
+                hideAt: null,
+                winnerId: null,
+                updatedAt: new Date().toISOString(),
+                eventName: "demo-fixture",
+                lastMessageId: null,
+                revision: 1,
+              },
+        );
+      }
       setTestMessages(state.messages[publicToken] ?? []);
       setChat(null);
       setStatus("live");
@@ -238,22 +259,6 @@ export function useWidgetStream(publicToken: string | null) {
           { id: "a", label: "Elden Ring", votes: 142 },
           { id: "b", label: "Hades II", votes: 96 },
           { id: "c", label: "Minecraft", votes: 61 },
-        ],
-        endsAt: new Date(now + 3_600_000).toISOString(),
-        hideAt: null,
-        winnerId: null,
-        updatedAt: new Date(now).toISOString(),
-        eventName: "demo",
-        lastMessageId: null,
-        revision: 1,
-      });
-    } else if (widget.type === "PREDICTION") {
-      setPredictionRuntime({
-        status: "open",
-        title: "Will we beat the boss on the first try?",
-        outcomes: [
-          { id: "yes", label: "Yes", points: 18400, voters: 41 },
-          { id: "no", label: "No", points: 26100, voters: 58 },
         ],
         endsAt: new Date(now + 3_600_000).toISOString(),
         hideAt: null,

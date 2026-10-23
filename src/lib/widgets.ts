@@ -5,6 +5,7 @@
  */
 
 import { selectedEventLabelOptions, type EventLabelOption } from "@/lib/eventLabels";
+import { parseParticleSettings, type ParticleSettings } from "@/lib/predictionParticles";
 import { OVERLAY_FONTS, DEFAULT_OVERLAY_THEME } from "@/lib/overlayTheme";
 import {
   defaultScheduleEvents,
@@ -888,19 +889,22 @@ export function parsePollConfig(raw: unknown): PollConfig {
 
 /* ---------------------------- Prediction -------------------------------- */
 
-export type PredictionConfig = BaseStyle & {
-  outcomeA: string;
-  outcomeB: string;
-  durationSeconds: number;
-};
+export type PredictionConfig = BaseStyle &
+  ParticleSettings & {
+    layout: "classic" | "particle-clash";
+    outcomeA: string;
+    outcomeB: string;
+    durationSeconds: number;
+  };
 
 export function parsePredictionConfig(raw: unknown): PredictionConfig {
   const source = asRecord(raw);
   return {
     ...parseStyle(source, { ...DEFAULT_STYLE, fontSize: 28, accentColor: "#bee1fc", backgroundOpacity: 72 }),
+    ...parseParticleSettings(source),
+    layout: source["layout"] === "particle-clash" ? "particle-clash" : "classic",
     outcomeA: text(source["outcomeA"], "نعم", 40),
     outcomeB: text(source["outcomeB"], "لا", 40),
     durationSeconds: num(source["durationSeconds"], 180, 15, 7200),
   };
 }
-

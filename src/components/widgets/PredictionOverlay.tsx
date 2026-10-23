@@ -20,6 +20,7 @@ import {
 } from "@/lib/interactiveWidgets";
 import { useLanguage } from "@/lib/i18n";
 import { parsePredictionConfig } from "@/lib/widgets";
+import { ParticleClashOverlay } from "@/components/widgets/ParticleClashOverlay";
 
 const GREEN = "#00c70f";
 const RED = "#ff2b2b";
@@ -82,16 +83,20 @@ export function PredictionOverlay({
   const shown = visible && live ? live : lastLive.current;
 
   useEffect(() => {
-    if (!live?.endsAt && !live?.hideAt) return;
+    if (parsed.layout === "particle-clash" || (!live?.endsAt && !live?.hideAt)) return;
     const id = window.setInterval(() => setNow(Date.now()), 500);
     return () => window.clearInterval(id);
-  }, [live?.endsAt, live?.hideAt, live?.status]);
+  }, [live?.endsAt, live?.hideAt, live?.status, parsed.layout]);
 
   const stageProps = {
     mode: demo ? ("box" as const) : ("viewport" as const),
     dir,
     className: demo ? "w-full aspect-video" : "",
   };
+
+  if (parsed.layout === "particle-clash") {
+    return <ParticleClashOverlay config={parsed} runtime={live} preview={demo} />;
+  }
 
   if (!mounted || !shown) {
     if (!demo) return null;
