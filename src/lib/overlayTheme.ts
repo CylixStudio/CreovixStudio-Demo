@@ -5,7 +5,7 @@
  * tolerates missing/legacy keys and always returns a complete theme.
  */
 
-export type OverlayLayout = "island" | "cute_heart" | "circular_pomodoro" | "multi_ring_countdown" | "raw_digits";
+export type OverlayLayout = "island" | "cute_heart" | "circular_pomodoro" | "multi_ring_countdown" | "raw_digits" | "split_clock" | "broadcast";
 export type OverlayAnimation = "none" | "pulse" | "flash" | "bounce";
 export type OverlayTimeFormat = "dhms" | "hms" | "ms";
 
@@ -78,6 +78,8 @@ export const OVERLAY_LAYOUTS: {
   label: string;
     hint: string;
 }[] = [
+  { value: "split_clock", label: "Split clock", hint: "Individual timer blocks" },
+  { value: "broadcast", label: "Broadcast panel", hint: "Timer and broadcast identity columns" },
   {
     value: "island",
     label: "Dynamic Island",

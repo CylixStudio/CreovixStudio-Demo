@@ -3,6 +3,7 @@ import { Download, RotateCcw, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { useLanguage } from "@/lib/i18n";
+import { assertDemoImportLayoutAccess } from "@/lib/demoLayoutImport";
 
 const PREFIX = "cylixstudio-demo:";
 const quietBtn =
@@ -71,14 +72,15 @@ export function DemoDataPanel() {
       if (parsed.app !== "cylixstudio-demo" || !parsed.entries || typeof parsed.entries !== "object") {
         throw new Error("invalid");
       }
+      assertDemoImportLayoutAccess(parsed.entries);
       for (const key of demoKeys()) window.localStorage.removeItem(key);
       for (const [key, value] of Object.entries(parsed.entries)) {
         if (key.startsWith(PREFIX) && typeof value === "string") window.localStorage.setItem(key, value);
       }
       toast.success(c.imported);
       window.setTimeout(() => window.location.reload(), 500);
-    } catch {
-      toast.error(c.invalid);
+    } catch (error) {
+      toast.error(error instanceof Error && /requires Pro/i.test(error.message) ? error.message : c.invalid);
     }
   };
 

@@ -149,6 +149,7 @@ export function StandaloneWidgetFields({
           <PaneBody>
             <PaneSection title={t("std.layout.title")} hint={t("std.layout.wheel.hint")}>
               <LayoutCards
+                widgetType={type}
                 columns={3}
                 value={parseWheelLayout(config)}
                 onChange={(id) => set("layout", id)}
@@ -278,6 +279,7 @@ export function StandaloneWidgetFields({
           <PaneBody>
             <PaneSection title={t("std.layout.title")} hint={t("std.layout.viewer.hint")}>
               <LayoutCards
+                widgetType={type}
                 columns={3}
                 value={layout}
                 onChange={(id) => set("layout", id)}
@@ -384,6 +386,7 @@ export function StandaloneWidgetFields({
           <PaneBody>
             <PaneSection title={t("std.layout.title")} hint={t("std.layout.events.hint")}>
               <LayoutCards
+                widgetType={type}
                 value={layout}
                 onChange={(id) => set("layout", id)}
                 options={EVENT_LABEL_LAYOUTS.map((id) => ({
@@ -493,6 +496,7 @@ export function StandaloneWidgetFields({
                 ]}
               />
             </label>
+            {testPanel}
           </PaneBody>
         )}
       </div>

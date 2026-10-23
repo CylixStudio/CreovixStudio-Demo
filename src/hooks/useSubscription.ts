@@ -1,5 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { getDemoDb } from "@/demo/context";
+import { DEMO_CHANGE_EVENT } from "@/demo/overlay";
 import { isDemoBuild } from "@/lib/demoMode";
 import { supabase } from "@/lib/supabase/client";
 import { isTestMode } from "@/lib/testMode";
@@ -17,11 +20,26 @@ const DAY = 86_400_000;
 
 /** Current user's license state — drives every feature lock in the app. */
 export function useSubscription(userId: string) {
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (!isDemoBuild()) return;
+    const read = () => JSON.stringify(getDemoDb().rows("user_subscriptions").find((row) => row["user_id"] === userId));
+    let previous = read();
+    const refresh = () => {
+      const next = read();
+      if (next === previous) return;
+      previous = next;
+      void queryClient.invalidateQueries({ queryKey: ["subscription", userId] });
+    };
+    window.addEventListener(DEMO_CHANGE_EVENT, refresh);
+    return () => window.removeEventListener(DEMO_CHANGE_EVENT, refresh);
+  }, [queryClient, userId]);
+
   return useQuery({
     queryKey: ["subscription", userId],
     enabled: userId.length > 0,
     queryFn: async (): Promise<SubscriptionState> => {
-      if (isDemoBuild() || isTestMode()) {
+      if (!isDemoBuild() && isTestMode()) {
         return {
           status: "active",
           expiresAt: null,
@@ -31,12 +49,19 @@ export function useSubscription(userId: string) {
           isActive: true,
         };
       }
-      const { data, error } = await supabase
+      const client = isDemoBuild() ? getDemoDb() : supabase;
+      const { data: raw, error } = await client
         .from("user_subscriptions")
         .select("subscription_status, expires_at, active_code, is_lifetime")
         .eq("user_id", userId)
         .maybeSingle();
       if (error) throw error;
+      const data = raw as {
+        subscription_status?: string;
+        expires_at?: string | null;
+        active_code?: string | null;
+        is_lifetime?: boolean;
+      } | null;
 
       const expiresAt = data?.expires_at ?? null;
       const expiryMs = expiresAt ? new Date(expiresAt).getTime() : 0;
@@ -46,7 +71,7 @@ export function useSubscription(userId: string) {
       const daysLeft = timedActive ? Math.max(0, Math.ceil((expiryMs - Date.now()) / DAY)) : lifetimeActive ? LIFETIME_DAYS : 0;
 
       return {
-        status: isActive ? "active" : data ? "expired" : "inactive",
+        status: isActive ? "active" : data?.subscription_status === "active" ? "expired" : "inactive",
         expiresAt,
         activeCode: data?.active_code ?? null,
         daysLeft,
@@ -55,6 +80,7 @@ export function useSubscription(userId: string) {
       };
     },
     staleTime: 30_000,
+    refetchOnMount: isDemoBuild() ? "always" : true,
   });
 }
 

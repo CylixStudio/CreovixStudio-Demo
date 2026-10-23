@@ -27,6 +27,7 @@ import {
 } from "@/lib/overlayTheme";
 import type { TimerFrame } from "@/lib/timer";
 import { cn } from "@/lib/utils";
+import { LayoutCards } from "@/components/widgets/builderUi";
 
 type TabId = "layout" | "display" | "extra";
 type ExtraSectionId = "motion" | "timer" | "rules" | "test" | "obs";
@@ -38,6 +39,8 @@ const TABS: { id: TabId; labelKey: TranslationKey }[] = [
 ];
 
 export const LAYOUT_KEY: Record<OverlayLayout, { name: TranslationKey; hint: TranslationKey }> = {
+  split_clock: { name: "sub.layout.split_clock", hint: "sub.layout.split_clock.hint" },
+  broadcast: { name: "sub.layout.broadcast", hint: "sub.layout.broadcast.hint" },
   island: { name: "sub.layout.island", hint: "sub.layout.island.hint" },
   cute_heart: { name: "sub.layout.cute_heart", hint: "sub.layout.cute_heart.hint" },
   circular_pomodoro: { name: "sub.layout.circular_pomodoro", hint: "sub.layout.circular_pomodoro.hint" },
@@ -277,28 +280,10 @@ export function SubathonTimerSidebar({
       {tab === "layout" ? (
         <div className="space-y-4" role="tabpanel">
           <SettingsWell title={t("sub.layout.title")} hint={t("sub.layout.subtitle")}>
-            <div className="grid grid-cols-2 items-stretch gap-2">
-              {OVERLAY_LAYOUTS.map((entry) => {
-                const selected = theme.layout === entry.value;
-                return (
-                  <button
-                    key={entry.value}
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => onConfigChange("layout", entry.value)}
-                    className={cn(
-                      "flex h-full min-w-0 flex-col overflow-hidden rounded-xl border bg-zinc-950/40 text-start transition-colors hover:border-primary/50",
-                      selected ? "border-primary" : "border-border",
-                    )}
-                  >
-                    <LayoutMini theme={theme} layout={entry.value} />
-                    <span className="px-2 py-1.5 text-xs font-semibold leading-snug">
-                      {t(LAYOUT_KEY[entry.value].name)}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+            <LayoutCards widgetType="SUBATHON_TIMER" mini ariaLabel={t("layout.picker")}
+              value={theme.layout} onSelect={next => onConfigChange("layout", next)}
+              options={OVERLAY_LAYOUTS.map(entry => ({ value: entry.value, label: t(LAYOUT_KEY[entry.value].name) }))}
+              renderPreview={next => <LayoutMini theme={theme} layout={next as OverlayLayout} />} />
             <p className="text-[10px] text-muted-foreground">{t(LAYOUT_KEY[theme.layout].hint)}</p>
           </SettingsWell>
 
@@ -475,7 +460,7 @@ export function SubathonTimerSidebar({
             <FlaskConical className="size-4" aria-hidden />,
             "sub.extra.test",
             "sub.extra.test.hint",
-            <TestSimulatePanel widgetId={widgetId} />,
+            <TestSimulatePanel widgetId={widgetId} widgetType="SUBATHON_TIMER" />,
           )}
 
           {section(

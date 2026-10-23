@@ -1,4 +1,5 @@
-import { BuilderCard, BuilderTabs, LayoutCards, RangeField } from "@/components/widgets/builderUi";
+import { BuilderCard, BuilderTabs, LayoutCards, RangeField, WidgetLayoutTypeContext } from "@/components/widgets/builderUi";
+import { DemoLayoutPlanSwitch } from "@/components/widgets/DemoLayoutPlanSwitch";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -124,7 +125,7 @@ function WidgetBuilder() {
   const { t, lang } = useLanguage();
   const { data: workspace } = useWorkspace(userId);
   const subscription = useSubscription(userId);
-  const proActive = isDemoBuild() || subscription.data?.isActive === true;
+  const proActive = subscription.data?.isActive === true;
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -423,6 +424,7 @@ function WidgetBuilder() {
 
   const set = (key: string, value: unknown) => setConfig((prev) => ({ ...prev, [key]: value }));
   const tabbedStandalone =
+    (widget ? isSplitGoalKind(widget.type) : false) ||
     widget?.type === "GOAL_BAR" ||
     widget?.type === "KICKS_GOAL" ||
     widget?.type === "SPIN_WHEEL" ||
@@ -584,7 +586,9 @@ function WidgetBuilder() {
         )
       ) : (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,380px)_1fr]">
+          <WidgetLayoutTypeContext.Provider value={widget.type}>
           <section className="min-w-0 space-y-4 surface-card p-5">
+            <DemoLayoutPlanSwitch userId={userId} />
             {widget.type === "SUBATHON_TIMER" ? (
               <SubathonTimerSidebar
                 widgetId={widget.id}
@@ -643,11 +647,12 @@ function WidgetBuilder() {
                     <p className="text-[10px] text-muted-foreground">{t("std.goal.syncHint")}</p>
                   </div>
                 }
-                testPanel={<TestSimulatePanel widgetId={widget.id} />}
+                testPanel={<TestSimulatePanel widgetId={widget.id} widgetType={widget.type} config={config} />}
               />
             ) : null}
 
             {widget.type === "KICKS_GOAL" ||
+            isSplitGoalKind(widget.type) ||
             widget.type === "VIEWER_COUNTER" ||
             widget.type === "SPIN_WHEEL" ||
             widget.type === "EVENT_LABELS" ? (
@@ -657,7 +662,7 @@ function WidgetBuilder() {
                 set={set}
                 spinning={wheelTurning || spin.isPending}
                 onSpin={widget.type === "SPIN_WHEEL" ? requestWheelSpin : undefined}
-                testPanel={widget.type === "KICKS_GOAL" ? <TestSimulatePanel widgetId={widget.id} /> : undefined}
+                testPanel={widget.type === "KICKS_GOAL" || isSplitGoalKind(widget.type) || widget.type === "EVENT_LABELS" ? <TestSimulatePanel widgetId={widget.id} widgetType={widget.type} config={config} /> : undefined}
               />
             ) : null}
 
@@ -1088,8 +1093,13 @@ function WidgetBuilder() {
                   <BuilderCard>
                     <LayoutCards
                       ariaLabel={t("builder.layoutPicker")}
-                      options={CHROME_LAYOUTS.map((id) => ({ value: id, label: t(`layout.chrome.${id}`) }))}
-                      value={parseChromeLayout(config)}
+                      options={[
+                        ...(["glass", "direct", "bold"] as const).map(id => ({ value: id, label: t(`layout.chrome.${id}`) })),
+                        { value: "agenda", label: lang === "ar" ? "أجندة مختصرة" : "Minimal agenda" },
+                        { value: "timeline", label: lang === "ar" ? "خط زمني أفقي" : "Horizontal timeline" },
+                        { value: "calendar", label: lang === "ar" ? "بطاقات التقويم" : "Calendar cards" },
+                      ]}
+                      value={typeof config["layout"] === "string" ? config["layout"] : "glass"}
                       onSelect={(next) => set("layout", next)}
                       renderPreview={(next) => miniPreview({ layout: next })}
                     />
@@ -1124,12 +1134,21 @@ function WidgetBuilder() {
             {widget.type === "POLL" ? (
               <div className="space-y-3">
                 <BuilderTabs
-                  value={pollPane === "layout" ? "display" : pollPane}
+                  value={pollPane}
                   onChange={setPollPane}
                   label={t("builder.poll.settings")}
-                  panes={["display", "extra"]}
                 />
-                {pollPane === "extra" ? (
+                {pollPane === "layout" ? (
+                  <BuilderCard><LayoutCards ariaLabel={t("builder.layoutPicker")}
+                    options={[
+                      { value: "default", label: lang === "ar" ? "الاستطلاع الكلاسيكي" : "Classic poll" },
+                      { value: "compact", label: lang === "ar" ? "قائمة مختصرة" : "Compact list" },
+                      { value: "cards", label: lang === "ar" ? "بطاقات النتائج" : "Result cards" },
+                      { value: "columns", label: lang === "ar" ? "أعمدة التصويت" : "Voting columns" },
+                    ]}
+                    value={typeof config["layout"] === "string" ? config["layout"] : "default"}
+                    onSelect={next => set("layout", next)} renderPreview={next => miniPreview({ layout: next })} /></BuilderCard>
+                ) : pollPane === "extra" ? (
                   <BuilderCard>
                     <PollControlPanel
                       state={widget.state}
@@ -1167,6 +1186,8 @@ function WidgetBuilder() {
                       ariaLabel={t("builder.layoutPicker")}
                       options={[
                         { value: "classic", label: lang === "ar" ? "التصميم الأصلي" : "Classic" },
+                        { value: "compact", label: lang === "ar" ? "توقع مختصر" : "Compact prediction" },
+                        { value: "split", label: lang === "ar" ? "مواجهة ثنائية" : "Split matchup" },
                         { value: "particle-clash", label: lang === "ar" ? "صراع الدوائر" : "Particle Clash",
                           hint: lang === "ar" ? "معاينة اختبار عند غياب التوقع" : "Test preview when no prediction is available" },
                       ]}
@@ -1222,7 +1243,7 @@ function WidgetBuilder() {
             widget.type === "CHAT_SPOTLIGHT" ||
             tabbedStandalone ||
             widget.type === "VIEWER_COUNTER" ? null : (
-              <TestSimulatePanel widgetId={widget.id} />
+              <TestSimulatePanel widgetId={widget.id} widgetType={widget.type} config={config} />
             )}
 
             {widget.type === "SPIN_WHEEL" ||
@@ -1252,6 +1273,7 @@ function WidgetBuilder() {
             </>
             )}
           </section>
+          </WidgetLayoutTypeContext.Provider>
 
           <section className={`grid min-h-[420px] min-w-0 place-items-center overflow-hidden rounded-2xl border border-border bg-[repeating-conic-gradient(#161616_0%_25%,#101010_0%_50%)] bg-[length:32px_32px] p-6 ${widget.type === "PREDICTION" && parsePredictionConfig(config).layout === "particle-clash" ? "self-start" : ""}`}>
             <WidgetRenderer

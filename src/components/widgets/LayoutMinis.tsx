@@ -1,5 +1,5 @@
 import { GoalBarView } from "@/components/widgets/WidgetRenderer";
-import { WHEEL_SLICE_COLORS } from "@/components/widgets/SpinWheel";
+import { SpinWheelView } from "@/components/widgets/SpinWheel";
 import { useLanguage } from "@/lib/i18n";
 import { parseEventLabelsConfig, parseViewerCounterConfig } from "@/lib/widgets";
 import type { EventLabelLayout, GoalLayout, ViewerLayout, WheelLayout } from "@/lib/widgetLayouts";
@@ -11,6 +11,8 @@ const GOAL_SCALE: Record<GoalLayout, number> = {
   compact: 0.26,
   bold: 0.3,
   glass: 0.3,
+  ring: 0.3,
+  segments: 0.3,
 };
 
 /** The real goal renderer, scaled down, so each card shows what the overlay would draw. */
@@ -47,35 +49,14 @@ export function GoalMini({
 }
 
 export function WheelMini({ layout }: { layout: WheelLayout }) {
-  const stops = WHEEL_SLICE_COLORS.map((color, index) => {
-    const from = (index / WHEEL_SLICE_COLORS.length) * 360;
-    const to = ((index + 1) / WHEEL_SLICE_COLORS.length) * 360;
-    return `${color.fill} ${from}deg ${to}deg`;
-  }).join(", ");
-  const disc = (size: number, ring: number, ringColor: string) => (
-    <span
-      className="block rounded-full"
-      style={{
-        width: size,
-        height: size,
-        background: `conic-gradient(${stops})`,
-        boxShadow: ring ? `0 0 0 ${ring}px ${ringColor}` : undefined,
-      }}
-    />
-  );
   return (
-    <div className="flex h-[92px] items-center justify-center">
-      {layout === "classic" ? (
-        <span className="flex h-[78px] w-[78px] items-center justify-center rounded-3xl border border-zinc-800 bg-zinc-950">
-          {disc(52, 3, "#E4E4E7")}
-        </span>
-      ) : layout === "compact" ? (
-        <span className="flex h-[58px] w-[58px] items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900">
-          {disc(40, 1, "#52525B")}
-        </span>
-      ) : (
-        disc(60, 0, "transparent")
-      )}
+    <div className="pointer-events-none relative h-[92px] overflow-hidden">
+      <div
+        className="absolute left-1/2 top-1/2 w-max"
+        style={{ transform: `translate(-50%, -50%) scale(${layout === "show" ? 0.23 : 0.2})` }}
+      >
+        <SpinWheelView config={{ layout, entries: ["1", "2", "3", "4", "5"] }} spin={null} />
+      </div>
     </div>
   );
 }
@@ -92,6 +73,29 @@ export function ViewerMini({
   const label =
     style.metric === "followers" ? t("widget.viewer.followers") : t("widget.viewer.viewers");
   const base = { color: style.textColor, fontFamily: style.fontFamily };
+  if (layout === "live" || layout === "digital") {
+    return (
+      <div className="flex h-[92px] items-center justify-center gap-1 px-2" style={base}>
+        {layout === "live" ? (
+          <span className="flex items-center gap-2 rounded-lg border border-white/15 bg-zinc-950 p-3">
+            <span className="text-[7px]" style={{ color: style.accentColor }}>
+              ● LIVE
+            </span>
+            <strong>1,290</strong>
+          </span>
+        ) : (
+          Array.from("1290").map((digit, index) => (
+            <span
+              key={index}
+              className="rounded border-b-2 border-white/20 bg-zinc-900 px-1.5 py-2 font-mono text-lg"
+            >
+              {digit}
+            </span>
+          ))
+        )}
+      </div>
+    );
+  }
   if (layout === "digits") {
     return (
       <div className="flex h-[92px] items-center justify-center" style={base}>
@@ -148,7 +152,29 @@ export function EventsMini({
   );
   const sample = ["Nova", "Luna", "Fox"];
   let body;
-  if (layout === "cycle") {
+  if (layout === "floating" || layout === "timeline") {
+    body = (
+      <div
+        className={layout === "floating" ? "flex gap-1" : "space-y-2 border-s border-white/30 ps-3"}
+      >
+        {sample.map((name, index) => (
+          <div
+            key={name}
+            className={
+              layout === "floating"
+                ? "rounded-lg border border-white/10 bg-zinc-950 p-2"
+                : "text-start"
+            }
+          >
+            <p className="text-[7px]" style={{ color: style.accentColor }}>
+              {index + 1}
+            </p>
+            <p className="text-[9px]">{name}</p>
+          </div>
+        ))}
+      </div>
+    );
+  } else if (layout === "cycle") {
     body = <span className="text-[11px]">{sample[0]} · 5</span>;
   } else if (layout === "ticker") {
     body = (

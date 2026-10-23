@@ -479,6 +479,7 @@ export function parseSpotlightState(raw: unknown): SpotlightMessage | null {
 
 export type StreamEventsScheduleConfig = BaseStyle & {
   events: StreamScheduleEvent[];
+  layout: "glass" | "direct" | "bold" | "agenda" | "timeline" | "calendar";
   showUptime: boolean;
   title: string;
 };
@@ -492,6 +493,14 @@ export function parseStreamEventsScheduleConfig(raw: unknown): StreamEventsSched
   return {
     ...parseStyle(source, { ...DEFAULT_STYLE, fontSize: 22, accentColor: "#bee1fc" }),
     events: normalizeScheduleEvents(source["events"]),
+    layout:
+      source["layout"] === "direct" ||
+      source["layout"] === "bold" ||
+      source["layout"] === "agenda" ||
+      source["layout"] === "timeline" ||
+      source["layout"] === "calendar"
+        ? source["layout"]
+        : "glass",
     showUptime: bool(source["showUptime"], true),
     title,
   };
@@ -862,6 +871,7 @@ export function parseEventLabelsConfig(raw: unknown): EventLabelsConfig {
 /* ------------------------------- Poll ----------------------------------- */
 
 export type PollConfig = BaseStyle & {
+  layout: "default" | "compact" | "cards" | "columns";
   title: string;
   options: string[];
   durationSeconds: number;
@@ -882,6 +892,12 @@ export function parsePollConfig(raw: unknown): PollConfig {
   return {
     ...parseStyle(source, { ...DEFAULT_STYLE, fontSize: 28, accentColor: "#bee1fc", backgroundOpacity: 72 }),
     title: text(source["title"], "استطلاع", 80),
+    layout:
+      source["layout"] === "compact" ||
+      source["layout"] === "cards" ||
+      source["layout"] === "columns"
+        ? source["layout"]
+        : "default",
     options: pollOptions(source["options"]),
     durationSeconds: num(source["durationSeconds"], 120, 15, 7200),
   };
@@ -891,7 +907,7 @@ export function parsePollConfig(raw: unknown): PollConfig {
 
 export type PredictionConfig = BaseStyle &
   ParticleSettings & {
-    layout: "classic" | "particle-clash";
+    layout: "classic" | "compact" | "split" | "particle-clash";
     outcomeA: string;
     outcomeB: string;
     durationSeconds: number;
@@ -902,7 +918,12 @@ export function parsePredictionConfig(raw: unknown): PredictionConfig {
   return {
     ...parseStyle(source, { ...DEFAULT_STYLE, fontSize: 28, accentColor: "#bee1fc", backgroundOpacity: 72 }),
     ...parseParticleSettings(source),
-    layout: source["layout"] === "particle-clash" ? "particle-clash" : "classic",
+    layout:
+      source["layout"] === "particle-clash" ||
+      source["layout"] === "compact" ||
+      source["layout"] === "split"
+        ? source["layout"]
+        : "classic",
     outcomeA: text(source["outcomeA"], "نعم", 40),
     outcomeB: text(source["outcomeB"], "لا", 40),
     durationSeconds: num(source["durationSeconds"], 180, 15, 7200),

@@ -120,6 +120,7 @@ export function GoalWidgetFields({
         <PaneBody>
           <PaneSection title={t("std.layout.title")} hint={t("std.layout.goal.hint")}>
             <LayoutCards
+              widgetType={type}
               value={layout}
               onChange={(id) => set("layout", parseGoalLayout({ layout: id }))}
               options={GOAL_LAYOUTS.map((id) => ({

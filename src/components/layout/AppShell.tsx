@@ -176,13 +176,21 @@ export function AppShell({ children, title, subtitle, actions, user, profile }: 
   const profileRef = useClickOutside(() => setProfileOpen(false));
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(SIDEBAR_KEY);
-      // Narrow screens start collapsed until the visitor picks a state.
-      setCollapsed(stored === null ? window.innerWidth < 768 : stored === "1");
-    } catch {
-      /* ignore */
-    }
+    const media = window.matchMedia("(max-width: 767px)");
+    const sync = () => {
+      if (media.matches) {
+        setCollapsed(true);
+        return;
+      }
+      try {
+        setCollapsed(window.localStorage.getItem(SIDEBAR_KEY) === "1");
+      } catch {
+        setCollapsed(false);
+      }
+    };
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
   }, []);
 
   const toggleCollapsed = () => {

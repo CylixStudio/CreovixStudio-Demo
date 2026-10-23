@@ -6,9 +6,11 @@ import { cn } from "@/lib/utils";
 export function TestEventPlatformTabs({
   activePlatform,
   onSelect,
+  groups = TEST_EVENT_GROUPS,
 }: {
   activePlatform: TestEventGroup["platform"];
   onSelect: (platform: TestEventGroup["platform"]) => void;
+  groups?: TestEventGroup[];
 }) {
   const { t } = useLanguage();
 
@@ -18,7 +20,7 @@ export function TestEventPlatformTabs({
       role="tablist"
       aria-label={t("settings.test.platformsAria")}
     >
-      {TEST_EVENT_GROUPS.map((group) => {
+      {groups.map((group) => {
         const selected = group.platform === activePlatform;
         return (
           <button

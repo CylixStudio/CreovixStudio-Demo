@@ -717,7 +717,7 @@ function MarkCard({
     "inline-flex size-7 items-center justify-center rounded-md text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 disabled:opacity-40";
 
   return (
-    <article className="flex w-full min-w-0 flex-col overflow-hidden rounded-[20px] bg-zinc-900">
+    <article className="flex w-full min-w-0 flex-col overflow-hidden rounded-[20px] border border-neutral-800/80 bg-neutral-900 shadow-sm">
       <div className="flex flex-1 flex-col justify-center gap-0.5 px-3 pb-2 pt-3 text-center">
         <div className="flex items-center justify-center gap-1.5">
           <span

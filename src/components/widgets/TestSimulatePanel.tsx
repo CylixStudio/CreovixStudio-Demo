@@ -7,6 +7,7 @@ import { isMissingViewerSession } from "@/lib/supabase/sessionError";
 import { fireTestEvent, sendTestChatMessage, type TestEventInput } from "@/lib/simulate.functions";
 import { TEST_EVENT_GROUPS, type TestEventSpec } from "@/lib/testEvents";
 import { useLanguage, type TranslationKey } from "@/lib/i18n";
+import { widgetTestGroups } from "@/lib/widgetTestCapabilities";
 
 const CHAT_KEY: Record<TestEventInput["eventType"], TranslationKey> = {
   FOLLOW: "activity.chat.FOLLOW",
@@ -33,7 +34,7 @@ function actorFor(type: TestEventInput["eventType"]): string {
  * Widget test control. Same platform-icon tabs and per-platform event list
  * as the Activity "Test Event" menu.
  */
-export function TestSimulatePanel({ widgetId }: { widgetId: string }) {
+export function TestSimulatePanel({ widgetId, widgetType, config }: { widgetId: string; widgetType: string; config?: Record<string, unknown> }) {
   const { t } = useLanguage();
   const fire = useServerFn(fireTestEvent);
   const testChat = useServerFn(sendTestChatMessage);
@@ -41,10 +42,8 @@ export function TestSimulatePanel({ widgetId }: { widgetId: string }) {
   const [notice, setNotice] = useState<string | null>(null);
   const [tab, setTab] = useState<TestEventInput["platform"]>(TEST_EVENT_GROUPS[0]!.platform);
 
-  const activeGroup = useMemo(
-    () => TEST_EVENT_GROUPS.find((group) => group.platform === tab) ?? TEST_EVENT_GROUPS[0]!,
-    [tab],
-  );
+  const groups = useMemo(() => widgetTestGroups(widgetType, config), [widgetType, config]);
+  const activeGroup = groups.find(group => group.platform === tab) ?? groups[0];
 
   const pick = async (platform: TestEventInput["platform"], spec: TestEventSpec) => {
     if (pending) return;
@@ -91,13 +90,14 @@ export function TestSimulatePanel({ widgetId }: { widgetId: string }) {
     }
   };
 
+  if (!activeGroup) return null;
   return (
     <div className="surface-card overflow-hidden">
       <div className="border-b border-white/8 px-3 pb-3 pt-3">
         <p className="mb-2.5 text-start text-[0.62rem] font-semibold tracking-[0.02em] text-muted-foreground">
           {t("settings.test.platformsAria")}
         </p>
-        <TestEventPlatformTabs activePlatform={activeGroup.platform} onSelect={setTab} />
+        <TestEventPlatformTabs activePlatform={activeGroup.platform} onSelect={setTab} groups={groups} />
       </div>
 
       <div

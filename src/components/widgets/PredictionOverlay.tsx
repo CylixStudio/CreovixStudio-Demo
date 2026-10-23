@@ -5,7 +5,6 @@ import {
   OverlayStage,
   fontScale,
   formatClock,
-  formatCount,
   hexToRgba,
   usePresence,
   useTween,
@@ -27,10 +26,11 @@ const RED = "#ff2b2b";
 const AMBER = "#fbbf24";
 const DOT_SLOTS = 5;
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+const latinCount = (value: number) => Math.round(value).toLocaleString("en-US");
 
 function Percent({ value }: { value: number }) {
   const shown = useTween(value, 800);
-  return <span dir="ltr">{Math.round(shown)}%</span>;
+  return <span dir="ltr">{latinCount(shown)}%</span>;
 }
 
 /** Kick-style strength dots: one lit dot per 20% share, never fewer than one. */
@@ -152,12 +152,15 @@ export function PredictionOverlay({
     : locked
       ? t("widget.prediction.locked")
       : t("widget.prediction.resolved");
+  const compact = parsed.layout === "compact";
+  const split = parsed.layout === "split";
 
   const card: CSSProperties = {
-    width: 1480,
+    width: compact ? 680 : split ? 1160 : 1480,
+    maxWidth: "100%",
     boxSizing: "border-box",
-    padding: `${px(28)}px ${px(40)}px ${px(30)}px`,
-    borderRadius: 32,
+    padding: `${px(compact ? 18 : 28)}px ${px(compact ? 22 : 40)}px ${px(compact ? 20 : 30)}px`,
+    borderRadius: compact ? 24 : 32,
     color: text,
     fontFamily: parsed.fontFamily,
     background: hexToRgba(parsed.backgroundColor, Math.max(parsed.backgroundOpacity, 55) / 100),
@@ -174,9 +177,9 @@ export function PredictionOverlay({
           position: "absolute",
           inset: 0,
           display: "flex",
-          alignItems: "flex-end",
+          alignItems: compact ? "center" : "flex-end",
           justifyContent: "center",
-          paddingBottom: 56,
+          padding: compact ? 16 : "0 24px 56px",
         }}
       >
         <div className={leaving ? "cxo-out" : "cxo-in"} style={card}>
@@ -243,7 +246,15 @@ export function PredictionOverlay({
             </div>
           </div>
 
-          <div style={{ marginTop: px(22), display: "grid", gridTemplateColumns: "1fr 1fr", gap: 28 }}>
+          <div
+            style={{
+              marginTop: px(compact ? 14 : 22),
+              display: compact ? "flex" : "grid",
+              flexDirection: compact ? "column" : undefined,
+              gridTemplateColumns: compact ? undefined : "1fr 1fr",
+              gap: px(compact ? 8 : split ? 18 : 28),
+            }}
+          >
             {sides.map(({ color, outcome }, index) => {
               const won = winnerIndex === index;
               const lost = winnerIndex >= 0 && !won;
@@ -252,22 +263,41 @@ export function PredictionOverlay({
                   key={index}
                   className={won ? "cxo-pop" : undefined}
                   style={{
-                    padding: `${px(18)}px ${px(26)}px ${px(20)}px`,
-                    borderRadius: 24,
+                    minWidth: 0,
+                    padding: compact
+                      ? `${px(10)}px ${px(14)}px`
+                      : `${px(split ? 26 : 18)}px ${px(split ? 24 : 26)}px ${px(split ? 28 : 20)}px`,
+                    borderRadius: compact ? 16 : 24,
                     background: hexToRgba(color, won ? 0.2 : 0.09),
                     border: `2px solid ${hexToRgba(color, won ? 0.75 : 0.28)}`,
                     boxShadow: won ? `0 0 44px ${hexToRgba(color, 0.32)}` : "none",
                     opacity: lost ? 0.42 : 1,
                     filter: lost ? "saturate(0.35)" : "none",
                     transition: `opacity 700ms ${EASE}, filter 700ms ${EASE}, background 700ms ${EASE}, border-color 700ms ${EASE}, box-shadow 700ms ${EASE}`,
+                    display: compact ? "grid" : split ? "flex" : "block",
+                    flexDirection: split ? "column" : undefined,
+                    justifyContent: split ? "center" : undefined,
+                    alignItems: compact || split ? "center" : undefined,
+                    textAlign: split ? "center" : undefined,
+                    minHeight: split ? px(220) : undefined,
+                    gridTemplateColumns: compact ? "minmax(0, 1fr) auto" : undefined,
+                    gap: compact ? px(10) : undefined,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: split ? "column" : "row",
+                      alignItems: "center",
+                      gap: px(compact ? 8 : split ? 14 : 18),
+                      minWidth: 0,
+                    }}
+                  >
                     <span
                       style={{
-                        flex: 1,
+                        flex: split ? undefined : 1,
                         minWidth: 0,
-                        fontSize: px(34),
+                        fontSize: px(compact ? 22 : split ? 30 : 34),
                         fontWeight: 700,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -294,7 +324,7 @@ export function PredictionOverlay({
                     <span
                       style={{
                         flexShrink: 0,
-                        fontSize: px(64),
+                        fontSize: px(compact ? 32 : split ? 58 : 64),
                         lineHeight: 1,
                         fontWeight: 800,
                         fontVariantNumeric: "tabular-nums",
@@ -306,17 +336,19 @@ export function PredictionOverlay({
                   </div>
                   <div
                     style={{
-                      marginTop: px(14),
+                      marginTop: compact ? 0 : px(split ? 22 : 14),
+                      gridColumn: compact ? "1 / -1" : undefined,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      gap: 18,
+                      gap: px(compact ? 8 : 18),
+                      flexDirection: compact ? "row-reverse" : split ? "column" : undefined,
                     }}
                   >
-                    <Dots share={strength[index] ?? 0} color={color} size={px(17)} />
+                    <Dots share={strength[index] ?? 0} color={color} size={px(compact ? 7 : 17)} />
                     <span
                       style={{
-                        fontSize: px(23),
+                        fontSize: px(compact ? 13 : split ? 20 : 23),
                         fontWeight: 600,
                         color: muted,
                         fontVariantNumeric: "tabular-nums",
@@ -324,7 +356,7 @@ export function PredictionOverlay({
                       }}
                     >
                       {outcome
-                        ? `${t("overlay.prediction.points", { n: formatCount(outcome.points) })} · ${t("overlay.prediction.voters", { n: formatCount(outcome.voters) })}`
+                        ? `${t("overlay.prediction.points", { n: latinCount(outcome.points) })} · ${t("overlay.prediction.voters", { n: latinCount(outcome.voters) })}`
                         : ""}
                     </span>
                   </div>
@@ -358,7 +390,8 @@ export function PredictionOverlay({
                         ? `linear-gradient(90deg, ${hexToRgba(color, 0.7)}, ${color})`
                         : "rgba(255,255,255,0.14)",
                     opacity: lost ? 0.35 : 1,
-                    boxShadow: totalPoints > 0 && !lost ? `0 0 18px ${hexToRgba(color, 0.45)}` : "none",
+                    boxShadow:
+                      totalPoints > 0 && !lost ? `0 0 18px ${hexToRgba(color, 0.45)}` : "none",
                     transition: `width 900ms ${EASE}, opacity 700ms ${EASE}`,
                   }}
                 />

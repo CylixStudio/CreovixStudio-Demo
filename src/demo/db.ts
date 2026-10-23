@@ -4,6 +4,9 @@
  * rebuilt from fixtures plus the visitor overlay). Nothing here touches a network.
  */
 
+import { demoUserHasActivePro } from "@/demo/subscription";
+import { assertWidgetLayoutAccess } from "@/lib/widgetLayoutAccess";
+
 export type Row = Record<string, unknown>;
 
 type ActorContext = import("@/features/channel-team/types").ActorContext;
@@ -521,6 +524,7 @@ class Query implements PromiseLike<DbResult> {
         created.push(row);
       }
       for (const row of created) {
+        this.db.assertWidgetLayoutWrite(table, row);
         const denied = this.db.writeGuard?.({ table, mode: "insert", before: null, after: row });
         if (denied) return fail(denied, "42501");
       }
@@ -529,7 +533,7 @@ class Query implements PromiseLike<DbResult> {
     }
     if (this.mode === "upsert") {
       const out: Row[] = [];
-      const plan: Array<{ row: Row; previous?: Row }> = [];
+      const plan: Array<{ row: Row; previous?: Row; configWrite: boolean }> = [];
       const conflict = this.onConflict ?? pkOf(table);
       for (const input of this.payload) {
         const existing = this.db
@@ -539,12 +543,17 @@ class Query implements PromiseLike<DbResult> {
           if (this.ignoreDuplicates) continue;
           const merged: Row = { ...existing, ...clone(input) };
           if ("updated_at" in existing && input["updated_at"] === undefined) merged["updated_at"] = new Date().toISOString();
-          plan.push({ row: merged, previous: existing });
+          plan.push({
+            row: merged,
+            previous: existing,
+            configWrite: "config" in input || merged["type"] !== existing["type"] || merged["user_id"] !== existing["user_id"],
+          });
         } else {
-          plan.push({ row: this.normalizeInsert(input) });
+          plan.push({ row: this.normalizeInsert(input), configWrite: true });
         }
       }
       for (const step of plan) {
+        if (step.configWrite) this.db.assertWidgetLayoutWrite(table, step.row);
         const denied = this.db.writeGuard?.({ table, mode: "upsert", before: step.previous ?? null, after: step.row });
         if (denied) return fail(denied, "42501");
       }
@@ -562,6 +571,9 @@ class Query implements PromiseLike<DbResult> {
         plan.push({ row, next });
       }
       for (const step of plan) {
+        if ("config" in this.patch || step.next["type"] !== step.row["type"] || step.next["user_id"] !== step.row["user_id"]) {
+          this.db.assertWidgetLayoutWrite(table, step.next);
+        }
         const denied = this.db.writeGuard?.({ table, mode: "update", before: step.row, after: step.next });
         if (denied) return fail(denied, "42501");
       }
@@ -630,8 +642,22 @@ export class DemoDb {
     return [...(this.tables.get(table)?.values() ?? [])];
   }
 
+  assertWidgetLayoutWrite(table: string, row: Row): void {
+    if (table !== "widgets") return;
+    assertWidgetLayoutAccess(
+      String(row["type"] ?? ""),
+      row["config"],
+      demoUserHasActivePro(this, String(row["user_id"] ?? "")),
+    );
+  }
+
   put(table: string, row: Row, previous?: Row): void {
     const map = this.tables.get(table) ?? new Map<string, Row>();
+    const existing = previous ?? map.get(rowKey(table, row));
+    if (!existing || existing["type"] !== row["type"] || existing["user_id"] !== row["user_id"] ||
+      JSON.stringify(existing["config"]) !== JSON.stringify(row["config"])) {
+      this.assertWidgetLayoutWrite(table, row);
+    }
     if (previous) map.delete(rowKey(table, previous));
     map.set(rowKey(table, row), row);
     this.tables.set(table, map);

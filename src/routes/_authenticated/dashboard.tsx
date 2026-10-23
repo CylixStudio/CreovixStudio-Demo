@@ -103,19 +103,14 @@ function GiveawayPreview() {
 
   return (
     <div className="relative flex h-full flex-col items-center justify-center gap-2.5 overflow-hidden px-3">
-      <span
-        aria-hidden
-        className="pointer-events-none absolute start-1/2 top-[42%] size-24 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
-        style={{ background: "#bee1fc", opacity: 0.16 }}
-      />
-      <span className="hub-giveaway-mark relative grid size-10 place-items-center rounded-full border border-[#bee1fc]/35 bg-zinc-950 text-[#bee1fc]">
+      <span className="relative grid size-10 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-primary">
         <Gift className="size-4" aria-hidden />
       </span>
       <div className="relative flex max-w-full items-center justify-center gap-1.5">
         {visible.map((name, index) => (
           <span
             key={`${name}-${index}`}
-            className="grid size-9 place-items-center rounded-full border border-primary/40 bg-zinc-950 px-1 text-center text-[0.5rem] font-semibold leading-tight text-primary"
+            className="grid size-9 place-items-center rounded-xl border border-white/10 bg-white/[0.03] px-1 text-center text-[0.5rem] font-semibold leading-tight text-primary"
             dir="ltr"
             title={name}
           >

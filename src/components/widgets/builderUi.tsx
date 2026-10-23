@@ -1,6 +1,11 @@
-import type { ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 
 import { useLanguage } from "@/lib/i18n";
+import { isProWidgetLayout } from "@/lib/widgetLayoutAccess";
+import { useSubscription } from "@/hooks/useSubscription";
+import { DEMO_USER_ID } from "@/lib/demoMode";
+
+export const WidgetLayoutTypeContext = createContext("");
 
 export type BuilderPane = "layout" | "display" | "extra";
 
@@ -71,8 +76,7 @@ export function RangeField({
     <label className="block">
       <span className="inline-flex items-center gap-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
         {label} ({value}
-        {unit})
-        {tip}
+        {unit}){tip}
       </span>
       <input
         type="range"
@@ -99,50 +103,97 @@ export function LayoutCards({
   onSelect,
   renderPreview,
   ariaLabel,
+  widgetType,
+  mini = false,
 }: {
   options: LayoutOption[];
   value: string;
   onSelect: (value: string) => void;
   renderPreview: (value: string) => ReactNode;
   ariaLabel: string;
+  widgetType?: string | undefined;
+  mini?: boolean;
 }) {
+  const inheritedType = useContext(WidgetLayoutTypeContext);
+  const type = widgetType ?? inheritedType;
+  const subscription = useSubscription(DEMO_USER_ID);
+  const { lang } = useLanguage();
+  const [locked, setLocked] = useState(false);
   return (
-    <div role="radiogroup" aria-label={ariaLabel} className="grid grid-cols-2 gap-2.5">
-      {options.map((option) => {
-        const selected = option.value === value;
-        return (
-          <button
-            key={option.value}
-            type="button"
-            role="radio"
-            aria-checked={selected}
-            onClick={() => onSelect(option.value)}
-            className={`group min-w-0 overflow-hidden rounded-xl border text-start transition-colors ${
-              selected
-                ? "border-primary bg-primary/10"
-                : "border-white/10 hover:border-white/25"
-            }`}
-          >
-            <span
-              aria-hidden
-              dir="ltr"
-              className="pointer-events-none relative block h-24 overflow-hidden bg-[repeating-conic-gradient(#161616_0%_25%,#101010_0%_50%)] bg-[length:16px_16px]"
+    <div className="space-y-3">
+      <div role="radiogroup" aria-label={ariaLabel} className="grid grid-cols-2 gap-2.5">
+        {options.map((option) => {
+          const selected = option.value === value;
+          const pro = isProWidgetLayout(type, { layout: option.value });
+          return (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              aria-disabled={pro && subscription.data?.isActive !== true}
+              data-layout-id={option.value}
+              onClick={() => {
+                if (pro && subscription.data?.isActive !== true) {
+                  setLocked(true);
+                  return;
+                }
+                setLocked(false);
+                onSelect(option.value);
+              }}
+              className={`group min-w-0 overflow-hidden rounded-xl border text-start transition-colors ${
+                selected ? "border-primary bg-primary/10" : "border-white/10 hover:border-white/25"
+              }`}
             >
-              <span className="absolute left-0 top-0 grid h-[333.33%] w-[333.33%] origin-top-left scale-[0.3] place-items-center">
-                {renderPreview(option.value)}
+              <span
+                aria-hidden
+                dir="ltr"
+                className="pointer-events-none relative block h-24 overflow-hidden bg-[repeating-conic-gradient(#161616_0%_25%,#101010_0%_50%)] bg-[length:16px_16px]"
+              >
+                <span
+                  className={
+                    mini
+                      ? "block"
+                      : "absolute left-0 top-0 grid h-[333.33%] w-[333.33%] origin-top-left scale-[0.3] place-items-center"
+                  }
+                >
+                  {renderPreview(option.value)}
+                </span>
               </span>
-            </span>
-            <span className="block px-2.5 py-2">
-              <span className={`block truncate text-xs font-semibold ${selected ? "text-primary" : ""}`}>
-                {option.label}
+              <span className="block px-2.5 py-2">
+                <span
+                  className={`flex items-center justify-between gap-1 text-xs font-semibold ${selected ? "text-primary" : ""}`}
+                >
+                  {option.label}
+                  {pro ? (
+                    <span className="shrink-0 rounded-md border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[9px] text-primary">
+                      PRO
+                    </span>
+                  ) : null}
+                </span>
+                {option.hint ? (
+                  <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">
+                    {option.hint}
+                  </span>
+                ) : null}
               </span>
-              {option.hint ? (
-                <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">{option.hint}</span>
-              ) : null}
-            </span>
-          </button>
-        );
-      })}
+            </button>
+          );
+        })}
+      </div>
+      {locked ? (
+        <p
+          role="status"
+          className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground"
+        >
+          {lang === "ar"
+            ? "هذا التصميم متاح مع Pro. فعّل خطة Pro التجريبية أو اختر تصميماً مجانياً."
+            : "This layout requires Pro. Enable the Demo Pro plan or choose a free layout."}
+          <a className="ms-2 font-semibold text-primary underline" href="/subscription">
+            {lang === "ar" ? "الترقية" : "Upgrade"}
+          </a>
+        </p>
+      ) : null}
     </div>
   );
 }

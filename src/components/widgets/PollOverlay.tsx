@@ -5,7 +5,6 @@ import {
   OverlayStage,
   fontScale,
   formatClock,
-  formatCount,
   hexToRgba,
   usePresence,
   useFitHeight,
@@ -24,15 +23,16 @@ import { parsePollConfig } from "@/lib/widgets";
 
 const OPTION_COLORS = ["#38bdf8", "#34d399", "#fbbf24", "#fb7185", "#a78bfa", "#2dd4bf"];
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+const latinCount = (value: number) => Math.round(value).toLocaleString("en-US");
 
 function Percent({ value }: { value: number }) {
   const shown = useTween(value, 800);
-  return <span dir="ltr">{Math.round(shown)}%</span>;
+  return <span dir="ltr">{latinCount(shown)}%</span>;
 }
 
 function Count({ value }: { value: number }) {
   const shown = useTween(value, 800);
-  return <span dir="ltr">{formatCount(shown)}</span>;
+  return <span dir="ltr">{latinCount(shown)}</span>;
 }
 
 export function PollOverlay({
@@ -55,7 +55,7 @@ export function PollOverlay({
   const lastLive = useRef<PollRuntime | null>(null);
   if (visible && live) lastLive.current = live;
   const { mounted, leaving } = usePresence(visible && Boolean(live));
-  const fit = useFitHeight(1020);
+  const fit = useFitHeight(parsed.layout === "compact" ? 620 : 1020);
   const shown = visible && live ? live : lastLive.current;
 
   useEffect(() => {
@@ -116,12 +116,22 @@ export function PollOverlay({
   const focusIndex = open ? leaderIndex : winnerIndex;
   const remaining =
     open && shown.endsAt ? Math.max(0, Math.ceil((Date.parse(shown.endsAt) - now) / 1000)) : 0;
+  const compact = parsed.layout === "compact";
+  const cards = parsed.layout === "cards";
+  const columns = parsed.layout === "columns";
 
   const card: CSSProperties = {
-    width: Math.round(960 + (Math.min(scale, 1.25) - 1) * 360),
+    width: compact
+      ? 720
+      : cards
+        ? 1180
+        : columns
+          ? 1260
+          : Math.round(960 + (Math.min(scale, 1.25) - 1) * 360),
+    maxWidth: "100%",
     boxSizing: "border-box",
-    padding: `${px(36)}px ${px(40)}px ${px(32)}px`,
-    borderRadius: 32,
+    padding: `${px(compact ? 22 : 36)}px ${px(compact ? 24 : 40)}px ${px(compact ? 20 : 32)}px`,
+    borderRadius: compact ? 24 : 32,
     color: text,
     fontFamily: parsed.fontFamily,
     background: hexToRgba(parsed.backgroundColor, parsed.backgroundOpacity / 100),
@@ -207,7 +217,18 @@ export function PollOverlay({
             </div>
 
             <div
-              style={{ marginTop: px(30), display: "flex", flexDirection: "column", gap: px(14) }}
+              style={{
+                marginTop: px(compact ? 18 : 30),
+                display: cards || columns ? "grid" : "flex",
+                gridTemplateColumns: cards
+                  ? "repeat(2, minmax(0, 1fr))"
+                  : columns
+                    ? `repeat(${Math.min(count, 6)}, minmax(0, 1fr))`
+                    : undefined,
+                flexDirection: cards || columns ? undefined : "column",
+                alignItems: compact ? "stretch" : undefined,
+                gap: px(compact ? 8 : cards ? 16 : columns ? 10 : 14),
+              }}
             >
               {shown.options.map((option, index) => {
                 const color = OPTION_COLORS[index % OPTION_COLORS.length] ?? "#38bdf8";
@@ -219,6 +240,223 @@ export function PollOverlay({
                     ? t("overlay.poll.leading")
                     : t("overlay.poll.winner")
                   : null;
+                if (compact) {
+                  return (
+                    <div
+                      key={option.id}
+                      className={!open && focused ? "cxo-pop" : undefined}
+                      style={{
+                        padding: `${px(10)}px ${px(14)}px`,
+                        borderRadius: 14,
+                        border: `1px solid ${focused ? hexToRgba(color, 0.65) : "rgba(255,255,255,0.08)"}`,
+                        background: focused ? hexToRgba(color, 0.12) : "rgba(255,255,255,0.035)",
+                        opacity: faded && !open ? 0.52 : 1,
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <span
+                          style={{
+                            minWidth: 0,
+                            flex: 1,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            fontSize: px(22),
+                            fontWeight: 700,
+                          }}
+                        >
+                          <bdi>{option.label}</bdi>
+                        </span>
+                        {tag ? (
+                          <span style={{ color, fontSize: px(13), fontWeight: 800 }}>{tag}</span>
+                        ) : null}
+                        <span style={{ color: muted, fontSize: px(14) }}>
+                          <Count value={option.votes} />
+                        </span>
+                        <span
+                          style={{
+                            color: focused ? color : text,
+                            fontSize: px(23),
+                            fontWeight: 800,
+                          }}
+                        >
+                          <Percent value={whole[index] ?? 0} />
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 8,
+                          height: 6,
+                          borderRadius: 99,
+                          overflow: "hidden",
+                          background: "rgba(255,255,255,.09)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: "100%",
+                            width: `${option.votes > 0 ? Math.max(share, 1.5) : 0}%`,
+                            background: color,
+                            transition: `width 900ms ${EASE}`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                }
+                if (cards) {
+                  return (
+                    <div
+                      key={option.id}
+                      className={!open && focused ? "cxo-pop" : undefined}
+                      style={{
+                        minWidth: 0,
+                        padding: `${px(18)}px ${px(20)}px`,
+                        borderRadius: 22,
+                        border: `2px solid ${focused ? hexToRgba(color, 0.65) : "rgba(255,255,255,0.08)"}`,
+                        background: focused ? hexToRgba(color, 0.12) : "rgba(255,255,255,0.04)",
+                        opacity: faded && !open ? 0.5 : 1,
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, color }}>
+                        <span style={{ fontSize: px(16), fontWeight: 800 }}>
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        {tag ? (
+                          <span
+                            style={{ marginInlineStart: "auto", fontSize: px(13), fontWeight: 800 }}
+                          >
+                            {tag}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p
+                        style={{
+                          marginTop: px(12),
+                          minHeight: px(54),
+                          fontSize: px(24),
+                          fontWeight: 750,
+                          lineHeight: 1.15,
+                          overflow: "hidden",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                        }}
+                      >
+                        <bdi>{option.label}</bdi>
+                      </p>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "baseline",
+                          justifyContent: "space-between",
+                          gap: 8,
+                          marginTop: px(10),
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: focused ? color : text,
+                            fontSize: px(40),
+                            lineHeight: 1,
+                            fontWeight: 850,
+                          }}
+                        >
+                          <Percent value={whole[index] ?? 0} />
+                        </span>
+                        <span style={{ color: muted, fontSize: px(15) }}>
+                          {t("overlay.poll.totalVotes", { n: latinCount(option.votes) })}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          marginTop: px(14),
+                          height: px(8),
+                          borderRadius: 99,
+                          background: "rgba(255,255,255,.1)",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: "100%",
+                            width: `${option.votes > 0 ? Math.max(share, 1.5) : 0}%`,
+                            background: color,
+                            transition: `width 900ms ${EASE}`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                }
+                if (columns) {
+                  return (
+                    <div
+                      key={option.id}
+                      className={!open && focused ? "cxo-pop" : undefined}
+                      style={{
+                        minWidth: 0,
+                        minHeight: px(290),
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        textAlign: "center",
+                        padding: `${px(14)}px ${px(10)}px`,
+                        borderRadius: 20,
+                        border: `1px solid ${focused ? hexToRgba(color, 0.6) : "rgba(255,255,255,.08)"}`,
+                        background: focused ? hexToRgba(color, 0.1) : "rgba(255,255,255,.035)",
+                        opacity: faded && !open ? 0.5 : 1,
+                      }}
+                    >
+                      <div
+                        style={{
+                          alignSelf: "stretch",
+                          height: 7,
+                          borderRadius: 99,
+                          background: color,
+                          opacity: option.votes > 0 ? 1 : 0.22,
+                        }}
+                      />
+                      {tag ? (
+                        <span
+                          style={{ marginTop: px(12), color, fontSize: px(13), fontWeight: 800 }}
+                        >
+                          {tag}
+                        </span>
+                      ) : (
+                        <span style={{ height: px(28) }} />
+                      )}
+                      <span
+                        style={{
+                          marginTop: px(12),
+                          fontSize: px(39),
+                          lineHeight: 1,
+                          fontWeight: 850,
+                          color: focused ? color : text,
+                        }}
+                      >
+                        <Percent value={whole[index] ?? 0} />
+                      </span>
+                      <span
+                        style={{
+                          flex: 1,
+                          display: "grid",
+                          placeItems: "center",
+                          marginTop: px(14),
+                          fontSize: px(17),
+                          fontWeight: 700,
+                          lineHeight: 1.2,
+                          overflowWrap: "anywhere",
+                        }}
+                      >
+                        <bdi>{option.label}</bdi>
+                      </span>
+                      <span style={{ marginTop: px(12), color: muted, fontSize: px(14) }}>
+                        {t("overlay.poll.totalVotes", { n: latinCount(option.votes) })}
+                      </span>
+                    </div>
+                  );
+                }
                 return (
                   <div
                     key={option.id}
@@ -346,7 +584,7 @@ export function PollOverlay({
               }}
             >
               {total > 0
-                ? t("overlay.poll.totalVotes", { n: formatCount(total) })
+                ? t("overlay.poll.totalVotes", { n: latinCount(total) })
                 : t("overlay.poll.noVotes")}
             </p>
           </div>

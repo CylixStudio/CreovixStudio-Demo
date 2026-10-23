@@ -202,7 +202,7 @@ export function SpinWheelView({
   /** Visual loop only. Does not call onSpin and does not store a winner. */
   autoSpin?: boolean;
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const uid = useId().replace(/:/g, "");
   const style = parseSpinConfig(config);
   const layout = parseWheelLayout(config);
@@ -358,7 +358,7 @@ export function SpinWheelView({
 
   return (
     <div
-      className={`flex flex-col items-center gap-4 px-5 py-5 text-zinc-100 ${
+      className={`flex ${layout === "show" ? "relative flex-col border-b-8 border-b-primary pb-8 pt-10" : "flex-col"} items-center gap-4 px-5 py-5 text-zinc-100 ${
         layout === "compact" ? "w-[min(100%,16rem)]" : "w-[min(100%,22.5rem)]"
       } ${
         layout === "bare"
@@ -368,15 +368,16 @@ export function SpinWheelView({
             : "rounded-3xl border border-zinc-800 bg-zinc-950 shadow-[0_24px_60px_-32px_rgba(0,0,0,0.9)]"
       }`}
       data-wheel-layout={layout}
-      style={{ fontFamily: style.fontFamily }}
+      style={{ fontFamily: style.fontFamily, ...(layout === "show" ? { display: "grid", gridTemplateColumns: "280px 160px", width: 500, alignItems: "center" } : {}) }}
     >
-      {rawTitle ? (
-        <p className="max-w-full truncate text-center text-xs font-semibold tracking-[0.16em] text-zinc-300" dir="auto">
-          {rawTitle}
+      {layout === "show" ? <div aria-hidden className="absolute -top-3 flex gap-2 rounded-full border border-white/15 bg-zinc-900 px-5 py-2">{Array.from({ length: 7 }, (_, index) => <span key={index} className="size-1.5 rounded-full bg-primary/70" />)}</div> : null}
+      {rawTitle || layout === "show" ? (
+        <p className={`max-w-full truncate text-center text-xs font-semibold tracking-[0.16em] text-zinc-300 ${layout === "show" ? "col-start-2" : ""}`} dir="auto">
+          {rawTitle || (lang === "ar" ? "عجلة الحظ" : "Wheel of fortune")}
         </p>
       ) : null}
 
-      <div className="relative aspect-square w-full max-w-[320px]" data-wheel-slices={slices.length}>
+      <div className={`relative aspect-square w-full max-w-[320px] ${layout === "show" ? "col-start-1 row-start-1 row-span-3" : ""}`} data-wheel-slices={slices.length}>
         <div className="absolute inset-0 will-change-transform" style={{ transform: `rotate(${rotation}deg)` }}>
           <svg viewBox="0 0 320 320" className="size-full overflow-visible" aria-hidden>
             <defs>
@@ -479,11 +480,11 @@ export function SpinWheelView({
       </div>
 
       {landed && winnerIndex >= 0 ? (
-        <p className="max-w-full truncate text-center text-lg font-semibold text-zinc-50" dir="auto">
+        <p className={`max-w-full truncate text-center text-lg font-semibold text-zinc-50 ${layout === "show" ? "col-start-2" : ""}`} dir="auto">
           {slices[winnerIndex]?.label}
         </p>
       ) : (
-        <p className="h-7" aria-hidden />
+        <p className={layout === "show" ? "col-start-2 text-center text-sm text-zinc-400" : "h-7"} aria-hidden={layout !== "show"}>{layout === "show" ? `${placeholder ? 0 : slices.length} ${lang === "ar" ? "جوائز" : "prizes"}` : null}</p>
       )}
 
       {onSpin ? (

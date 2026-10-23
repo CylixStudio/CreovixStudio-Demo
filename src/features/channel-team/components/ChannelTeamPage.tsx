@@ -132,14 +132,10 @@ export function ChannelTeamPage() {
 
   if (!canManageTeam) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] p-6">
-        <div className="mx-auto max-w-6xl">
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-8 text-center">
-            <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-            <h2 className="text-lg font-semibold text-red-400">{t('channelTeam.noAccess')}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{t('channelTeam.ownerOnly')}</p>
-          </div>
-        </div>
+      <div className="surface-card mx-auto max-w-6xl border-red-500/20 bg-red-500/5 p-8 text-center">
+        <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-400" />
+        <h2 className="text-lg font-semibold text-red-400">{t('channelTeam.noAccess')}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{t('channelTeam.ownerOnly')}</p>
       </div>
     )
   }
@@ -257,35 +253,26 @@ export function ChannelTeamPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
-      <div className="px-4 py-6 sm:px-6">
-        <div className="mx-auto max-w-7xl">
-          {/* Header */}
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="mb-1 flex items-center gap-2.5">
-                <Users className="h-6 w-6 text-[#bee1fc]" />
-                <h1 className="text-2xl font-bold text-foreground">{t('channelTeam.title')}</h1>
-              </div>
-              <p className="text-sm text-muted-foreground">{t('channelTeam.subtitle')}</p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleReset}
-              className="gap-2 text-muted-foreground hover:text-foreground w-fit"
-            >
-              <RefreshCw className="h-4 w-4" />
-              {t('settings.resetBtn')}
-            </Button>
-          </div>
+    <div className="space-y-5">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleReset}
+            className="gap-2 text-muted-foreground hover:text-foreground w-fit"
+          >
+            <RefreshCw className="h-4 w-4" />
+            {t('settings.resetBtn')}
+          </Button>
+        </div>
 
-          {/* Stats */}
-          <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <StatCard icon={Users} label={t('channelTeam.stats.totalMembers')} value={currentMembers.length} />
-            <StatCard icon={Clock} label={t('channelTeam.stats.pendingInvitations')} value={pendingInvitations.length} />
-            <StatCard icon={Shield} label={t('channelTeam.stats.customRoles')} value={SECTIONS.length} />
-          </div>
+        {/* Stats */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <StatCard icon={Users} label={t('channelTeam.stats.totalMembers')} value={currentMembers.length} />
+          <StatCard icon={Clock} label={t('channelTeam.stats.pendingInvitations')} value={pendingInvitations.length} />
+          <StatCard icon={Shield} label={t('channelTeam.stats.customRoles')} value={SECTIONS.length} />
+        </div>
 
           {/* Tabs */}
           <div className="border-b border-white/10">
@@ -428,7 +415,6 @@ export function ChannelTeamPage() {
             )}
           </div>
         </div>
-      </div>
 
       {/* Invite Modal - Step 1: Method Selection */}
       {showInviteModal && inviteModal.step === 'method' && (

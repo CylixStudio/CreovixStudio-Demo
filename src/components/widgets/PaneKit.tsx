@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { DarkSelect } from "@/components/ui/dark-select";
 import { useLanguage } from "@/lib/i18n";
 import { OVERLAY_FONTS } from "@/lib/overlayTheme";
+import { LayoutCards as SharedLayoutCards } from "@/components/widgets/builderUi";
 
 export type Pane = "layout" | "display" | "extra";
 
@@ -214,44 +215,24 @@ export function LayoutCards({
   value,
   options,
   onChange,
-  columns = 2,
+  widgetType,
 }: {
   value: string;
   options: LayoutCardOption[];
   onChange: (id: string) => void;
   columns?: 2 | 3;
+  widgetType?: string;
 }) {
+  const { t } = useLanguage();
   return (
-    <div
-      className={`grid items-stretch gap-2 ${columns === 3 ? "grid-cols-3" : "grid-cols-2"}`}
-      role="group"
-    >
-      {options.map((option) => {
-        const selected = option.id === value;
-        return (
-          <button
-            key={option.id}
-            type="button"
-            aria-pressed={selected}
-            data-layout-id={option.id}
-            onClick={() => onChange(option.id)}
-            className={`flex h-full min-w-0 flex-col overflow-hidden rounded-xl border bg-black/20 text-start transition-colors hover:border-primary/50 ${
-              selected ? "border-primary" : "border-border"
-            }`}
-          >
-            <div
-              className="bg-[repeating-conic-gradient(#1b1b1b_0%_25%,#111_0%_50%)] bg-[length:12px_12px]"
-              dir="ltr"
-              aria-hidden
-            >
-              {option.mini}
-            </div>
-            <span className="flex min-h-11 items-center px-2 py-1.5 text-xs font-semibold leading-snug break-words">
-              {option.label}
-            </span>
-          </button>
-        );
-      })}
-    </div>
+    <SharedLayoutCards
+      widgetType={widgetType}
+      mini
+      ariaLabel={t("layout.picker")}
+      value={value}
+      onSelect={onChange}
+      options={options.map((option) => ({ value: option.id, label: option.label }))}
+      renderPreview={(id) => options.find((option) => option.id === id)?.mini}
+    />
   );
 }

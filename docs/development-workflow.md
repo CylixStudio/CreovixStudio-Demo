@@ -8,6 +8,31 @@ Keep two projects: Demo and Main. Do not create a third full copy.
 
 Do not deploy to production, and do not apply a production database migration, without a separate approval.
 
+## Demo layout plans
+
+The existing Demo `user_subscriptions` fixture is the source of truth for layout
+access. `useSubscription(userId)` reads the local Demo database and reacts to
+subscription changes, including changes from other tabs. The named
+`DemoLayoutPlanSwitch` component in `src/components/widgets/DemoLayoutPlanSwitch.tsx`
+accepts `{ userId: string; className?: string }` for builder integration.
+`setDemoSubscriptionPlan(userId, "free" | "pro")` from `src/lib/demoSubscription.ts`
+changes only the local Demo account; it never starts billing or activates a real license.
+
+Free rejects newly saved or imported Pro layouts at the Demo store/database
+write boundary. Existing saved values are preserved on load and downgrade;
+runtime state-only updates remain available. Resetting local Demo database data
+restores the seeded Pro fixture.
+Whole-Demo JSON imports are checked before replacing any localStorage entries.
+Access is evaluated against the current local subscription, not a Pro row
+contained in the imported file.
+
+Run the fixture regression tests from the Demo directory on Node 24:
+
+```powershell
+$hook = ([uri](Resolve-Path scripts\register-alias.mjs).Path).AbsoluteUri
+node --experimental-transform-types --import $hook --test scripts\demo-layout-access.test.ts
+```
+
 ## Prediction: Particle Clash
 
 Prediction's Layout tab offers the unchanged Classic renderer and Particle Clash

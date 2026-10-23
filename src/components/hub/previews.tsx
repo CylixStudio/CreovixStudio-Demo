@@ -939,6 +939,7 @@ export function MediaPreview() {
 }
 
 export function PollPreview() {
+  const { lang } = useLanguage();
   const reduced = useReducedMotion();
   const [shift, setShift] = useState(0);
   useEffect(() => {
@@ -947,13 +948,13 @@ export function PollPreview() {
     return () => window.clearInterval(id);
   }, [reduced]);
   const rows = [
-    { label: "نعم", width: 68 - shift * 6 },
-    { label: "لا", width: 32 + shift * 6 },
+    { label: lang === "ar" ? "نعم" : "Yes", width: 68 - shift * 6 },
+    { label: lang === "ar" ? "لا" : "No", width: 32 + shift * 6 },
   ];
   return (
     <div className="grid h-full place-items-center px-3">
-      <div className="w-full rounded-xl border border-[#bee1fc]/30 bg-zinc-950/70 px-3 py-2 backdrop-blur">
-        <p className="text-[0.62rem] font-semibold text-[#bee1fc]">استطلاع</p>
+      <div className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
+        <p className="text-[0.62rem] font-semibold text-primary">{lang === "ar" ? "استطلاع" : "Poll"}</p>
         {rows.map((row) => (
           <div key={row.label} className="mt-1.5">
             <div className="mb-0.5 flex justify-between text-[0.55rem] text-foreground">
@@ -1249,6 +1250,7 @@ export function EventLabelsPreview() {
 }
 
 export function PredictionPreview() {
+  const { lang } = useLanguage();
   const reduced = useReducedMotion();
   const [left, setLeft] = useState(58);
   useEffect(() => {
@@ -1258,11 +1260,11 @@ export function PredictionPreview() {
   }, [reduced]);
   return (
     <div className="grid h-full place-items-center px-3">
-      <div className="w-full rounded-xl border border-[#bee1fc]/30 bg-zinc-950/70 px-3 py-2 backdrop-blur">
+      <div className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
-          <span className="text-[0.68rem] font-semibold">فوز</span>
+          <span className="text-[0.68rem] font-semibold">{lang === "ar" ? "فوز" : "Win"}</span>
           <span className="text-[0.55rem] font-black text-[#bee1fc]">VS</span>
-          <span className="text-[0.68rem] font-semibold">خسارة</span>
+          <span className="text-[0.68rem] font-semibold">{lang === "ar" ? "خسارة" : "Lose"}</span>
         </div>
         <div className="mt-2 flex h-1.5 overflow-hidden rounded-full bg-white/10">
           <div className="overlay-poll-bar h-full bg-[#bee1fc]" style={{ width: `${left}%` }} />

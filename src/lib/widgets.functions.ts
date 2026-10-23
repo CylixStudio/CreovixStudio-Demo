@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { DEMO_BUILD } from "@/lib/demoMode";
+import { assertWidgetLayoutAccess } from "@/lib/widgetLayoutAccess";
 import {
   eventLabelsOverFreeLimit,
   widgetSaveAllowed,
@@ -33,7 +34,6 @@ export const saveWidgetSettings = createServerFn({ method: "POST" })
     }) => input,
   )
   .handler(async ({ data, context }) => {
-    if (DEMO_BUILD) return { ok: true as const };
     const { supabase, userId } = context;
     const { data: existing, error: readError } = await supabase
       .from("widgets")
@@ -45,6 +45,9 @@ export const saveWidgetSettings = createServerFn({ method: "POST" })
     if (!existing) throw new Error("Widget not found");
 
     const isPro = await userHasActivePro(supabase, userId);
+    if (DEMO_BUILD) {
+      assertWidgetLayoutAccess(existing.type, data.config, isPro);
+    }
     if (!widgetSaveAllowed(isPro, existing.type, data.config)) throw new Error("pro_required");
     if (!isPro && existing.type === "EVENT_LABELS" && eventLabelsOverFreeLimit(data.config)) {
       throw new Error("free_limit_labels");
@@ -81,8 +84,10 @@ export const saveWidgetSettings = createServerFn({ method: "POST" })
       if (goalError) throw new Error(goalError.message);
     }
 
-    const { notifyWidgetSaved } = await import("@/lib/updateWebhook.server");
-    await notifyWidgetSaved(row.name);
+    if (!DEMO_BUILD) {
+      const { notifyWidgetSaved } = await import("@/lib/updateWebhook.server");
+      await notifyWidgetSaved(row.name);
+    }
     return { ok: true as const };
   });
 
@@ -102,6 +107,9 @@ export const createOwnedWidget = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     if (!WIDGET_TYPE_VALUES.has(data.type as WidgetType)) throw new Error("Unknown widget type");
     const isPro = await userHasActivePro(context.supabase, context.userId);
+    if (DEMO_BUILD) {
+      assertWidgetLayoutAccess(data.type, data.config, isPro);
+    }
     if (!widgetSaveAllowed(isPro, data.type, data.config)) throw new Error("pro_required");
     const config =
       !isPro && data.type === "EVENT_LABELS" && Array.isArray(data.config["labels"])

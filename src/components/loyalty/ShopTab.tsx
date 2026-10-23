@@ -203,7 +203,7 @@ export function ShopTab({
   return (
     <section className="space-y-4">
       <div className="surface-card surface-card-pad">
-        <div className="flex flex-wrap items-end gap-3">
+        <div className="flex flex-wrap items-end gap-2.5">
           <SearchBox className="min-w-[12rem] flex-1" label={t("loyalty.shop.search")} value={query} onChange={setQuery} />
           <Field label={t("loyalty.shop.status")} className="w-full sm:w-44">
             <DarkSelect
@@ -258,7 +258,7 @@ export function ShopTab({
       ) : visible.length === 0 ? (
         <EmptyState>{t("loyalty.shop.noMatch")}</EmptyState>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {visible.map((item) => (
             <ProductCard
               key={item.id}
@@ -366,28 +366,34 @@ function ProductCard({
         : t("loyalty.shop.left", { count: formatNumber(item.stock ?? 0) });
 
   return (
-    <li className={`surface-card flex flex-col overflow-hidden ${item.is_active ? "" : "opacity-80"}`}>
-      <div className="relative">
+    <li
+      className={`surface-card flex flex-col overflow-hidden transition-colors hover:border-white/20 ${
+        item.is_active ? "" : "opacity-80"
+      }`}
+    >
+      <div className="flex items-start gap-3 px-3 pt-3">
         <ShopImage key={item.image_url ?? "none"} url={item.image_url} alt={item.name} emptyLabel={t("loyalty.shop.noImage")} />
-        <span
-          className={`absolute start-3 top-3 rounded-full px-2.5 py-0.5 text-[0.68rem] font-semibold backdrop-blur ${
-            item.is_active ? "bg-emerald-500/20 text-emerald-300" : "bg-black/60 text-muted-foreground"
-          }`}
-        >
-          {item.is_active ? t("loyalty.shop.available") : t("loyalty.shop.stopped")}
-        </span>
-      </div>
-
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="min-w-0 break-words text-sm font-semibold leading-snug" dir="auto">
+        <div className="min-w-0 flex-1 space-y-1">
+          <h3 className="line-clamp-2 break-words text-sm font-semibold leading-snug" dir="auto" title={item.name}>
             {item.name}
           </h3>
-          <span className="surface-inset shrink-0 px-2.5 py-1 text-xs font-semibold tabular-nums text-primary">
-            {t("loyalty.shop.price", { count: formatNumber(item.cost) })}
-          </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span
+              className={`rounded-full px-2 py-0.5 text-[0.68rem] font-semibold ${
+                item.is_active ? "bg-emerald-500/20 text-emerald-300" : "bg-white/5 text-muted-foreground"
+              }`}
+            >
+              {item.is_active ? t("loyalty.shop.available") : t("loyalty.shop.stopped")}
+            </span>
+            <span className="surface-inset px-2 py-1 text-xs font-semibold tabular-nums text-primary">
+              {t("loyalty.shop.price", { count: formatNumber(item.cost) })}
+            </span>
+          </div>
         </div>
-        <p className="line-clamp-2 min-h-[2.5rem] text-xs leading-relaxed text-muted-foreground" dir="auto">
+      </div>
+
+      <div className="flex flex-1 flex-col gap-2.5 p-3">
+        <p className="line-clamp-2 min-h-[2.25rem] text-xs leading-relaxed text-muted-foreground" dir="auto">
           {item.description || "—"}
         </p>
         <div className="mt-auto flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -411,7 +417,7 @@ function ProductCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 border-t border-white/5 px-4 py-2.5">
+      <div className="flex items-center justify-between gap-2 border-t border-white/5 px-3 py-2">
         <label className="flex items-center gap-2 text-xs text-muted-foreground">
           <Switch
             checked={item.is_active}
@@ -453,11 +459,14 @@ function ShopImage({ url, alt, emptyLabel }: { url: string | null; alt: string; 
   const [broken, setBroken] = useState(false);
   if (!url || broken) {
     return (
-      <div className="flex aspect-[16/9] flex-col items-center justify-center gap-1.5 bg-white/[0.03] text-xs text-muted-foreground">
-        <ImageIcon aria-hidden className="size-6 opacity-60" />
-        {emptyLabel}
+      <div
+        className="flex size-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-white/5 bg-white/[0.03] p-1 text-center text-[0.6rem] leading-tight text-muted-foreground"
+        title={emptyLabel}
+      >
+        <ImageIcon aria-hidden className="size-5 opacity-60" />
+        <span>{emptyLabel}</span>
       </div>
     );
   }
-  return <img src={url} alt={alt} className="aspect-[16/9] w-full object-cover" onError={() => setBroken(true)} />;
+  return <img src={url} alt={alt} className="size-[72px] shrink-0 rounded-xl border border-white/5 object-cover" onError={() => setBroken(true)} />;
 }

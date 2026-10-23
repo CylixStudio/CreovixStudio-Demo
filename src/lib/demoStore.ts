@@ -1,5 +1,8 @@
 import { DEMO_USER_ID } from "@/lib/demoMode";
 import { buildDemoFile } from "@/demo/fixtures";
+import { getDemoDb } from "@/demo/context";
+import { demoUserHasActivePro } from "@/demo/subscription";
+import { assertWidgetLayoutAccess } from "@/lib/widgetLayoutAccess";
 import {
   normalizeDemoFile,
   type DemoChatMessage,
@@ -92,9 +95,21 @@ export function resetDemoState(): void {
 }
 
 export function updateDemoState(mutator: (state: DemoFile) => DemoFile): Promise<DemoFile> {
-  const next = normalizeDemoFile(mutator(readState()));
+  const current = readState();
+  const next = normalizeDemoFile(mutator(JSON.parse(JSON.stringify(current)) as DemoFile));
+  for (const widget of next.widgets) {
+    const previous = current.widgets.find((item) => item.id === widget.id);
+    if (!previous || previous.type !== widget.type ||
+      JSON.stringify(previous.config) !== JSON.stringify(widget.config)) {
+      assertDemoLayout(widget.type, widget.config, widget.user_id);
+    }
+  }
   remember(next);
   return Promise.resolve(next);
+}
+
+function assertDemoLayout(type: string, config: unknown, userId: string): void {
+  assertWidgetLayoutAccess(type, config, demoUserHasActivePro(getDemoDb(), userId));
 }
 
 function newId(): string {
@@ -109,6 +124,7 @@ export async function insertDemoWidget(args: {
   config: Record<string, unknown>;
   goal?: { title: string; unit: string; target: number } | null;
 }): Promise<{ id: string; public_token: string }> {
+  assertDemoLayout(args.type, args.config, args.userId || DEMO_USER_ID);
   const singleton = new Set([
     "KICKS_GOAL",
     "VIEWER_COUNTER",
@@ -207,6 +223,9 @@ export async function saveDemoWidget(input: {
   config: Record<string, unknown>;
   goal?: { id: string; title: string; unit: string; target: number; current: number } | null;
 }): Promise<void> {
+  const widget = readState().widgets.find((item) => item.id === input.widgetId);
+  if (!widget) throw new Error("Widget not found.");
+  assertDemoLayout(widget.type, input.config, widget.user_id);
   await updateDemoState((state) => ({
     ...state,
     widgets: state.widgets.map((widget) =>

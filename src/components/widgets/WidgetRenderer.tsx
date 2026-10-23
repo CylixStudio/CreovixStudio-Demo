@@ -215,7 +215,7 @@ function GoalLayoutFrame({
   fontFamily,
   showPercent,
 }: {
-  layout: "compact" | "bold" | "glass";
+  layout: "compact" | "bold" | "glass" | "ring" | "segments";
   title: string;
   percent: number;
   current: number;
@@ -239,6 +239,31 @@ function GoalLayoutFrame({
       </span>
     </span>
   );
+  if (layout === "ring") {
+    return (
+      <div data-goal-layout="ring" className="flex w-[420px] items-center gap-6 rounded-3xl border border-white/10 bg-zinc-950 p-6" style={{ color: ink, fontFamily }}>
+        <div className="relative size-32 shrink-0">
+          <svg viewBox="0 0 120 120" className="size-full -rotate-90" aria-hidden>
+            <circle cx="60" cy="60" r="50" fill="none" stroke={withAlpha(ink, 14)} strokeWidth="9" />
+            <circle cx="60" cy="60" r="50" fill="none" stroke={accent} strokeWidth="9" strokeLinecap="round" strokeDasharray={`${percent * Math.PI} ${100 * Math.PI}`} />
+          </svg>
+          {showPercent ? <span className="absolute inset-0 grid place-items-center text-2xl font-bold tabular-nums">{percent.toFixed(0)}%</span> : null}
+        </div>
+        <div className="min-w-0 space-y-3"><p className="text-sm font-semibold" dir="auto">{title}</p><div className="text-xl">{amount}</div></div>
+      </div>
+    );
+  }
+  if (layout === "segments") {
+    return (
+      <div data-goal-layout="segments" className="w-[460px] space-y-4 p-4" style={{ color: ink, fontFamily }}>
+        <div className="flex items-end justify-between gap-5"><span className="text-sm font-semibold" dir="auto">{title}</span><span className="rounded-lg border border-white/15 bg-zinc-950 px-3 py-2 text-lg">{amount}</span></div>
+        <div className="flex h-14 items-end gap-1.5" aria-label={`${percent.toFixed(0)}%`}>
+          {Array.from({ length: 20 }, (_, index) => <span key={index} className="flex-1 rounded-t-md" style={{ height: `${45 + (index % 5) * 11}%`, background: index < Math.round(percent / 5) ? accent : withAlpha(ink, 14) }} />)}
+        </div>
+        {showPercent ? <p className="text-end text-xs tabular-nums">{percent.toFixed(0)}%</p> : null}
+      </div>
+    );
+  }
   if (compact) {
     return (
       <div
@@ -1888,7 +1913,7 @@ export function ChatSpotlightView({
       quote={display.replyQuote}
     >
     <div
-      className={`overlay-spotlight-swap flex w-full min-w-[360px] max-w-[560px] flex-col gap-2 rounded-2xl px-6 py-5 ${chromeLayoutClass(chrome)}`}
+      className={`overlay-spotlight-swap flex w-full min-w-[360px] ${chrome === "lower-third" ? "max-w-[900px] flex-row items-center gap-6 rounded-lg border-s-4 px-6 py-3" : chrome === "message" ? "max-w-[480px] flex-col gap-4 rounded-3xl rounded-es-sm px-7 py-6" : "max-w-[560px] flex-col gap-2 rounded-2xl px-6 py-5"} ${chromeLayoutClass(chrome)}`}
       data-motion={motion}
       style={{
         boxSizing: "border-box",
@@ -1898,7 +1923,7 @@ export function ChatSpotlightView({
             : "#09090b",
         border: chrome === "bold" ? "2px solid rgba(255,255,255,0.28)" : `1px solid ${withAlpha(accent, 45)}`,
         backdropFilter: chrome === "direct" ? "none" : "blur(20px)",
-        boxShadow: chrome === "direct" ? "none" : `0 26px 60px rgba(0,0,0,0.55), 0 0 34px ${withAlpha(accent, 28)}`,
+        boxShadow: chrome === "direct" || chrome === "lower-third" ? "none" : "0 16px 40px rgba(0,0,0,0.3)",
         fontFamily: skin.fontFamily ?? style.fontFamily,
         color: style.textColor,
         ...skin.surface,
@@ -2619,6 +2644,18 @@ function ViewerCounterView({
         ? t("widget.viewer.followers")
         : t("widget.viewer.viewers");
   const digits = shown === null ? "—" : shown.toLocaleString("en-US");
+  if (layout === "live") {
+    return <div data-viewer-layout="live" className="flex items-center gap-4 rounded-xl border border-white/15 bg-zinc-950 px-5 py-3" style={{ color: style.textColor, fontFamily: style.fontFamily }}>
+      <span className="flex items-center gap-2 border-e border-white/15 pe-4 text-xs font-bold" style={{ color: style.accentColor }}><span className="size-2 rounded-full bg-current" />LIVE</span>
+      <div><strong className="block tabular-nums" style={{ fontSize: style.fontSize * 0.6 }} dir="ltr">{digits}</strong><span className="text-xs opacity-60">{label}</span></div>
+    </div>;
+  }
+  if (layout === "digital") {
+    return <div data-viewer-layout="digital" className="space-y-3 p-4 text-center" style={{ color: style.textColor, fontFamily: style.fontFamily }}>
+      <div className="flex justify-center gap-1.5" dir="ltr">{Array.from(digits).map((digit, index) => <span key={index} className="rounded-lg border-b-2 border-white/20 bg-zinc-900 px-3 py-2 font-mono font-bold tabular-nums" style={{ fontSize: style.fontSize * 0.7 }}>{digit}</span>)}</div>
+      <p className="text-xs uppercase tracking-widest" style={{ color: style.accentColor }}>{label}</p>
+    </div>;
+  }
   if (layout === "digits") {
     return (
       <div className="bg-transparent text-center" style={{ color: style.textColor, fontFamily: style.fontFamily }}>
@@ -2741,6 +2778,15 @@ function EventLabelsView({ config, events }: { config: unknown; events: OverlayE
     "sample" in entry
       ? entry.sample
       : `${translate(EVENT_LABEL_I18N[entry.option], undefined, lang)}${entry.username ? ` · ${entry.username}` : ""}${entry.amount ? ` · ${entry.amount}` : ""}`;
+  if (layout === "floating" || layout === "timeline") {
+    return <div data-events-layout={layout} className={layout === "floating" ? "flex max-w-[800px] flex-wrap items-start gap-3 p-3" : "min-w-[300px] space-y-4 border-s-2 border-white/20 ps-5 py-3"} dir={lang === "ar" ? "rtl" : "ltr"} style={{ color: parsed.textColor, fontFamily: parsed.fontFamily }}>
+      {lines.map((entry, index) => <div key={entry.key} className={layout === "floating" ? "max-w-[240px] space-y-2 rounded-2xl border border-white/10 bg-zinc-950 p-4" : "relative space-y-1 py-1"}>
+        {layout === "timeline" ? <span className="absolute -start-[27px] top-3 size-3 rounded-full border-2 border-zinc-950" style={{ background: parsed.accentColor }} /> : null}
+        <p className="text-xs font-bold" style={{ color: parsed.accentColor }}>{parsed.title} · {index + 1}</p>
+        <p style={{ fontSize: parsed.fontSize * 0.5 }} dir="auto">{lineText(entry)}</p>
+      </div>)}
+    </div>;
+  }
   if (layout === "cycle") {
     return (
       <div
@@ -3312,4 +3358,3 @@ export function TikTokTapGoalView({
     </div>
   );
 }
-

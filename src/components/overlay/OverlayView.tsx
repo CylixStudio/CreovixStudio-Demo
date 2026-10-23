@@ -132,7 +132,19 @@ export function OverlayView({
   const isRunning = (frame?.status ?? "IDLE") === "RUNNING";
 
   let body: ReactElement;
-  if (theme.layout === "cute_heart") {
+  if (theme.layout === "split_clock") {
+    body = <div className="space-y-3 p-3" style={{ color: theme.textColor, fontFamily: theme.fontFamily }}>
+      <div className="flex items-center justify-between gap-6">{theme.showLabel ? <span style={labelStyle}>{theme.label}</span> : null}{statusBadge}</div>
+      <div className="flex items-center gap-2" dir="ltr">{timeText.split(":").map((part, index) => <span key={index} className="rounded-xl px-4 py-3 font-mono font-bold tabular-nums" style={{ ...panelStyle, fontSize: theme.fontSize }}>{part}</span>)}</div>
+    </div>;
+  } else if (theme.layout === "broadcast") {
+    body = <div className="flex items-stretch overflow-hidden rounded-2xl" style={{ ...panelStyle, color: theme.textColor, fontFamily: theme.fontFamily }}>
+      <div className="flex flex-col justify-center gap-3 border-e border-white/15 px-6 py-5" style={{ background: hideBg ? "transparent" : withAlpha(theme.accentColor, 8) }}>
+        <span className="h-1 w-10 rounded-full" style={{ background: theme.accentColor }} />{theme.showLabel ? <span style={labelStyle}>{theme.label}</span> : null}{statusBadge}
+      </div>
+      <div className="flex flex-col justify-center gap-3 px-7 py-5"><span dir="ltr">{time}</span><div className="h-1 overflow-hidden rounded-full bg-white/10"><div className="h-full" style={{ width: `${progress * 100}%`, background: theme.accentColor }} /></div></div>
+    </div>;
+  } else if (theme.layout === "cute_heart") {
     body = (
       <div className="relative inline-block">
         <div

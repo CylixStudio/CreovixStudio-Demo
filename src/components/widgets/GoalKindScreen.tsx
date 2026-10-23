@@ -17,6 +17,8 @@ import { isTestMode } from "@/lib/testMode";
 import { isSplitGoalKind, parseSplitGoalConfig, type SplitGoalKind } from "@/lib/widgets";
 import { parseGoalLayout } from "@/lib/widgetLayouts";
 import { StandaloneWidgetFields } from "@/components/widgets/StandaloneWidgetFields";
+import { TestSimulatePanel } from "@/components/widgets/TestSimulatePanel";
+import { DemoLayoutPlanSwitch } from "@/components/widgets/DemoLayoutPlanSwitch";
 
 function initialConfig(kind: SplitGoalKind, raw: unknown): Record<string, unknown> {
   const stored =
@@ -103,7 +105,9 @@ function GoalKindForm({
         }}
       >
         <SessionAwareError error={error} signedOutLabel={t("tools.signedOut")} />
-        <StandaloneWidgetFields type={kind} config={draft} set={set} />
+        <DemoLayoutPlanSwitch userId={userId} />
+        <StandaloneWidgetFields type={kind} config={draft} set={set}
+          testPanel={existing ? <TestSimulatePanel widgetId={existing.id} widgetType={kind} config={draft} /> : undefined} />
         <div className="flex gap-2 pt-2">
           <button
             type="button"
