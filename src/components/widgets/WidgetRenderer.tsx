@@ -8,6 +8,11 @@ import { RoleBadgeIcon, normalizeBadgeRole, resolveBadgeRoles } from "@/componen
 import { StreamEventsScheduleView } from "@/components/widgets/StreamEventsScheduleCard";
 import { PollOverlay } from "@/components/widgets/PollOverlay";
 import { PredictionOverlay } from "@/components/widgets/PredictionOverlay";
+import { ChatSpotlightView } from "@/components/widgets/ChatSpotlightView";
+
+export { ChatSpotlightView };
+import { ViewerCountFace } from "@/components/widgets/ViewerCountFace";
+import { EventLabelsFace } from "@/components/widgets/EventLabelsFace";
 
 import { useKickBadges, type KickBadge } from "@/hooks/useKickBadges";
 import { readKickDefaultSubscriberBadge, readOwnerSubscriberTiers } from "@/lib/kickBadgeResolver";
@@ -28,7 +33,7 @@ import { lookupChannel } from "@/lib/liveCounter.functions";
 import { readOverlayViewers } from "@/lib/toolWidgets.functions";
 import { isDemoToken } from "@/lib/demoMode";
 import { parseOverlayTheme, withAlpha } from "@/lib/overlayTheme";
-import { chromeLayoutClass, parseChromeLayout, parseEventLabelLayout, parseGoalLayout, parseViewerLayout } from "@/lib/widgetLayouts";
+import { parseEventLabelLayout, parseGoalLayout, parseViewerLayout } from "@/lib/widgetLayouts";
 import { SpinWheelView } from "@/components/widgets/SpinWheel";
 import { parseWidgetThemeId, widgetThemeSkin } from "@/lib/widgetThemes";
 import {
@@ -52,7 +57,6 @@ import {
   parseEmoteRainConfig,
   parseEventLabelsConfig,
   parseSplitGoalConfig,
-  parseSpotlightConfig,
   parseTappersConfig,
   parseTapGoalConfig,
   parseViewerCounterConfig,
@@ -215,7 +219,7 @@ function GoalLayoutFrame({
   fontFamily,
   showPercent,
 }: {
-  layout: "compact" | "bold" | "glass" | "ring" | "segments";
+  layout: "compact" | "bold" | "glass" | "ring" | "segments" | "scoreboard" | "cinema";
   title: string;
   percent: number;
   current: number;
@@ -239,6 +243,22 @@ function GoalLayoutFrame({
       </span>
     </span>
   );
+  if (layout === "scoreboard") {
+    return <div data-goal-layout={layout} className="w-[460px] overflow-hidden rounded-2xl border border-white/15 bg-[#101012]" style={{ color: ink, fontFamily }}>
+      <div className="flex items-center justify-between border-b border-white/10 px-5 py-3"><span className="text-sm font-semibold" dir="auto">{title}</span>{showPercent ? <span className="rounded-full border border-white/10 px-2.5 py-1 text-xs tabular-nums" style={{ color: accent }}>{percent.toFixed(0)}%</span> : null}</div>
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-6 px-6 py-5 text-center" dir="ltr"><strong className="text-4xl tabular-nums">{current.toLocaleString("en-US", { maximumFractionDigits: 2 })}</strong><span className="text-2xl font-light opacity-20">/</span><strong className="text-4xl tabular-nums opacity-40">{target.toLocaleString("en-US", { maximumFractionDigits: 2 })}</strong></div>
+      {unit ? <p className="pb-3 text-center text-xs opacity-60" dir="auto">{unit}</p> : null}
+      <div className="h-1.5 bg-white/5"><div className="h-full" style={{ width: `${percent}%`, background: accent }} /></div>
+    </div>;
+  }
+  if (layout === "cinema") {
+    return <div data-goal-layout={layout} className="relative w-[520px] px-7 pb-5 pt-8" style={{ color: ink, fontFamily }}>
+      <div className="absolute inset-x-0 bottom-0 h-20 rounded-[50%]" style={{ background: `radial-gradient(ellipse at bottom, ${withAlpha(accent, 13)}, transparent 70%)` }} />
+      <div className="relative flex items-end justify-between gap-5"><div className="space-y-2"><p className="text-[11px] font-semibold tracking-[0.2em]" style={{ color: accent }} dir="auto">{title}</p><div className="text-3xl">{amount}</div></div>{showPercent ? <span className="pb-1 text-lg tabular-nums opacity-65">{percent.toFixed(0)}%</span> : null}</div>
+      <div className="relative mt-6 h-px bg-white/15"><div className="absolute inset-y-0 start-0" style={{ width: `${percent}%`, background: accent }} /><span className="absolute top-1/2 size-3 -translate-y-1/2 rotate-45 border-2 border-[#0a0a0a]" style={{ insetInlineStart: `calc(${percent}% - 6px)`, background: accent }} /></div>
+      <div className="mt-2 flex justify-between text-[9px] tabular-nums opacity-30" dir="ltr">{["0", "25", "50", "75", "100"].map(value => <span key={value}>{value}</span>)}</div>
+    </div>;
+  }
   if (layout === "ring") {
     return (
       <div data-goal-layout="ring" className="flex w-[420px] items-center gap-6 rounded-3xl border border-white/10 bg-zinc-950 p-6" style={{ color: ink, fontFamily }}>
@@ -1775,219 +1795,6 @@ export function EmoteRainView({
   );
 }
 
-/* ---------------------------- Chat spotlight ---------------------------- */
-
-/**
- * Featured chat message card. The pinned message lives on the widget row, so
- * an OBS browser-source refresh keeps rendering it until the creator clears
- * it (or the optional auto-hide timer elapses).
- */
-const SPOTLIGHT_FADE_MS = 500;
-
-function spotlightKey(message: SpotlightMessage | null) {
-  return message ? `${message.id}:${message.nonce}` : "";
-}
-
-export function ChatSpotlightView({
-  config,
-  spotlight,
-  chat = null,
-  demo = false,
-}: {
-  config: unknown;
-  spotlight: SpotlightMessage | null;
-  chat?: ChatSources | null;
-  demo?: boolean;
-}) {
-  // Native pins made straight in Kick/Twitch chat light up the overlay too.
-  const { pinnedLive } = useLiveChat(chat, 1);
-  const style = parseSpotlightConfig(config);
-  const skin = widgetThemeSkin(parseWidgetThemeId(config));
-  const accent = skin.accentColor ?? style.accentColor;
-  const [dismissedKey, setDismissedKey] = useState("");
-  const [display, setDisplay] = useState<SpotlightMessage | null>(null);
-  const [motion, setMotion] = useState<"shown" | "exit" | "enter">("enter");
-  const shownKeyRef = useRef("");
-
-  const livePin: SpotlightMessage | null = pinnedLive
-    ? {
-        id: pinnedLive.id,
-        platform: pinnedLive.platform,
-        author: pinnedLive.author,
-        color: pinnedLive.color ?? null,
-        text: pinnedLive.text,
-        badges: pinnedLive.badges,
-        badgeImages: (pinnedLive.badgeList ?? []).map((badge) => ({
-          label: badge.text || badge.type,
-          imageUrl: badge.imageUrl ?? null,
-        })),
-        pinnedAt: new Date(pinnedLive.at).toISOString(),
-        nonce: pinnedLive.at,
-        isReply: pinnedLive.isReply === true,
-        replyQuote: pinnedLive.replyQuote ?? null,
-        appearedAt: new Date(pinnedLive.at).toISOString(),
-      }
-    : null;
-
-  const incoming: SpotlightMessage | null =
-    (livePin && (!spotlight || Date.parse(spotlight.pinnedAt) < pinnedLive!.at)
-      ? livePin
-      : spotlight) ??
-    (demo
-      ? {
-          id: "demo",
-          platform: "TWITCH",
-          author: "CylixFan",
-          color: "#A78BFA",
-          text: "This message is featured on stream ✨",
-          badges: ["broadcaster", "subscriber"],
-          badgeImages: [],
-          pinnedAt: new Date().toISOString(),
-          nonce: 0,
-        }
-      : null);
-
-  const incomingKey = spotlightKey(incoming);
-  const pinned = incoming && incomingKey !== dismissedKey ? incoming : null;
-  const replyLife = useReplyAlertExpiry(pinned ? [pinned] : [], {
-    enabled: !demo,
-    getId: (message) => message.id,
-    isReply: (message) => message.isReply === true,
-    appearanceMs: (message) => {
-      const parsed = Date.parse(message.appearedAt ?? message.pinnedAt);
-      return Number.isFinite(parsed) ? parsed : null;
-    },
-  });
-  const visiblePin = replyLife.items[0] ?? null;
-  const pinKey = spotlightKey(visiblePin);
-  const replyFading = Boolean(visiblePin?.isReply && replyLife.fadingIds.has(visiblePin.id));
-
-  useEffect(() => {
-    if (pinKey === shownKeyRef.current) return;
-    const hadCard = Boolean(shownKeyRef.current);
-    if (hadCard) setMotion("exit");
-    const wait = window.setTimeout(
-      () => {
-        shownKeyRef.current = pinKey;
-        setDisplay(visiblePin);
-        if (!visiblePin) {
-          setMotion("exit");
-          return;
-        }
-        setMotion("enter");
-        window.requestAnimationFrame(() => {
-          window.requestAnimationFrame(() => setMotion("shown"));
-        });
-      },
-      hadCard ? SPOTLIGHT_FADE_MS : 16,
-    );
-    return () => window.clearTimeout(wait);
-  }, [pinKey, visiblePin]);
-
-  useEffect(() => {
-    if (!display || style.autoHideMs <= 0) return;
-    const fade = window.setTimeout(
-      () => setMotion("exit"),
-      Math.max(SPOTLIGHT_FADE_MS, style.autoHideMs - SPOTLIGHT_FADE_MS),
-    );
-    const hide = window.setTimeout(() => {
-      setDismissedKey(spotlightKey(display));
-      shownKeyRef.current = "";
-      setDisplay(null);
-    }, style.autoHideMs);
-    return () => {
-      window.clearTimeout(fade);
-      window.clearTimeout(hide);
-    };
-  }, [display, style.autoHideMs]);
-
-  if (!display) return <div className="h-0 w-0" aria-hidden />;
-
-  const roles = style.showBadges ? resolveBadgeRoles(display.badges, 6) : [];
-  const chrome = parseChromeLayout(config);
-
-  return (
-    <ReplyAlertFrame
-      active={display.isReply === true}
-      fading={replyFading || Boolean(display.isReply && visiblePin?.id !== display.id)}
-      quote={display.replyQuote}
-    >
-    <div
-      className={`overlay-spotlight-swap flex w-full min-w-[360px] ${chrome === "lower-third" ? "max-w-[900px] flex-row items-center gap-6 rounded-lg border-s-4 px-6 py-3" : chrome === "message" ? "max-w-[480px] flex-col gap-4 rounded-3xl rounded-es-sm px-7 py-6" : "max-w-[560px] flex-col gap-2 rounded-2xl px-6 py-5"} ${chromeLayoutClass(chrome)}`}
-      data-motion={motion}
-      style={{
-        boxSizing: "border-box",
-        background:
-          chrome === "glass"
-            ? withAlpha(style.backgroundColor, Math.max(style.backgroundOpacity, 70))
-            : "#09090b",
-        border: chrome === "bold" ? "2px solid rgba(255,255,255,0.28)" : `1px solid ${withAlpha(accent, 45)}`,
-        backdropFilter: chrome === "direct" ? "none" : "blur(20px)",
-        boxShadow: chrome === "direct" || chrome === "lower-third" ? "none" : "0 16px 40px rgba(0,0,0,0.3)",
-        fontFamily: skin.fontFamily ?? style.fontFamily,
-        color: style.textColor,
-        ...skin.surface,
-        ...skin.text,
-      }}
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        {chrome === "bold" ? <span aria-hidden style={{ color: accent }}>◆</span> : null}
-        {style.showPlatform ? <PlatformIcon platform={display.platform} size={18} /> : null}
-        {display.badgeImages.map((badge, index) =>
-          badge.imageUrl ? (
-            <BadgeImg
-              key={`${badge.label}-${index}`}
-              src={badge.imageUrl}
-              label={badge.label}
-              size={18}
-              pixelated
-            />
-          ) : null,
-        )}
-        {roles.map((role) => (
-          <RoleBadgeIcon key={role} role={role} platform={display.platform} size={18} />
-        ))}
-        <span
-          style={{
-            fontSize: `${Math.max(13, Math.round(style.fontSize * 0.72))}px`,
-            fontWeight: 800,
-            color: display.color ?? accent,
-          }}
-        >
-          <span dir="auto">{display.author}</span>
-        </span>
-        <span
-          className="ms-auto"
-          style={{
-            fontSize: `${Math.max(9, Math.round(style.fontSize * 0.38))}px`,
-            letterSpacing: "0.3em",
-            fontWeight: 700,
-            color: accent,
-          }}
-        >
-          SPOTLIGHT
-        </span>
-      </div>
-
-      <p
-        dir="auto"
-        style={{
-          fontSize: `${style.fontSize}px`,
-          fontWeight: 600,
-          lineHeight: 1.35,
-          wordBreak: "break-word",
-          overflowWrap: "anywhere",
-          margin: 0,
-        }}
-      >
-        {renderChatText(display.text)}
-      </p>
-    </div>
-    </ReplyAlertFrame>
-  );
-}
-
-
 /* --------------------------- TikTok top tappers -------------------------- */
 
 const TAPPERS_DEMO: TapperEntry[] = [
@@ -2644,57 +2451,7 @@ function ViewerCounterView({
         ? t("widget.viewer.followers")
         : t("widget.viewer.viewers");
   const digits = shown === null ? "—" : shown.toLocaleString("en-US");
-  if (layout === "live") {
-    return <div data-viewer-layout="live" className="flex items-center gap-4 rounded-xl border border-white/15 bg-zinc-950 px-5 py-3" style={{ color: style.textColor, fontFamily: style.fontFamily }}>
-      <span className="flex items-center gap-2 border-e border-white/15 pe-4 text-xs font-bold" style={{ color: style.accentColor }}><span className="size-2 rounded-full bg-current" />LIVE</span>
-      <div><strong className="block tabular-nums" style={{ fontSize: style.fontSize * 0.6 }} dir="ltr">{digits}</strong><span className="text-xs opacity-60">{label}</span></div>
-    </div>;
-  }
-  if (layout === "digital") {
-    return <div data-viewer-layout="digital" className="space-y-3 p-4 text-center" style={{ color: style.textColor, fontFamily: style.fontFamily }}>
-      <div className="flex justify-center gap-1.5" dir="ltr">{Array.from(digits).map((digit, index) => <span key={index} className="rounded-lg border-b-2 border-white/20 bg-zinc-900 px-3 py-2 font-mono font-bold tabular-nums" style={{ fontSize: style.fontSize * 0.7 }}>{digit}</span>)}</div>
-      <p className="text-xs uppercase tracking-widest" style={{ color: style.accentColor }}>{label}</p>
-    </div>;
-  }
-  if (layout === "digits") {
-    return (
-      <div className="bg-transparent text-center" style={{ color: style.textColor, fontFamily: style.fontFamily }}>
-        <span style={{ fontSize: style.fontSize, fontWeight: 700, fontVariantNumeric: "tabular-nums" }} dir="ltr">
-          {digits}
-        </span>
-      </div>
-    );
-  }
-  if (layout === "bar") {
-    const width = shown === null ? 8 : Math.min(100, 12 + Math.log10(shown + 1) * 28);
-    return (
-      <div
-        className="flex min-w-[280px] items-center gap-3 rounded-full border border-white/10 bg-zinc-950/80 px-4 py-3 transition-transform hover:scale-[1.02]"
-        style={{ color: style.textColor, fontFamily: style.fontFamily }}
-      >
-        <span className="min-w-0 flex-1">
-          <span className="block h-2 overflow-hidden rounded-full bg-white/10">
-            <span className="block h-full rounded-full" style={{ width: `${width}%`, background: style.accentColor }} />
-          </span>
-          <span className="mt-1 block text-[0.7rem] opacity-70">{label}</span>
-        </span>
-        <span style={{ fontSize: Math.max(22, style.fontSize * 0.45), fontWeight: 700 }} dir="ltr">
-          {digits}
-        </span>
-      </div>
-    );
-  }
-  return (
-    <div
-      className="flex min-w-[220px] flex-col items-center gap-1 rounded-full border border-white/15 bg-zinc-950/85 px-8 py-3 text-center shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
-      style={{ color: style.textColor, fontFamily: style.fontFamily }}
-    >
-      <span style={{ fontSize: style.fontSize * 0.72, fontWeight: 700, fontVariantNumeric: "tabular-nums" }} dir="ltr">
-        {digits}
-      </span>
-      <span style={{ fontSize: 11, letterSpacing: "0.16em", color: style.accentColor }}>{label}</span>
-    </div>
-  );
+  return <ViewerCountFace layout={layout} style={style} digits={digits} label={label} />;
 }
 
 const EMPTY_EVENT_SAMPLES: Partial<Record<EventLabelOption, string>> = {
@@ -2772,89 +2529,13 @@ function EventLabelsView({ config, events }: { config: unknown; events: OverlayE
     };
   }, [slot, lines.length, lineKey]);
 
-  const line = lines.length > 0 ? lines[slot % lines.length] : null;
   const layout = parseEventLabelLayout(config);
   const lineText = (entry: (typeof lines)[number]) =>
     "sample" in entry
       ? entry.sample
       : `${translate(EVENT_LABEL_I18N[entry.option], undefined, lang)}${entry.username ? ` · ${entry.username}` : ""}${entry.amount ? ` · ${entry.amount}` : ""}`;
-  if (layout === "floating" || layout === "timeline") {
-    return <div data-events-layout={layout} className={layout === "floating" ? "flex max-w-[800px] flex-wrap items-start gap-3 p-3" : "min-w-[300px] space-y-4 border-s-2 border-white/20 ps-5 py-3"} dir={lang === "ar" ? "rtl" : "ltr"} style={{ color: parsed.textColor, fontFamily: parsed.fontFamily }}>
-      {lines.map((entry, index) => <div key={entry.key} className={layout === "floating" ? "max-w-[240px] space-y-2 rounded-2xl border border-white/10 bg-zinc-950 p-4" : "relative space-y-1 py-1"}>
-        {layout === "timeline" ? <span className="absolute -start-[27px] top-3 size-3 rounded-full border-2 border-zinc-950" style={{ background: parsed.accentColor }} /> : null}
-        <p className="text-xs font-bold" style={{ color: parsed.accentColor }}>{parsed.title} · {index + 1}</p>
-        <p style={{ fontSize: parsed.fontSize * 0.5 }} dir="auto">{lineText(entry)}</p>
-      </div>)}
-    </div>;
-  }
-  if (layout === "cycle") {
-    return (
-      <div
-        className="min-w-[180px] bg-transparent px-2 py-2"
-        dir={lang === "ar" ? "rtl" : "ltr"}
-        style={{ color: parsed.textColor, fontFamily: parsed.fontFamily }}
-      >
-        {line ? (
-          <span className="event-line-swap" data-motion={motion} style={{ fontSize: parsed.fontSize * 0.6 }}>
-            {lineText(line)}
-          </span>
-        ) : null}
-      </div>
-    );
-  }
-  if (layout === "ticker" || layout === "stack") {
-    return (
-      <div
-        className={layout === "stack" ? "flex min-w-[240px] flex-col gap-2 px-2 py-2" : "max-w-[640px] overflow-hidden px-2 py-2"}
-        dir={lang === "ar" ? "rtl" : "ltr"}
-        style={{ color: parsed.textColor, fontFamily: parsed.fontFamily, background: "transparent" }}
-      >
-        <span style={{ letterSpacing: "0.18em", fontSize: 12, fontWeight: 700, color: parsed.accentColor }}>
-          {parsed.title}
-        </span>
-        {layout === "ticker" ? (
-          <div className="overflow-hidden">
-            <div className="event-ticker-track inline-block whitespace-nowrap" style={{ fontSize: parsed.fontSize * 0.55 }}>
-              {lines.map((entry) => lineText(entry)).join("    ·    ") || " "}
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-1" style={{ fontSize: parsed.fontSize * 0.5 }}>
-            {lines.map((entry) => (
-              <span key={entry.key}>{lineText(entry)}</span>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-  return (
-    <div
-      className="flex min-w-[220px] max-w-[28rem] flex-col gap-1 rounded-full border border-white/15 bg-zinc-950/85 px-6 py-3"
-      dir={lang === "ar" ? "rtl" : "ltr"}
-      style={{ color: parsed.textColor, fontFamily: parsed.fontFamily }}
-    >
-      <span style={{ letterSpacing: "0.18em", fontSize: 12, fontWeight: 700, color: parsed.accentColor }}>
-        {parsed.title}
-      </span>
-      {line ? (
-        <span className="event-line-swap" data-motion={motion} style={{ fontSize: parsed.fontSize * 0.55 }}>
-          {"sample" in line ? (
-            line.sample
-          ) : (
-            <>
-              {translate(EVENT_LABEL_I18N[line.option], undefined, lang)}
-              <span dir="ltr">
-                {" · "}
-                {line.username}
-                {line.amount ? ` · ${line.amount}` : ""}
-              </span>
-            </>
-          )}
-        </span>
-      ) : null}
-    </div>
-  );
+  return <EventLabelsFace layout={layout} title={parsed.title} lines={lines.map(entry => ({ key: entry.key, text: lineText(entry) }))}
+    active={slot} motion={motion} accent={parsed.accentColor} color={parsed.textColor} fontFamily={parsed.fontFamily} fontSize={parsed.fontSize} lang={lang} />;
 }
 
 /* ------------------------------- Renderer ------------------------------- */

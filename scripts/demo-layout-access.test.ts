@@ -8,7 +8,9 @@ import { DEMO_CHANGE_EVENT, readStoredOverlay } from "../src/demo/overlay.ts";
 import { demoUserHasActivePro } from "../src/demo/subscription.ts";
 import { DEMO_USER_ID } from "../src/lib/demoMode.ts";
 import { setDemoSubscriptionPlan } from "../src/lib/demoSubscription.ts";
+import { saveWidgetSettingsLocal } from "../src/lib/widgetSave.ts";
 import { assertDemoImportLayoutAccess } from "../src/lib/demoLayoutImport.ts";
+import { assertWidgetLayoutAccess, isProWidgetLayout } from "../src/lib/widgetLayoutAccess.ts";
 import {
   insertDemoWidget,
   loadDemoState,
@@ -31,6 +33,43 @@ beforeEach(() => {
   values.clear();
   delete (globalThis as { __demoClientDb?: DemoDb }).__demoClientDb;
   resetDemoState();
+});
+
+test("Giveaway keeps glass and direct Free while all six premium IDs require Pro", () => {
+  for (const layout of ["glass", "direct"]) {
+    assert.equal(isProWidgetLayout("GIVEAWAY", { layout }), false);
+    assert.doesNotThrow(() => assertWidgetLayoutAccess("GIVEAWAY", { layout }, false));
+  }
+  for (const layout of ["bold", "spotlight", "podium", "ticket", "split", "ribbon"]) {
+    const config = { layout };
+    assert.equal(isProWidgetLayout("GIVEAWAY", config), true);
+    assert.throws(() => assertWidgetLayoutAccess("GIVEAWAY", config, false), /requires Pro/i);
+    assert.doesNotThrow(() => assertWidgetLayoutAccess("GIVEAWAY", config, true));
+    assert.equal(config.layout, layout);
+  }
+});
+
+test("exact eight-layout catalogs enforce their two Free IDs", () => {
+  const catalogs = [
+    { type: "POLL", free: ["default", "compact"], pro: ["cards", "columns", "ballot", "leaderboard", "donut", "split"] },
+    { type: "PREDICTION", free: ["classic", "compact"], pro: ["split", "particle-clash", "scoreboard", "duel", "ribbon", "odds"] },
+    { type: "STREAM_EVENTS_SCHEDULE", free: ["direct", "agenda"], pro: ["glass", "bold", "timeline", "calendar", "roadmap", "spotlight"] },
+    { type: "SUBATHON_TIMER", free: ["raw_digits", "island"], pro: ["cute_heart", "broadcast", "split_clock", "circular_pomodoro", "multi_ring_countdown", "tower"] },
+    { type: "CHAT_SPOTLIGHT", free: ["glass", "direct"], pro: ["bold", "lower-third", "message", "pill", "split", "featured"] },
+  ];
+  for (const { type, free, pro } of catalogs) {
+    for (const layout of free) {
+      assert.equal(isProWidgetLayout(type, { layout }), false);
+      assert.doesNotThrow(() => assertWidgetLayoutAccess(type, { layout }, false));
+    }
+    for (const layout of pro) {
+      const config = { layout };
+      assert.equal(isProWidgetLayout(type, config), true);
+      assert.throws(() => assertWidgetLayoutAccess(type, config, false), /requires Pro/i);
+      assert.doesNotThrow(() => assertWidgetLayoutAccess(type, config, true));
+      assert.equal(config.layout, layout);
+    }
+  }
 });
 
 function importedWidget(id = crypto.randomUUID(), layout = "digital") {
@@ -109,6 +148,9 @@ test("legacy Demo store preserves saved layouts but rejects new saves and JSON i
   assert.equal(before.widgets.find((widget) => widget.id === created.id)?.config["layout"], "message");
   await assert.rejects(saveDemoWidget({
     widgetId: created.id, name: "Blocked", config: { layout: "message" },
+  }), /requires Pro/i);
+  await assert.rejects(saveWidgetSettingsLocal({
+    data: { widgetId: created.id, config: { layout: "message" } },
   }), /requires Pro/i);
   await assert.rejects(insertDemoWidget({
     userId: DEMO_USER_ID, type: "CHAT_SPOTLIGHT", name: "Blocked",

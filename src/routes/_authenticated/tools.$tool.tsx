@@ -15,6 +15,7 @@ import { useLanguage } from "@/lib/i18n";
 import { SIGNED_OUT_ERROR } from "@/lib/supabase/sessionError";
 import { standaloneToolBySlug } from "@/lib/standaloneTools";
 import { isTestMode } from "@/lib/testMode";
+import { isDemoBuild } from "@/lib/demoMode";
 
 export const Route = createFileRoute("/_authenticated/tools/$tool")({
   head: () => ({
@@ -29,6 +30,7 @@ function ToolOpenPage() {
   const spec = standaloneToolBySlug(slug);
   const subscription = useSubscription(user?.id ?? "");
   const locked =
+    !isDemoBuild() &&
     Boolean(spec) &&
     subscription.isSuccess &&
     !subscription.data.isActive &&

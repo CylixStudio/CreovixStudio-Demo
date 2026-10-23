@@ -24,10 +24,18 @@ export const Route = createFileRoute("/api/public/giveaway/$token/live")({
           .order("created_at", { ascending: false })
           .limit(400);
 
+        const { readGiveawayDraw } = await import("@/lib/giveaway.server");
+        const draw = readGiveawayDraw(settings.draw_state);
         return Response.json(
           {
             keyword: settings.keyword ?? "+1",
-            draw: settings.draw_state ?? null,
+            draw: {
+              phase: draw.phase,
+              winner: draw.winner,
+              claimState: draw.claimState,
+              claimUntil: draw.claimUntil,
+              overlayLayout: draw.overlayLayout,
+            },
             lastWinner: settings.last_winner ?? null,
             participants: participants ?? [],
           },

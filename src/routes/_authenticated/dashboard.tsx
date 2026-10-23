@@ -638,6 +638,7 @@ function HomePage() {
               return (
                 <ToolCard
                   key={tool.id}
+                  variant={["poll", "prediction", "giveaway"].includes(tool.id) ? "interactive" : "standard"}
                   className={goalRank === 0 ? "widget-hub-goal-lead" : undefined}
                   name={t(tool.nameKey)}
                   description={t(tool.descriptionKey)}

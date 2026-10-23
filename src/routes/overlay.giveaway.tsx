@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { GiveawayDisplay, type ClaimState, type DrawPhase } from "@/components/widgets/GiveawayDisplay";
+import {
+  GiveawayDisplay,
+  type ClaimState,
+  type DrawPhase,
+} from "@/components/widgets/GiveawayDisplay";
+import { normalizeGiveawayLayout, type GiveawayLayout } from "@/lib/giveawayLayouts";
 
 type Payload = {
   keyword: string;
@@ -10,10 +15,15 @@ type Payload = {
     winner: { username: string; platform: string; avatarUrl?: string | null } | null;
     claimState: ClaimState;
     claimUntil: string | null;
-    overlayLayout?: "glass" | "direct" | "bold";
+    overlayLayout?: GiveawayLayout;
   } | null;
   lastWinner: { username: string; platform: string } | null;
-  participants: Array<{ id: string; platform: string; username: string; avatarUrl?: string | null }>;
+  participants: Array<{
+    id: string;
+    platform: string;
+    username: string;
+    avatarUrl?: string | null;
+  }>;
 };
 
 export const Route = createFileRoute("/overlay/giveaway")({
@@ -23,7 +33,10 @@ export const Route = createFileRoute("/overlay/giveaway")({
   head: () => ({
     meta: [
       { title: "CylixStudio — Giveaway (OBS)" },
-      { name: "description", content: "Transparent giveaway name cloud and winner reveal for OBS." },
+      {
+        name: "description",
+        content: "Transparent giveaway name cloud and winner reveal for OBS.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -45,10 +58,16 @@ function GiveawayOverlay() {
     if (!token) return;
     let stopped = false;
     const load = async () => {
-      const response = await fetch(`/api/public/giveaway/${encodeURIComponent(token)}/live`, {
-        cache: "no-store",
-      });
-      if (!stopped && response.ok) setData(await response.json());
+      try {
+        const response = await fetch(`/api/public/giveaway/${encodeURIComponent(token)}/live`, {
+          cache: "no-store",
+        });
+        if (stopped) return;
+        if (response.ok) setData(await response.json());
+        else if (response.status === 404 || response.status === 403) setData(null);
+      } catch {
+        // Keep the last real draw during a temporary network interruption.
+      }
     };
     void load();
     const poll = setInterval(() => void load(), 2000);
@@ -85,7 +104,7 @@ function GiveawayOverlay() {
         lastWinner={data?.lastWinner ?? null}
         expanded
         transparent
-        layout={data?.draw?.overlayLayout === "direct" || data?.draw?.overlayLayout === "bold" ? data.draw.overlayLayout : "glass"}
+        layout={normalizeGiveawayLayout(data?.draw?.overlayLayout)}
       />
     </main>
   );

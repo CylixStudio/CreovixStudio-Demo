@@ -48,7 +48,7 @@ import { isDemoBuild } from "@/lib/demoMode";
 import { deleteDemoWidget, loadDemoState, saveDemoWidget, setDemoGoalCurrent, setDemoWidgetState } from "@/lib/demoStore";
 import { SIGNED_OUT_ERROR, isMissingViewerSession } from "@/lib/supabase/sessionError";
 import { isTestMode } from "@/lib/testMode";
-import { parseChromeLayout, CHROME_LAYOUTS } from "@/lib/widgetLayouts";
+import { parseChromeLayout, CHROME_LAYOUTS, POLL_LAYOUTS, PREDICTION_LAYOUTS, SCHEDULE_LAYOUTS, widgetLayoutLabel } from "@/lib/widgetLayouts";
 import { SessionAwareError } from "@/components/widgets/SessionAwareError";
 import { widgetOverlayUrl } from "@/lib/widgetOverlayUrl";
 import { DarkSelect } from "@/components/ui/dark-select";
@@ -1039,7 +1039,7 @@ function WidgetBuilder() {
                   <BuilderCard>
                     <LayoutCards
                       ariaLabel={t("builder.layoutPicker")}
-                      options={CHROME_LAYOUTS.map((id) => ({ value: id, label: t(`layout.chrome.${id}`) }))}
+                      options={CHROME_LAYOUTS.map((id) => ({ value: id, label: widgetLayoutLabel("chrome", id, lang) }))}
                       value={parseChromeLayout(config)}
                       onSelect={(next) => set("layout", next)}
                       renderPreview={(next) => miniPreview({ layout: next })}
@@ -1093,12 +1093,7 @@ function WidgetBuilder() {
                   <BuilderCard>
                     <LayoutCards
                       ariaLabel={t("builder.layoutPicker")}
-                      options={[
-                        ...(["glass", "direct", "bold"] as const).map(id => ({ value: id, label: t(`layout.chrome.${id}`) })),
-                        { value: "agenda", label: lang === "ar" ? "أجندة مختصرة" : "Minimal agenda" },
-                        { value: "timeline", label: lang === "ar" ? "خط زمني أفقي" : "Horizontal timeline" },
-                        { value: "calendar", label: lang === "ar" ? "بطاقات التقويم" : "Calendar cards" },
-                      ]}
+                      options={SCHEDULE_LAYOUTS.map(id => ({ value: id, label: widgetLayoutLabel("schedule", id, lang) }))}
                       value={typeof config["layout"] === "string" ? config["layout"] : "glass"}
                       onSelect={(next) => set("layout", next)}
                       renderPreview={(next) => miniPreview({ layout: next })}
@@ -1140,12 +1135,7 @@ function WidgetBuilder() {
                 />
                 {pollPane === "layout" ? (
                   <BuilderCard><LayoutCards ariaLabel={t("builder.layoutPicker")}
-                    options={[
-                      { value: "default", label: lang === "ar" ? "الاستطلاع الكلاسيكي" : "Classic poll" },
-                      { value: "compact", label: lang === "ar" ? "قائمة مختصرة" : "Compact list" },
-                      { value: "cards", label: lang === "ar" ? "بطاقات النتائج" : "Result cards" },
-                      { value: "columns", label: lang === "ar" ? "أعمدة التصويت" : "Voting columns" },
-                    ]}
+                    options={POLL_LAYOUTS.map(id => ({ value: id, label: widgetLayoutLabel("poll", id, lang) }))}
                     value={typeof config["layout"] === "string" ? config["layout"] : "default"}
                     onSelect={next => set("layout", next)} renderPreview={next => miniPreview({ layout: next })} /></BuilderCard>
                 ) : pollPane === "extra" ? (
@@ -1184,13 +1174,8 @@ function WidgetBuilder() {
                   <BuilderCard>
                     <LayoutCards
                       ariaLabel={t("builder.layoutPicker")}
-                      options={[
-                        { value: "classic", label: lang === "ar" ? "التصميم الأصلي" : "Classic" },
-                        { value: "compact", label: lang === "ar" ? "توقع مختصر" : "Compact prediction" },
-                        { value: "split", label: lang === "ar" ? "مواجهة ثنائية" : "Split matchup" },
-                        { value: "particle-clash", label: lang === "ar" ? "صراع الدوائر" : "Particle Clash",
-                          hint: lang === "ar" ? "معاينة اختبار عند غياب التوقع" : "Test preview when no prediction is available" },
-                      ]}
+                      options={PREDICTION_LAYOUTS.map(id => ({ value: id, label: widgetLayoutLabel("prediction", id, lang),
+                        ...(id === "particle-clash" ? { hint: lang === "ar" ? "معاينة اختبار عند غياب التوقع" : "Test preview when no prediction is available" } : {}) }))}
                       value={parsePredictionConfig(config).layout}
                       onSelect={next => set("layout", next)}
                       renderPreview={next => miniPreview({ layout: next })}

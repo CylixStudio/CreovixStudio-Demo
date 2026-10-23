@@ -553,7 +553,7 @@ class Query implements PromiseLike<DbResult> {
         }
       }
       for (const step of plan) {
-        if (step.configWrite) this.db.assertWidgetLayoutWrite(table, step.row);
+        if (step.configWrite || table === "giveaway_settings") this.db.assertWidgetLayoutWrite(table, step.row, step.previous);
         const denied = this.db.writeGuard?.({ table, mode: "upsert", before: step.previous ?? null, after: step.row });
         if (denied) return fail(denied, "42501");
       }
@@ -571,8 +571,8 @@ class Query implements PromiseLike<DbResult> {
         plan.push({ row, next });
       }
       for (const step of plan) {
-        if ("config" in this.patch || step.next["type"] !== step.row["type"] || step.next["user_id"] !== step.row["user_id"]) {
-          this.db.assertWidgetLayoutWrite(table, step.next);
+        if ("config" in this.patch || table === "giveaway_settings" || step.next["type"] !== step.row["type"] || step.next["user_id"] !== step.row["user_id"]) {
+          this.db.assertWidgetLayoutWrite(table, step.next, step.row);
         }
         const denied = this.db.writeGuard?.({ table, mode: "update", before: step.row, after: step.next });
         if (denied) return fail(denied, "42501");
@@ -642,7 +642,20 @@ export class DemoDb {
     return [...(this.tables.get(table)?.values() ?? [])];
   }
 
-  assertWidgetLayoutWrite(table: string, row: Row): void {
+  assertWidgetLayoutWrite(table: string, row: Row, previous?: Row): void {
+    if (table === "giveaway_settings") {
+      const draw = row["draw_state"] as Row | null | undefined;
+      const oldDraw = previous?.["draw_state"] as Row | null | undefined;
+      const layout = draw?.["overlayLayout"] ?? "glass";
+      if (previous && layout === (oldDraw?.["overlayLayout"] ?? "glass") &&
+        previous["user_id"] === row["user_id"]) return;
+      assertWidgetLayoutAccess(
+        "GIVEAWAY",
+        { layout },
+        demoUserHasActivePro(this, String(row["user_id"] ?? "")),
+      );
+      return;
+    }
     if (table !== "widgets") return;
     assertWidgetLayoutAccess(
       String(row["type"] ?? ""),
@@ -654,9 +667,9 @@ export class DemoDb {
   put(table: string, row: Row, previous?: Row): void {
     const map = this.tables.get(table) ?? new Map<string, Row>();
     const existing = previous ?? map.get(rowKey(table, row));
-    if (!existing || existing["type"] !== row["type"] || existing["user_id"] !== row["user_id"] ||
+    if (table === "giveaway_settings" || !existing || existing["type"] !== row["type"] || existing["user_id"] !== row["user_id"] ||
       JSON.stringify(existing["config"]) !== JSON.stringify(row["config"])) {
-      this.assertWidgetLayoutWrite(table, row);
+      this.assertWidgetLayoutWrite(table, row, existing);
     }
     if (previous) map.delete(rowKey(table, previous));
     map.set(rowKey(table, row), row);

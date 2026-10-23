@@ -4,6 +4,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/lib/supabase/auth-middleware";
 import { assertActivePro, userHasActivePro } from "@/lib/subscription.server";
 import type { GiveawayPlatform } from "@/lib/giveaway.server";
+import { normalizeGiveawayLayout } from "@/lib/giveawayLayouts";
+import { assertWidgetLayoutAccess } from "@/lib/widgetLayoutAccess";
 
 export type GiveawaySettings = {
   keyword: string;
@@ -54,7 +56,9 @@ export const getGiveawayState = createServerFn({ method: "GET" })
     const [{ data: settings }, { data: participants }] = await Promise.all([
       supabase
         .from("giveaway_settings")
-        .select("keyword, sub_multiplier, subs_only, spin_duration, claim_seconds, is_open, last_winner, draw_state")
+        .select(
+          "keyword, sub_multiplier, subs_only, spin_duration, claim_seconds, is_open, last_winner, draw_state",
+        )
         .eq("user_id", userId)
         .maybeSingle(),
       supabase
@@ -80,9 +84,11 @@ export const getGiveawayState = createServerFn({ method: "GET" })
           }
         : DEFAULT_GIVEAWAY,
       overlayLayout: draw.overlayLayout,
-      lastWinner: (settings?.last_winner ?? null) as
-        | { username: string; platform: string; at: string }
-        | null,
+      lastWinner: (settings?.last_winner ?? null) as {
+        username: string;
+        platform: string;
+        at: string;
+      } | null,
       pendingWinner: draw.pending_winner,
       confirmedAt: draw.confirmed_at,
       claimUntil: draw.claimUntil,
@@ -125,10 +131,14 @@ export const saveGiveawaySettings = createServerFn({ method: "POST" })
 export const saveGiveawayLayout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { layout?: string }) => ({
-    layout: input?.layout === "direct" || input?.layout === "bold" ? input.layout : "glass",
+    layout: normalizeGiveawayLayout(input?.layout),
   }))
   .handler(async ({ data, context }) => {
-    await assertActivePro(context.supabase, context.userId);
+    assertWidgetLayoutAccess(
+      "GIVEAWAY",
+      { layout: data.layout },
+      await userHasActivePro(context.supabase, context.userId),
+    );
     const { readGiveawayDraw } = await import("@/lib/giveaway.server");
     const { data: row } = await context.supabase
       .from("giveaway_settings")
@@ -257,8 +267,12 @@ export const pickGiveawayWinner = createServerFn({ method: "POST" })
 export const joinGiveaway = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { platform: GiveawayPlatform; username: string; text: string; isSubscriber: boolean }) =>
-      input,
+    (input: {
+      platform: GiveawayPlatform;
+      username: string;
+      text: string;
+      isSubscriber: boolean;
+    }) => input,
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/lib/supabase/client.server");
@@ -269,9 +283,7 @@ export const joinGiveaway = createServerFn({ method: "POST" })
 /** Confirms a pending winner when their chat message equals the keyword. */
 export const confirmGiveawayFromChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (input: { username: string; text: string; isTest?: boolean }) => input,
-  )
+  .inputValidator((input: { username: string; text: string; isTest?: boolean }) => input)
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/lib/supabase/client.server");
     const { confirmGiveawayPresence } = await import("@/lib/giveaway.server");

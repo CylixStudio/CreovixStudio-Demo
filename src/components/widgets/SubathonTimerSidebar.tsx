@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Check, Copy, FlaskConical, ListChecks, Link2, Sparkles, Timer } from "lucide-react";
 
 import { DarkSelect } from "@/components/ui/dark-select";
@@ -28,6 +28,7 @@ import {
 import type { TimerFrame } from "@/lib/timer";
 import { cn } from "@/lib/utils";
 import { LayoutCards } from "@/components/widgets/builderUi";
+import { LayoutThumbnail } from "@/components/widgets/LayoutThumbnail";
 
 type TabId = "layout" | "display" | "extra";
 type ExtraSectionId = "motion" | "timer" | "rules" | "test" | "obs";
@@ -43,9 +44,16 @@ export const LAYOUT_KEY: Record<OverlayLayout, { name: TranslationKey; hint: Tra
   broadcast: { name: "sub.layout.broadcast", hint: "sub.layout.broadcast.hint" },
   island: { name: "sub.layout.island", hint: "sub.layout.island.hint" },
   cute_heart: { name: "sub.layout.cute_heart", hint: "sub.layout.cute_heart.hint" },
-  circular_pomodoro: { name: "sub.layout.circular_pomodoro", hint: "sub.layout.circular_pomodoro.hint" },
-  multi_ring_countdown: { name: "sub.layout.multi_ring_countdown", hint: "sub.layout.multi_ring_countdown.hint" },
+  circular_pomodoro: {
+    name: "sub.layout.circular_pomodoro",
+    hint: "sub.layout.circular_pomodoro.hint",
+  },
+  multi_ring_countdown: {
+    name: "sub.layout.multi_ring_countdown",
+    hint: "sub.layout.multi_ring_countdown.hint",
+  },
   raw_digits: { name: "sub.layout.raw_digits", hint: "sub.layout.raw_digits.hint" },
+  tower: { name: "sub.layout.tower", hint: "sub.layout.tower.hint" },
 };
 
 const TIME_FORMAT_KEY: Record<OverlayTheme["timeFormat"], TranslationKey> = {
@@ -75,9 +83,6 @@ function useOverlayFonts() {
 
 /** Renders the real overlay renderer at thumbnail size so the card matches what OBS draws. */
 export function LayoutMini({ theme, layout }: { theme: OverlayTheme; layout: OverlayLayout }) {
-  const frameRef = useRef<HTMLDivElement>(null);
-  const bodyRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.3);
   const mini: OverlayTheme = {
     ...theme,
     layout,
@@ -86,37 +91,14 @@ export function LayoutMini({ theme, layout }: { theme: OverlayTheme; layout: Ove
     showAddedPopups: false,
   };
 
-  useLayoutEffect(() => {
-    const frame = frameRef.current;
-    const body = bodyRef.current;
-    if (!frame || !body) return;
-    const fit = () => {
-      const w = body.offsetWidth;
-      const h = body.offsetHeight;
-      if (!w || !h) return;
-      setScale(Math.min(0.5, ((frame.clientWidth - 16) / w), ((frame.clientHeight - 12) / h)));
-    };
-    fit();
-    const observer = new ResizeObserver(fit);
-    observer.observe(frame);
-    observer.observe(body);
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <div
-      ref={frameRef}
-      className="pointer-events-none relative h-[92px] overflow-hidden bg-[repeating-conic-gradient(#1c1d24_0%_25%,#121318_0%_50%)] bg-[length:12px_12px]"
+      className="bg-[repeating-conic-gradient(#1c1d24_0%_25%,#121318_0%_50%)] bg-[length:12px_12px]"
       aria-hidden
     >
-      <div
-        ref={bodyRef}
-        className="absolute left-1/2 top-1/2 w-max"
-        dir="ltr"
-        style={{ transform: `translate(-50%, -50%) scale(${scale})` }}
-      >
+      <LayoutThumbnail>
         <OverlayView theme={mini} remaining={PREVIEW_SECONDS} frame={null} />
-      </div>
+      </LayoutThumbnail>
     </div>
   );
 }
@@ -132,7 +114,9 @@ function ColorField({
 }) {
   return (
     <label className="block min-w-0">
-      <span className="text-[0.6rem] font-semibold uppercase tracking-[0.15em] text-muted-foreground">{label}</span>
+      <span className="text-[0.6rem] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+        {label}
+      </span>
       <input
         type="color"
         className="mt-2 h-9 w-full cursor-pointer rounded-lg border border-border bg-background"
@@ -269,7 +253,9 @@ export function SubathonTimerSidebar({
             onClick={() => setTab(entry.id)}
             className={cn(
               "flex-1 rounded-lg px-2 py-1.5 text-[0.72rem] font-semibold",
-              tab === entry.id ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground",
+              tab === entry.id
+                ? "bg-primary/15 text-primary"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {t(entry.labelKey)}
@@ -280,10 +266,18 @@ export function SubathonTimerSidebar({
       {tab === "layout" ? (
         <div className="space-y-4" role="tabpanel">
           <SettingsWell title={t("sub.layout.title")} hint={t("sub.layout.subtitle")}>
-            <LayoutCards widgetType="SUBATHON_TIMER" mini ariaLabel={t("layout.picker")}
-              value={theme.layout} onSelect={next => onConfigChange("layout", next)}
-              options={OVERLAY_LAYOUTS.map(entry => ({ value: entry.value, label: t(LAYOUT_KEY[entry.value].name) }))}
-              renderPreview={next => <LayoutMini theme={theme} layout={next as OverlayLayout} />} />
+            <LayoutCards
+              widgetType="SUBATHON_TIMER"
+              mini
+              ariaLabel={t("layout.picker")}
+              value={theme.layout}
+              onSelect={(next) => onConfigChange("layout", next)}
+              options={OVERLAY_LAYOUTS.map((entry) => ({
+                value: entry.value,
+                label: t(LAYOUT_KEY[entry.value].name),
+              }))}
+              renderPreview={(next) => <LayoutMini theme={theme} layout={next as OverlayLayout} />}
+            />
             <p className="text-[10px] text-muted-foreground">{t(LAYOUT_KEY[theme.layout].hint)}</p>
           </SettingsWell>
 
@@ -474,7 +468,11 @@ export function SubathonTimerSidebar({
                 onClick={onCopyUrl}
                 className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm hover:border-primary hover:text-primary"
               >
-                {copied ? <Check className="size-4" aria-hidden /> : <Copy className="size-4" aria-hidden />}
+                {copied ? (
+                  <Check className="size-4" aria-hidden />
+                ) : (
+                  <Copy className="size-4" aria-hidden />
+                )}
                 {t("sub.obs.copy")}
               </button>
               <code className="mt-3 block break-all text-xs text-muted-foreground" dir="ltr">

@@ -30,6 +30,7 @@ import { notePlanError, requestUpgrade } from "@/components/subscription/upgrade
 import { useSubscription } from "@/hooks/useSubscription";
 import { PRO_ONLY_HUB_TOOL_IDS } from "@/lib/plans";
 import { widgetOverlayUrl } from "@/lib/widgetOverlayUrl";
+import { isDemoBuild } from "@/lib/demoMode";
 import { STANDALONE_TOOLS } from "@/lib/standaloneTools";
 import { WIDGET_LABEL } from "@/lib/widgets";
 
@@ -79,7 +80,7 @@ function WidgetHub() {
   const { data: workspace } = useWorkspace(user.id);
   const { data, isLoading } = useWidgets();
   const subscription = useSubscription(user.id);
-  const needsPro = subscription.isSuccess && !subscription.data.isActive;
+  const needsPro = !isDemoBuild() && subscription.isSuccess && !subscription.data.isActive;
   const [copied, setCopied] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
@@ -182,6 +183,7 @@ function WidgetHub() {
           const Preview = visual.preview;
           return (
             <ToolCard
+              variant={["POLL", "PREDICTION", "GIVEAWAY"].includes(tool.type) ? "interactive" : "standard"}
               key={tool.slug}
               className={goalRank === 0 ? "widget-hub-goal-lead" : undefined}
               name={t(tool.nameKey)}

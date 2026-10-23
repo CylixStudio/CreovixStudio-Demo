@@ -1425,6 +1425,8 @@ const DICT = {
   "sub.layout.split_clock.hint": "كتل مستقلة للوقت مع شريط حالة مختصر",
   "sub.layout.broadcast": "لوحة البث",
   "sub.layout.broadcast.hint": "مؤقت كبير مع عمود مستقل لهوية البث",
+  "sub.layout.tower": "برج المؤقت",
+  "sub.layout.tower.hint": "عد تنازلي عمودي بوحدات وقت متراصة",
   "layout.wheel.classic": "عجلة دائرية",
   "layout.wheel.glow": "عجلة متوهجة",
   "layout.wheel.compact": "عجلة صغيرة",

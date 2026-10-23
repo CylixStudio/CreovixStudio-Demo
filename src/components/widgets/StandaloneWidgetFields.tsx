@@ -44,6 +44,7 @@ import {
   parseEventLabelLayout,
   parseViewerLayout,
   parseWheelLayout,
+  widgetLayoutLabel,
 } from "@/lib/widgetLayouts";
 
 const VIEWER_CHOICES: ViewerPlatform[] = ["KICK", "TWITCH", "YOUTUBE", "X"];
@@ -76,7 +77,7 @@ export function StandaloneWidgetFields({
   progressExtra?: ReactNode;
   testPanel?: ReactNode;
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [pane, setPane] = useState<Pane>("layout");
   const sessionUser = useQuery({
     queryKey: ["auth-user-id"],
@@ -155,7 +156,7 @@ export function StandaloneWidgetFields({
                 onChange={(id) => set("layout", id)}
                 options={WHEEL_LAYOUTS.map((id) => ({
                   id,
-                  label: t(`layout.wheel.${id}`),
+                  label: widgetLayoutLabel("wheel", id, lang),
                   mini: <WheelMini layout={id} />,
                 }))}
               />
@@ -285,7 +286,7 @@ export function StandaloneWidgetFields({
                 onChange={(id) => set("layout", id)}
                 options={VIEWER_LAYOUTS.map((id) => ({
                   id,
-                  label: t(`layout.viewer.${id}`),
+                  label: widgetLayoutLabel("viewer", id, lang),
                   mini: <ViewerMini layout={id} config={config} />,
                 }))}
               />
@@ -391,7 +392,7 @@ export function StandaloneWidgetFields({
                 onChange={(id) => set("layout", id)}
                 options={EVENT_LABEL_LAYOUTS.map((id) => ({
                   id,
-                  label: t(`layout.events.${id}`),
+                  label: widgetLayoutLabel("events", id, lang),
                   mini: <EventsMini layout={id} config={config} />,
                 }))}
               />

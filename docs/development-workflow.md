@@ -26,11 +26,33 @@ Whole-Demo JSON imports are checked before replacing any localStorage entries.
 Access is evaluated against the current local subscription, not a Pro row
 contained in the imported file.
 
+The four goals, viewer counter, wheel, latest events, Poll, Prediction, Giveaway,
+Subathon timer, pinned message and stream schedule each expose exactly eight
+layouts: two Free and six Pro. Shared IDs and bilingual labels live in
+`widgetLayouts.ts`; Giveaway keeps its corresponding catalog in
+`giveawayLayouts.ts`. Preserve persisted IDs when changing a design.
+The Demo hub and tool routes remain accessible on Free so the two Free designs
+can be used; premium layout selection and saves are still checked independently.
+An unchanged, previously saved Pro design may render after downgrade, but an
+explicit settings save still requires Pro. The standalone goal form uses the
+same checked `saveDemoWidget` boundary as the main widget builder.
+
+`LayoutThumbnail` fits actual renderer content into each layout card. Mark a
+visible composition with `data-layout-content` when it sits inside an OBS stage;
+do not mark the whole 1920x1080 stage as the composition. Thumbnail sample data
+belongs only in explicit previews, never in an idle live source. Wheel previews
+use an explicit wheel width rather than a percentage of an intrinsic-width parent.
+Wheel layout changes do not alter weights, selected prizes or rotation landing.
+Giveaway uses the existing selected winner and claim state, with a calm reveal
+and reduced-motion support instead of a second random selection in the display.
+Particle Clash physics and lifecycle remain unchanged.
+
 Run the fixture regression tests from the Demo directory on Node 24:
 
 ```powershell
 $hook = ([uri](Resolve-Path scripts\register-alias.mjs).Path).AbsoluteUri
 node --experimental-transform-types --import $hook --test scripts\demo-layout-access.test.ts
+node --experimental-transform-types --import $hook --test scripts\widget-layouts.test.ts scripts\giveaway-layouts.test.ts scripts\interactive-layout-design.test.mjs scripts\timer-pinned-designs.test.mjs
 ```
 
 ## Prediction: Particle Clash

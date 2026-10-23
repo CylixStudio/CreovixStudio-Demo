@@ -169,6 +169,255 @@ export function PredictionOverlay({
     backdropFilter: "blur(22px)",
   };
 
+  if (["scoreboard", "duel", "ribbon", "odds"].includes(parsed.layout)) {
+    const ribbon = parsed.layout === "ribbon";
+    const duel = parsed.layout === "duel";
+    const odds = parsed.layout === "odds";
+    return (
+      <OverlayStage {...stageProps}>
+        <OverlayMotionStyles />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "grid",
+            placeItems: ribbon ? "end center" : "center",
+            padding: 48,
+          }}
+        >
+          <section
+            data-layout-content
+            className={leaving ? "cxo-out" : "cxo-in"}
+            style={{
+              ...card,
+              width: ribbon ? 1600 : odds ? 1000 : 1240,
+              padding: ribbon ? 26 : 36,
+              borderRadius: ribbon ? 8 : duel ? 0 : 28,
+              borderTop: duel ? `3px solid ${accent}` : card.border,
+              background: hexToRgba(
+                parsed.backgroundColor === "#1A1B23" ? "#0a0a0a" : parsed.backgroundColor,
+                Math.max(parsed.backgroundOpacity, 72) / 100,
+              ),
+            }}
+          >
+            <header
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 24,
+                paddingBottom: 22,
+                borderBottom: "1px solid rgba(255,255,255,.12)",
+              }}
+            >
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <p
+                  style={{
+                    fontSize: px(16),
+                    color: accent,
+                    letterSpacing: ".16em",
+                    fontWeight: 800,
+                  }}
+                >
+                  {t("overlay.prediction.badge")}
+                </p>
+                <h2
+                  style={{
+                    fontSize: px(ribbon ? 28 : 38),
+                    fontWeight: 800,
+                    overflowWrap: "anywhere",
+                  }}
+                >
+                  <bdi>{shown.title || t("widget.prediction.heading")}</bdi>
+                </h2>
+              </div>
+              <div
+                style={{ color: statusColor, fontSize: px(20), fontWeight: 700, textAlign: "end" }}
+              >
+                <span>{statusLabel}</span>
+                {open && shown.endsAt ? (
+                  <p dir="ltr" style={{ color: text, fontVariantNumeric: "tabular-nums" }}>
+                    {formatClock(remaining)}
+                  </p>
+                ) : null}
+              </div>
+            </header>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: ribbon
+                  ? "1fr"
+                  : duel
+                    ? "1fr 80px 1fr"
+                    : "repeat(2, minmax(0, 1fr))",
+                gap: ribbon ? 10 : 24,
+                marginTop: 24,
+                alignItems: "stretch",
+              }}
+            >
+              {sides.map(({ outcome, color }, index) => {
+                const won = winnerIndex === index;
+                const lost = winnerIndex >= 0 && !won;
+                const share = strength[index] ?? 0;
+                return (
+                  <div
+                    key={outcome?.id ?? index}
+                    style={{
+                      gridColumn: duel ? (index === 0 ? "1" : "3") : undefined,
+                      gridRow: duel ? 1 : undefined,
+                      position: "relative",
+                      minWidth: 0,
+                      overflow: "hidden",
+                      display: ribbon ? "grid" : "flex",
+                      gridTemplateColumns: ribbon ? "minmax(0, 1fr) 100px 300px" : undefined,
+                      flexDirection: "column",
+                      alignItems: ribbon ? "center" : "stretch",
+                      padding: ribbon ? "14px 20px" : duel ? "32px 24px" : 24,
+                      borderRadius: odds ? 24 : ribbon ? 4 : 0,
+                      border: odds ? `1px solid ${hexToRgba(color, 0.3)}` : undefined,
+                      borderInlineStart: ribbon ? `4px solid ${color}` : undefined,
+                      background: duel
+                        ? `linear-gradient(180deg, ${hexToRgba(color, 0.14)}, transparent)`
+                        : "rgba(255,255,255,.025)",
+                      opacity: lost ? 0.4 : 1,
+                      textAlign: ribbon ? "start" : "center",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        fontSize: px(duel ? 34 : 26),
+                        fontWeight: 750,
+                        overflowWrap: "anywhere",
+                      }}
+                    >
+                      <bdi>{outcome?.label ?? ""}</bdi>
+                    </h3>
+                    {odds ? (
+                      <div
+                        style={{
+                          position: "relative",
+                          width: 220,
+                          height: 220,
+                          margin: "22px auto",
+                        }}
+                        dir="ltr"
+                      >
+                        <svg viewBox="0 0 160 160" width="100%" height="100%" aria-hidden>
+                          <circle
+                            cx="80"
+                            cy="80"
+                            r="66"
+                            fill="none"
+                            stroke="rgba(255,255,255,.08)"
+                            strokeWidth="8"
+                          />
+                          {share > 0 ? (
+                            <circle
+                              cx="80"
+                              cy="80"
+                              r="66"
+                              fill="none"
+                              stroke={color}
+                              strokeWidth="8"
+                              strokeLinecap="round"
+                              strokeDasharray={`${share * 4.1469} 414.69`}
+                              transform="rotate(-90 80 80)"
+                            />
+                          ) : null}
+                        </svg>
+                        <strong
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            display: "grid",
+                            placeItems: "center",
+                            color,
+                            fontSize: px(52),
+                          }}
+                        >
+                          <Percent value={whole[index] ?? 0} />
+                        </strong>
+                      </div>
+                    ) : (
+                      <strong
+                        style={{
+                          color,
+                          fontSize: px(ribbon ? 32 : duel ? 88 : 112),
+                          fontWeight: 850,
+                          lineHeight: 1.3,
+                          marginTop: ribbon ? 0 : 18,
+                        }}
+                      >
+                        <Percent value={whole[index] ?? 0} />
+                      </strong>
+                    )}
+                    <div
+                      style={{
+                        marginTop: ribbon ? 0 : "auto",
+                        color: muted,
+                        fontSize: px(ribbon ? 16 : 19),
+                      }}
+                    >
+                      {outcome ? (
+                        <>
+                          <span>
+                            {t("overlay.prediction.points", { n: latinCount(outcome.points) })}
+                          </span>
+                          <span style={{ marginInlineStart: 16 }}>
+                            {t("overlay.prediction.voters", { n: latinCount(outcome.voters) })}
+                          </span>
+                        </>
+                      ) : null}
+                    </div>
+                    {won ? (
+                      <p style={{ marginTop: 12, color, fontSize: px(18), fontWeight: 800 }}>
+                        ★ {t("widget.prediction.winner")}
+                      </p>
+                    ) : null}
+                    {!odds ? (
+                      <div
+                        style={{
+                          gridColumn: ribbon ? "1 / -1" : undefined,
+                          height: duel ? 8 : 4,
+                          marginTop: 18,
+                          background: "rgba(255,255,255,.08)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: "100%",
+                            width: `${share}%`,
+                            background: color,
+                            transition: `width 900ms ${EASE}`,
+                          }}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+              {duel ? (
+                <div
+                  dir="ltr"
+                  style={{
+                    gridColumn: 2,
+                    gridRow: 1,
+                    display: "grid",
+                    placeItems: "center",
+                    fontSize: 24,
+                    fontWeight: 850,
+                    color: accent,
+                  }}
+                >
+                  VS
+                </div>
+              ) : null}
+            </div>
+          </section>
+        </div>
+      </OverlayStage>
+    );
+  }
+
   return (
     <OverlayStage {...stageProps}>
       <OverlayMotionStyles />
@@ -182,7 +431,7 @@ export function PredictionOverlay({
           padding: compact ? 16 : "0 24px 56px",
         }}
       >
-        <div className={leaving ? "cxo-out" : "cxo-in"} style={card}>
+        <div data-layout-content className={leaving ? "cxo-out" : "cxo-in"} style={card}>
           <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
             <div style={{ minWidth: 0, flex: 1, display: "flex", alignItems: "baseline", gap: 24 }}>
               <span

@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { useEffect, useId, useRef, useState, type ReactElement } from "react";
 import { Heart, Pause, Play } from "lucide-react";
 
 import { formatDuration, type TimerFrame } from "@/lib/timer";
 import { formatOverlayTime, withAlpha, type OverlayTheme } from "@/lib/overlayTheme";
+import { useLanguage } from "@/lib/i18n";
 
 const ANIMATION_CLASS: Record<OverlayTheme["animation"], string> = {
   none: "",
@@ -61,6 +62,8 @@ export function OverlayView({
   /** Subscriptions and gifted subscriptions accumulated in the current event window. */
   milestoneCurrent?: number;
 }) {
+  const { lang } = useLanguage();
+  const gradientId = useId().replace(/:/g, "");
   const { pulseKey, popups } = useTimeAdded(remaining, theme.showAddedPopups);
   const animationClass = ANIMATION_CLASS[theme.animation];
 
@@ -73,9 +76,28 @@ export function OverlayView({
         background: withAlpha(theme.backgroundColor, theme.backgroundOpacity),
         border: `1px solid ${withAlpha(theme.textColor, 18)}`,
       };
-  const cap = frame?.maxTimeSeconds ?? null;
-  void cap;
   void milestoneCurrent;
+  const status = frame?.status ?? "IDLE";
+  const statusText =
+    lang === "ar"
+      ? ({ IDLE: "جاهز", RUNNING: "مباشر", PAUSED: "متوقف مؤقتًا", ENDED: "انتهى" }[status] ??
+        status)
+      : status;
+  const unitLabels =
+    lang === "ar"
+      ? { days: "أيام", hours: "ساعات", minutes: "دقائق", seconds: "ثوانٍ" }
+      : { days: "DAYS", hours: "HOURS", minutes: "MINUTES", seconds: "SECONDS" };
+  const units =
+    theme.timeFormat === "dhms"
+      ? (["days", "hours", "minutes", "seconds"] as const)
+      : theme.timeFormat === "ms"
+        ? (["minutes", "seconds"] as const)
+        : (["hours", "minutes", "seconds"] as const);
+  const segments = timeText.split(":").map((value, index) => ({
+    value,
+    unit: units[index]!,
+    label: unitLabels[units[index]!],
+  }));
 
   const timeStyle = {
     fontFamily: theme.fontFamily,
@@ -91,7 +113,6 @@ export function OverlayView({
     textRendering: "geometricPrecision",
   } as const;
 
-
   const labelStyle = {
     fontFamily: theme.fontFamily,
     fontSize: `${Math.max(10, Math.round(theme.fontSize * 0.2))}px`,
@@ -101,7 +122,7 @@ export function OverlayView({
   } as const;
 
   const time = (
-    <span key={pulseKey} className={animationClass} style={timeStyle}>
+    <span key={pulseKey} dir="ltr" className={animationClass} style={timeStyle}>
       {timeText}
     </span>
   );
@@ -116,7 +137,7 @@ export function OverlayView({
         fontWeight: 700,
       }}
     >
-      {frame?.status ?? "IDLE"}
+      {statusText}
     </span>
   ) : null;
 
@@ -124,7 +145,7 @@ export function OverlayView({
 
   const maxTime = frame?.maxTimeSeconds ?? remaining;
   const progress = maxTime > 0 ? Math.min(1, Math.max(0, remaining / maxTime)) : 1;
-  const ringSize = 220;
+  const ringSize = Math.max(220, Math.round(theme.fontSize * 3));
   const strokeWidth = 10;
   const radius = (ringSize - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -133,17 +154,144 @@ export function OverlayView({
 
   let body: ReactElement;
   if (theme.layout === "split_clock") {
-    body = <div className="space-y-3 p-3" style={{ color: theme.textColor, fontFamily: theme.fontFamily }}>
-      <div className="flex items-center justify-between gap-6">{theme.showLabel ? <span style={labelStyle}>{theme.label}</span> : null}{statusBadge}</div>
-      <div className="flex items-center gap-2" dir="ltr">{timeText.split(":").map((part, index) => <span key={index} className="rounded-xl px-4 py-3 font-mono font-bold tabular-nums" style={{ ...panelStyle, fontSize: theme.fontSize }}>{part}</span>)}</div>
-    </div>;
-  } else if (theme.layout === "broadcast") {
-    body = <div className="flex items-stretch overflow-hidden rounded-2xl" style={{ ...panelStyle, color: theme.textColor, fontFamily: theme.fontFamily }}>
-      <div className="flex flex-col justify-center gap-3 border-e border-white/15 px-6 py-5" style={{ background: hideBg ? "transparent" : withAlpha(theme.accentColor, 8) }}>
-        <span className="h-1 w-10 rounded-full" style={{ background: theme.accentColor }} />{theme.showLabel ? <span style={labelStyle}>{theme.label}</span> : null}{statusBadge}
+    body = (
+      <div
+        className="space-y-4 p-3"
+        style={{ color: theme.textColor, fontFamily: theme.fontFamily }}
+      >
+        <div className="flex items-center justify-between gap-6">
+          {theme.showLabel ? (
+            <span dir="auto" style={labelStyle}>
+              {theme.label}
+            </span>
+          ) : null}
+          {statusBadge}
+        </div>
+        <div key={pulseKey} className={`flex items-start gap-3 ${animationClass}`} dir="ltr">
+          {segments.map((segment) => (
+            <div key={segment.unit} className="flex flex-col items-center gap-3">
+              <div
+                className="relative isolate overflow-hidden rounded-lg px-4 py-4"
+                style={{ ...panelStyle, boxShadow: hideBg ? "none" : "0 6px 0 rgba(0,0,0,.4)" }}
+              >
+                {!hideBg ? (
+                  <span className="absolute inset-x-0 top-1/2 -z-10 h-px bg-black/70" />
+                ) : null}
+                <span style={{ ...timeStyle, lineHeight: 1 }}>{segment.value}</span>
+                {!hideBg ? (
+                  <>
+                    <i className="absolute start-0 top-1/2 h-2 w-1 -translate-y-1/2 rounded-e bg-black/70" />
+                    <i className="absolute end-0 top-1/2 h-2 w-1 -translate-y-1/2 rounded-s bg-black/70" />
+                  </>
+                ) : null}
+              </div>
+              <span style={{ ...labelStyle, letterSpacing: lang === "ar" ? 0 : "0.18em" }}>
+                {segment.label}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="flex flex-col justify-center gap-3 px-7 py-5"><span dir="ltr">{time}</span><div className="h-1 overflow-hidden rounded-full bg-white/10"><div className="h-full" style={{ width: `${progress * 100}%`, background: theme.accentColor }} /></div></div>
-    </div>;
+    );
+  } else if (theme.layout === "tower") {
+    body = (
+      <div
+        className="relative overflow-hidden rounded-2xl"
+        style={{
+          ...panelStyle,
+          color: theme.textColor,
+          fontFamily: theme.fontFamily,
+          minWidth: theme.fontSize * 2.6,
+        }}
+      >
+        {!hideBg ? (
+          <div
+            className="absolute inset-y-0 start-0 w-1.5"
+            style={{ background: theme.accentColor }}
+          />
+        ) : null}
+        {theme.showLabel || theme.showStatus ? (
+          <div className="flex flex-col gap-2 px-6 pb-3 pt-5">
+            {theme.showLabel ? (
+              <span
+                dir="auto"
+                style={{ ...labelStyle, letterSpacing: lang === "ar" ? 0 : "0.2em" }}
+              >
+                {theme.label}
+              </span>
+            ) : null}
+            {statusBadge}
+          </div>
+        ) : null}
+        <div key={pulseKey} className={animationClass}>
+          {segments.map((segment, index) => (
+            <div
+              key={segment.unit}
+              className="flex items-end justify-between gap-5 px-6 py-3"
+              style={{
+                borderTop: hideBg ? undefined : `1px solid ${withAlpha(theme.textColor, 9)}`,
+              }}
+            >
+              <div className="flex flex-col gap-2 pb-1">
+                <span
+                  dir="ltr"
+                  style={{
+                    color: withAlpha(theme.accentColor, 70),
+                    fontSize: 10,
+                    letterSpacing: "0.1em",
+                  }}
+                >
+                  0{index + 1}
+                </span>
+                <span style={{ ...labelStyle, letterSpacing: lang === "ar" ? 0 : "0.12em" }}>
+                  {segment.label}
+                </span>
+              </div>
+              <span
+                dir="ltr"
+                style={{ ...timeStyle, lineHeight: 1, fontSize: theme.fontSize * 0.85 }}
+              >
+                {segment.value}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div
+          className="mx-6 mb-5 mt-3 h-1 overflow-hidden rounded-full"
+          style={{ background: withAlpha(theme.accentColor, 15) }}
+        >
+          <div
+            className="h-full rounded-full"
+            style={{ width: `${progress * 100}%`, background: theme.accentColor }}
+          />
+        </div>
+      </div>
+    );
+  } else if (theme.layout === "broadcast") {
+    body = (
+      <div
+        className="flex items-stretch overflow-hidden rounded-2xl"
+        style={{ ...panelStyle, color: theme.textColor, fontFamily: theme.fontFamily }}
+      >
+        <div
+          className="flex flex-col justify-center gap-3 border-e border-white/15 px-6 py-5"
+          style={{ background: hideBg ? "transparent" : withAlpha(theme.accentColor, 8) }}
+        >
+          <span className="h-1 w-10 rounded-full" style={{ background: theme.accentColor }} />
+          {theme.showLabel ? <span style={labelStyle}>{theme.label}</span> : null}
+          {statusBadge}
+        </div>
+        <div className="flex flex-col justify-center gap-3 px-7 py-5">
+          <span dir="ltr">{time}</span>
+          <div className="h-1 overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full"
+              style={{ width: `${progress * 100}%`, background: theme.accentColor }}
+            />
+          </div>
+        </div>
+      </div>
+    );
   } else if (theme.layout === "cute_heart") {
     body = (
       <div className="relative inline-block">
@@ -152,6 +300,7 @@ export function OverlayView({
           style={{ textShadow, ...panelStyle }}
         >
           <span
+            dir="ltr"
             className="font-mono font-bold tracking-tight"
             style={{
               color: theme.textColor,
@@ -165,7 +314,12 @@ export function OverlayView({
           </span>
         </div>
         <span className="absolute -top-2 -end-2 flex items-center justify-center rounded-full bg-white p-1.5 shadow-lg">
-          <Heart className="size-5" style={{ color: theme.accentColor }} fill="currentColor" aria-hidden />
+          <Heart
+            className="size-5"
+            style={{ color: theme.accentColor }}
+            fill="currentColor"
+            aria-hidden
+          />
         </span>
       </div>
     );
@@ -181,10 +335,10 @@ export function OverlayView({
             height={ringSize}
             viewBox={`0 0 ${ringSize} ${ringSize}`}
             className="-rotate-90"
-            aria-label="Timer progress"
+            aria-label={lang === "ar" ? "تقدم المؤقت" : "Timer progress"}
           >
             <defs>
-              <linearGradient id="circular-pomodoro-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor={theme.accentColor} />
                 <stop offset="100%" stopColor={withAlpha(theme.accentColor, 55)} />
               </linearGradient>
@@ -203,7 +357,7 @@ export function OverlayView({
               cy={ringSize / 2}
               r={radius}
               fill="none"
-              stroke="url(#circular-pomodoro-gradient)"
+              stroke={`url(#${gradientId})`}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -226,12 +380,16 @@ export function OverlayView({
                     boxShadow: `0 0 10px ${isRunning ? "#22C55E" : theme.accentColor}`,
                   }}
                 />
-                {frame?.status ?? "IDLE"}
+                {statusText}
               </span>
             ) : null}
             <span
-              className="font-mono text-3xl font-bold"
+              dir="ltr"
+              key={pulseKey}
+              className={animationClass}
               style={{
+                fontSize: Math.min(theme.fontSize * 0.6, ringSize / (timeText.length * 0.65)),
+                fontWeight: 700,
                 color: theme.textColor,
                 fontFamily: "'JetBrains Mono', ui-monospace, monospace",
                 fontVariantNumeric: "tabular-nums",
@@ -247,14 +405,7 @@ export function OverlayView({
               >
                 {theme.label}
               </span>
-            ) : (
-              <span
-                className="mt-1 text-xs font-bold uppercase tracking-widest text-neutral-400"
-                style={{ fontFamily: theme.fontFamily }}
-              >
-                SUBATHON
-              </span>
-            )}
+            ) : null}
             <span className="mt-2 text-white/70">
               {isRunning ? (
                 <Pause className="size-4" fill="currentColor" aria-hidden />
@@ -266,119 +417,128 @@ export function OverlayView({
         </div>
       </div>
     );
-} else if (theme.layout === "multi_ring_countdown") {
-  const ringSize = 90;
-  const strokeWidth = 6;
-  const radius = (ringSize - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
+  } else if (theme.layout === "multi_ring_countdown") {
+    const ringSize = Math.max(76, Math.round(theme.fontSize * 1.45));
+    const strokeWidth = 6;
+    const radius = (ringSize - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
 
-  const totalSeconds = Math.max(0, remaining);
-  const days = Math.floor(totalSeconds / 86400);
-  const hours = Math.floor((totalSeconds % 86400) / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
+    const rings = segments.map((segment, index) => {
+      const fullUnit = segment.unit === "days" ? 86400 : segment.unit === "hours" ? 3600 : 60;
+      const maximum =
+        index === 0
+          ? Math.max(1, Math.ceil((frame?.maxTimeSeconds ?? remaining) / fullUnit))
+          : segment.unit === "hours"
+            ? 24
+            : 60;
+      return { ...segment, progress: Math.min(1, Math.max(0, Number(segment.value) / maximum)) };
+    });
 
-  const maxDays =
-    frame?.maxTimeSeconds && frame.maxTimeSeconds > 0
-      ? Math.max(1, Math.ceil(frame.maxTimeSeconds / 86400))
-      : Math.max(1, days);
-
-  const rings = [
-    { label: "DAYS", value: days, progress: Math.min(1, Math.max(0, days / maxDays)) },
-    { label: "HOURS", value: hours, progress: hours / 24 },
-    { label: "MINUTES", value: minutes, progress: minutes / 60 },
-    { label: "SECONDS", value: seconds, progress: seconds / 60 },
-  ];
-
-  body = (
-    <div
-      className={`flex items-center justify-center rounded-2xl p-6 ${hideBg ? "" : "backdrop-blur-md"}`}
-      style={{ textShadow, ...panelStyle }}
-    >
-      <div className="flex gap-4">
-        {rings.map((ring) => {
-          const dashOffset = circumference * (1 - ring.progress);
-          return (
-            <div key={ring.label} className="flex flex-col items-center gap-2">
-              <div className="relative" style={{ width: ringSize, height: ringSize }}>
-                <svg
-                  width={ringSize}
-                  height={ringSize}
-                  viewBox={`0 0 ${ringSize} ${ringSize}`}
-                  className="-rotate-90"
-                  aria-label={ring.label}
-                >
-                  <circle
-                    cx={ringSize / 2}
-                    cy={ringSize / 2}
-                    r={radius}
-                    fill="none"
-                    stroke="rgba(255,255,255,0.10)"
-                    strokeWidth={strokeWidth}
-                    strokeLinecap="round"
-                  />
-                  <circle
-                    cx={ringSize / 2}
-                    cy={ringSize / 2}
-                    r={radius}
-                    fill="none"
-                    stroke={theme.accentColor}
-                    strokeWidth={strokeWidth}
-                    strokeLinecap="round"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={dashOffset}
-                    style={{ transition: "stroke-dashoffset 0.35s ease" }}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span
-                    className="text-2xl font-bold"
-                    style={{
-                      color: theme.textColor,
-                      fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-                      fontVariantNumeric: "tabular-nums",
-                      fontFeatureSettings: '"tnum" 1',
-                    }}
-                  >
-                    {String(ring.value).padStart(2, "0")}
-                  </span>
-                </div>
-              </div>
-              <span
-                className="text-[10px] font-semibold uppercase tracking-widest text-neutral-400"
-                style={{ fontFamily: theme.fontFamily }}
-              >
-                {ring.label}
+    body = (
+      <div className="flex flex-col gap-5 p-3" style={{ textShadow, fontFamily: theme.fontFamily }}>
+        {theme.showLabel || theme.showStatus ? (
+          <div className="flex items-center justify-between gap-6">
+            {theme.showLabel ? (
+              <span dir="auto" style={labelStyle}>
+                {theme.label}
               </span>
-            </div>
-          );
-        })}
+            ) : null}
+            {statusBadge}
+          </div>
+        ) : null}
+        <div key={pulseKey} className={`flex gap-4 ${animationClass}`} dir="ltr">
+          {rings.map((ring) => {
+            const dashOffset = circumference * (1 - ring.progress);
+            return (
+              <div key={ring.unit} className="flex flex-col items-center gap-3">
+                <div
+                  className="relative rounded-full"
+                  style={{ ...panelStyle, width: ringSize, height: ringSize }}
+                >
+                  <svg
+                    width={ringSize}
+                    height={ringSize}
+                    viewBox={`0 0 ${ringSize} ${ringSize}`}
+                    className="-rotate-90"
+                    aria-label={ring.label}
+                  >
+                    <circle
+                      cx={ringSize / 2}
+                      cy={ringSize / 2}
+                      r={radius}
+                      fill="none"
+                      stroke="rgba(255,255,255,0.10)"
+                      strokeWidth={strokeWidth}
+                      strokeLinecap="round"
+                    />
+                    <circle
+                      cx={ringSize / 2}
+                      cy={ringSize / 2}
+                      r={radius}
+                      fill="none"
+                      stroke={withAlpha(theme.accentColor, 100 - rings.indexOf(ring) * 15)}
+                      strokeWidth={strokeWidth}
+                      strokeLinecap="round"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={dashOffset}
+                      style={{ transition: "stroke-dashoffset 0.35s ease" }}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span
+                      className="font-bold"
+                      style={{
+                        color: theme.textColor,
+                        fontFamily: theme.fontFamily,
+                        fontSize: Math.min(
+                          theme.fontSize * 0.55,
+                          ringSize / (ring.value.length * 0.8),
+                        ),
+                        fontVariantNumeric: "tabular-nums",
+                        fontFeatureSettings: '"tnum" 1',
+                      }}
+                    >
+                      {ring.value}
+                    </span>
+                  </div>
+                </div>
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-widest text-neutral-400"
+                  style={{
+                    fontFamily: theme.fontFamily,
+                    color: theme.accentColor,
+                    letterSpacing: lang === "ar" ? 0 : "0.16em",
+                  }}
+                >
+                  {ring.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
-  );
-} else if (theme.layout === "raw_digits") {
-  body = (
-    <div
-      className="bg-transparent p-0 shadow-none border-none"
-      style={{ textShadow }}
-    >
-      <span
-        className="font-mono font-bold tracking-wider"
-        style={{
-          color: theme.textColor,
-          fontFamily: theme.fontFamily,
-          fontSize: `${theme.fontSize}px`,
-          lineHeight: 1,
-          fontVariantNumeric: "tabular-nums",
-          fontFeatureSettings: '"tnum" 1',
-          whiteSpace: "nowrap",
-        }}
-      >
-        {timeText}
-      </span>
-    </div>
-  );
-} else {
+    );
+  } else if (theme.layout === "raw_digits") {
+    body = (
+      <div className="bg-transparent p-0 shadow-none border-none" style={{ textShadow }}>
+        <span
+          dir="ltr"
+          className="font-mono font-bold tracking-wider"
+          style={{
+            color: theme.textColor,
+            fontFamily: theme.fontFamily,
+            fontSize: `${theme.fontSize}px`,
+            lineHeight: 1,
+            fontVariantNumeric: "tabular-nums",
+            fontFeatureSettings: '"tnum" 1',
+            whiteSpace: "nowrap",
+          }}
+        >
+          {timeText}
+        </span>
+      </div>
+    );
+  } else {
     body = (
       <div
         className={`flex w-fit max-w-full items-center gap-4 rounded-full px-6 py-2.5 ${hideBg ? "" : "backdrop-blur-md"}`}
@@ -413,6 +573,9 @@ export function OverlayView({
   return (
     <div
       className="relative inline-block"
+      data-layout-content
+      data-timer-layout={theme.layout}
+      dir={lang === "ar" ? "rtl" : "ltr"}
       style={scale === 1 ? undefined : { transform: `scale(${scale})`, transformOrigin: "center" }}
     >
       {body}

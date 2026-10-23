@@ -6,6 +6,11 @@ import {
   WHEEL_LAYOUTS,
   VIEWER_LAYOUTS,
   EVENT_LABEL_LAYOUTS,
+  CHROME_LAYOUTS,
+  POLL_LAYOUTS,
+  PREDICTION_LAYOUTS,
+  SCHEDULE_LAYOUTS,
+  widgetLayoutLabel,
   parseGoalLayout,
   parseWheelLayout,
   parseViewerLayout,
@@ -16,7 +21,7 @@ import { widgetTestGroups } from "../src/lib/widgetTestCapabilities.ts";
 import { formatOverlayTime, parseOverlayTheme } from "../src/lib/overlayTheme.ts";
 import { parseSpinConfig, pickWeightedPrize } from "../src/lib/widgets.ts";
 
-test("goal, viewer, wheel and event catalogs contain at least two Free and two Pro layouts", () => {
+test("every reviewed widget offers exactly eight distinct layouts, two Free and six Pro", () => {
   for (const [type, layouts] of [
     ["FOLLOWER_GOAL", GOAL_LAYOUTS],
     ["SUBSCRIBER_GOAL", GOAL_LAYOUTS],
@@ -25,9 +30,29 @@ test("goal, viewer, wheel and event catalogs contain at least two Free and two P
     ["VIEWER_COUNTER", VIEWER_LAYOUTS],
     ["SPIN_WHEEL", WHEEL_LAYOUTS],
     ["EVENT_LABELS", EVENT_LABEL_LAYOUTS],
+    ["POLL", POLL_LAYOUTS],
+    ["PREDICTION", PREDICTION_LAYOUTS],
+    ["STREAM_EVENTS_SCHEDULE", SCHEDULE_LAYOUTS],
+    ["CHAT_SPOTLIGHT", CHROME_LAYOUTS],
+    [
+      "SUBATHON_TIMER",
+      [
+        "raw_digits",
+        "island",
+        "cute_heart",
+        "broadcast",
+        "split_clock",
+        "circular_pomodoro",
+        "multi_ring_countdown",
+        "tower",
+      ],
+    ],
+    ["GIVEAWAY", ["glass", "direct", "bold", "spotlight", "podium", "ticket", "split", "ribbon"]],
   ] as const) {
-    assert.ok(layouts.filter((layout) => isProWidgetLayout(type, { layout })).length >= 2, type);
-    assert.ok(layouts.filter((layout) => !isProWidgetLayout(type, { layout })).length >= 2, type);
+    assert.equal(layouts.length, 8, type);
+    assert.equal(new Set(layouts).size, 8, type);
+    assert.equal(layouts.filter((layout) => isProWidgetLayout(type, { layout })).length, 6, type);
+    assert.equal(layouts.filter((layout) => !isProWidgetLayout(type, { layout })).length, 2, type);
     for (const layout of layouts) {
       assert.doesNotThrow(() => assertWidgetLayoutAccess(type, { layout }, true));
       if (isProWidgetLayout(type, { layout }))
@@ -101,17 +126,33 @@ test("wheel layout never changes prize weights, cost or the selected result", ()
   }
 });
 
-test("interactive catalogs have two Free and two Pro choices without touching Giveaway", () => {
-  for (const [type, layouts] of [
-    ["POLL", ["default", "compact", "cards", "columns"]],
-    ["PREDICTION", ["classic", "compact", "split", "particle-clash"]],
+test("legacy aliases and implicit defaults cannot bypass a Pro save check", () => {
+  for (const [type, config] of [
+    ["VIEWER_COUNTER", { layout: "bold" }],
+    ["STREAM_EVENTS_SCHEDULE", {}],
+    ["STREAM_EVENTS_SCHEDULE", { layout: "unknown" }],
+    ["SUBATHON_TIMER", {}],
+    ["SUBATHON_TIMER", { layout: "unknown" }],
   ] as const) {
-    assert.equal(layouts.filter((layout) => isProWidgetLayout(type, { layout })).length, 2);
-    assert.equal(layouts.filter((layout) => !isProWidgetLayout(type, { layout })).length, 2);
+    assert.equal(isProWidgetLayout(type, config), true);
+    assert.throws(() => assertWidgetLayoutAccess(type, config, false), /requires Pro/);
   }
-  assert.equal(isProWidgetLayout("GIVEAWAY", { layout: "classic" }), false);
-  assert.equal(isProWidgetLayout("SUBATHON_TIMER", { layout: "split_clock" }), false);
-  assert.equal(isProWidgetLayout("SUBATHON_TIMER", { layout: "broadcast" }), true);
-  assert.equal(isProWidgetLayout("CHAT_SPOTLIGHT", { layout: "lower-third" }), false);
-  assert.equal(isProWidgetLayout("CHAT_SPOTLIGHT", { layout: "message" }), true);
+});
+
+test("all shared layout labels are available in Arabic and English", () => {
+  for (const [family, layouts] of [
+    ["goal", GOAL_LAYOUTS],
+    ["viewer", VIEWER_LAYOUTS],
+    ["wheel", WHEEL_LAYOUTS],
+    ["events", EVENT_LABEL_LAYOUTS],
+    ["chrome", CHROME_LAYOUTS],
+    ["poll", POLL_LAYOUTS],
+    ["prediction", PREDICTION_LAYOUTS],
+    ["schedule", SCHEDULE_LAYOUTS],
+  ] as const) {
+    for (const layout of layouts) {
+      assert.notEqual(widgetLayoutLabel(family, layout, "en"), layout);
+      assert.match(widgetLayoutLabel(family, layout, "ar"), /[\u0600-\u06ff]/);
+    }
+  }
 });

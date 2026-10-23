@@ -1,4 +1,4 @@
-import { updateDemoState } from "@/lib/demoStore";
+import { loadDemoState, saveDemoWidget } from "@/lib/demoStore";
 
 type SaveInput = {
   widgetId: string;
@@ -9,31 +9,14 @@ type SaveInput = {
 
 /** Demo build: widget settings are saved in the visitor's browser, never on the server. */
 export async function saveWidgetSettingsLocal({ data }: { data: SaveInput }): Promise<{ ok: true }> {
-  let found = false;
-  await updateDemoState((state) => {
-    found = state.widgets.some((widget) => widget.id === data.widgetId);
-    return {
-      ...state,
-      widgets: state.widgets.map((widget) =>
-        widget.id === data.widgetId
-          ? { ...widget, name: data.name?.trim() || widget.name, config: data.config }
-          : widget,
-      ),
-      goals: data.goal
-        ? state.goals.map((goal) =>
-            goal.id === data.goal?.id
-              ? {
-                  ...goal,
-                  title: data.goal.title,
-                  unit: data.goal.unit,
-                  target_value: data.goal.target,
-                  current_value: data.goal.current,
-                }
-              : goal,
-          )
-        : state.goals,
-    };
+  const state = await loadDemoState();
+  const widget = state.widgets.find((entry) => entry.id === data.widgetId);
+  if (!widget) throw new Error("Widget not found");
+  await saveDemoWidget({
+    widgetId: data.widgetId,
+    name: data.name?.trim() || widget.name,
+    config: data.config,
+    ...(data.goal !== undefined ? { goal: data.goal } : {}),
   });
-  if (!found) throw new Error("Widget not found");
   return { ok: true };
 }

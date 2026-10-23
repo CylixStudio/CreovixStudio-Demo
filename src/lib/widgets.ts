@@ -477,9 +477,21 @@ export function parseSpotlightState(raw: unknown): SpotlightMessage | null {
 
 /* ----------------------- Stream events schedule ----------------------- */
 
+export const STREAM_EVENTS_SCHEDULE_LAYOUTS = [
+  "direct",
+  "agenda",
+  "glass",
+  "bold",
+  "timeline",
+  "calendar",
+  "roadmap",
+  "spotlight",
+] as const;
+export type StreamEventsScheduleLayout = (typeof STREAM_EVENTS_SCHEDULE_LAYOUTS)[number];
+
 export type StreamEventsScheduleConfig = BaseStyle & {
   events: StreamScheduleEvent[];
-  layout: "glass" | "direct" | "bold" | "agenda" | "timeline" | "calendar";
+  layout: StreamEventsScheduleLayout;
   showUptime: boolean;
   title: string;
 };
@@ -498,7 +510,9 @@ export function parseStreamEventsScheduleConfig(raw: unknown): StreamEventsSched
       source["layout"] === "bold" ||
       source["layout"] === "agenda" ||
       source["layout"] === "timeline" ||
-      source["layout"] === "calendar"
+      source["layout"] === "calendar" ||
+      source["layout"] === "roadmap" ||
+      source["layout"] === "spotlight"
         ? source["layout"]
         : "glass",
     showUptime: bool(source["showUptime"], true),
@@ -870,8 +884,20 @@ export function parseEventLabelsConfig(raw: unknown): EventLabelsConfig {
 
 /* ------------------------------- Poll ----------------------------------- */
 
+export const POLL_LAYOUTS = [
+  "default",
+  "compact",
+  "cards",
+  "columns",
+  "ballot",
+  "leaderboard",
+  "donut",
+  "split",
+] as const;
+export type PollLayout = (typeof POLL_LAYOUTS)[number];
+
 export type PollConfig = BaseStyle & {
-  layout: "default" | "compact" | "cards" | "columns";
+  layout: PollLayout;
   title: string;
   options: string[];
   durationSeconds: number;
@@ -890,12 +916,21 @@ function pollOptions(value: unknown): string[] {
 export function parsePollConfig(raw: unknown): PollConfig {
   const source = asRecord(raw);
   return {
-    ...parseStyle(source, { ...DEFAULT_STYLE, fontSize: 28, accentColor: "#bee1fc", backgroundOpacity: 72 }),
+    ...parseStyle(source, {
+      ...DEFAULT_STYLE,
+      fontSize: 28,
+      accentColor: "#bee1fc",
+      backgroundOpacity: 72,
+    }),
     title: text(source["title"], "استطلاع", 80),
     layout:
       source["layout"] === "compact" ||
       source["layout"] === "cards" ||
-      source["layout"] === "columns"
+      source["layout"] === "columns" ||
+      source["layout"] === "ballot" ||
+      source["layout"] === "leaderboard" ||
+      source["layout"] === "donut" ||
+      source["layout"] === "split"
         ? source["layout"]
         : "default",
     options: pollOptions(source["options"]),
@@ -905,9 +940,21 @@ export function parsePollConfig(raw: unknown): PollConfig {
 
 /* ---------------------------- Prediction -------------------------------- */
 
+export const PREDICTION_LAYOUTS = [
+  "classic",
+  "compact",
+  "split",
+  "particle-clash",
+  "scoreboard",
+  "duel",
+  "ribbon",
+  "odds",
+] as const;
+export type PredictionLayout = (typeof PREDICTION_LAYOUTS)[number];
+
 export type PredictionConfig = BaseStyle &
   ParticleSettings & {
-    layout: "classic" | "compact" | "split" | "particle-clash";
+    layout: PredictionLayout;
     outcomeA: string;
     outcomeB: string;
     durationSeconds: number;
@@ -916,12 +963,21 @@ export type PredictionConfig = BaseStyle &
 export function parsePredictionConfig(raw: unknown): PredictionConfig {
   const source = asRecord(raw);
   return {
-    ...parseStyle(source, { ...DEFAULT_STYLE, fontSize: 28, accentColor: "#bee1fc", backgroundOpacity: 72 }),
+    ...parseStyle(source, {
+      ...DEFAULT_STYLE,
+      fontSize: 28,
+      accentColor: "#bee1fc",
+      backgroundOpacity: 72,
+    }),
     ...parseParticleSettings(source),
     layout:
       source["layout"] === "particle-clash" ||
       source["layout"] === "compact" ||
-      source["layout"] === "split"
+      source["layout"] === "split" ||
+      source["layout"] === "scoreboard" ||
+      source["layout"] === "duel" ||
+      source["layout"] === "ribbon" ||
+      source["layout"] === "odds"
         ? source["layout"]
         : "classic",
     outcomeA: text(source["outcomeA"], "نعم", 40),

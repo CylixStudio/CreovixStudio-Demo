@@ -355,29 +355,41 @@ export function SpinWheelView({
   }, [autoSpin, sliceKey]);
 
   const canSpin = Boolean(onSpin) && !placeholder && !spinning && !turning;
+  const sidePanel = layout === "compact" || layout === "studio";
+  const wheelSize = layout === "compact" ? 160 : layout === "studio" ? 210 : layout === "bare" ? 240 : 300;
+  const shells = {
+    classic: "rounded-full border border-white/15 bg-[#101012] px-7 py-6",
+    compact: "grid rounded-2xl border border-white/15 bg-[#101012] p-4",
+    bare: "border-0 bg-transparent p-3",
+    show: "rounded-3xl border border-white/10 bg-[#101012] px-8 py-6",
+    bottom: "overflow-hidden rounded-t-3xl border-x border-t border-white/15 bg-[#101012] px-7 pt-4",
+    studio: "grid rounded-e-2xl border-y border-e border-white/15 bg-[#101012] p-4",
+    spotlight: "relative rounded-3xl border border-white/10 bg-[#101012] p-8",
+    orbit: "relative rounded-full border border-white/20 bg-[#101012] p-9",
+  } as const;
 
   return (
     <div
-      className={`flex ${layout === "show" ? "relative flex-col border-b-8 border-b-primary pb-8 pt-10" : "flex-col"} items-center gap-4 px-5 py-5 text-zinc-100 ${
-        layout === "compact" ? "w-[min(100%,16rem)]" : "w-[min(100%,22.5rem)]"
-      } ${
-        layout === "bare"
-          ? "border-0 bg-transparent shadow-none"
-          : layout === "compact"
-            ? "rounded-2xl border border-zinc-700 bg-zinc-900 shadow-none"
-            : "rounded-3xl border border-zinc-800 bg-zinc-950 shadow-[0_24px_60px_-32px_rgba(0,0,0,0.9)]"
-      }`}
+      className={`relative ${sidePanel ? "grid" : "flex flex-col"} items-center gap-4 text-zinc-100 ${shells[layout]}`}
       data-wheel-layout={layout}
-      style={{ fontFamily: style.fontFamily, ...(layout === "show" ? { display: "grid", gridTemplateColumns: "280px 160px", width: 500, alignItems: "center" } : {}) }}
+      data-layout-content
+      dir={lang === "ar" ? "rtl" : "ltr"}
+      style={{ fontFamily: style.fontFamily, width: layout === "show" ? 480 : sidePanel ? layout === "compact" ? 390 : 550 : wheelSize + (layout === "orbit" ? 76 : layout === "spotlight" ? 68 : 60),
+        ...(sidePanel ? { gridTemplateColumns: `${wheelSize}px 1fr` } : {}),
+        ...(layout === "studio" ? { borderInlineStart: `5px solid ${style.accentColor}` } : {}),
+        ...(layout === "show" ? { background: `radial-gradient(ellipse at 15% 50%, ${style.accentColor}15, #101012 65%)` } : {}),
+      }}
     >
-      {layout === "show" ? <div aria-hidden className="absolute -top-3 flex gap-2 rounded-full border border-white/15 bg-zinc-900 px-5 py-2">{Array.from({ length: 7 }, (_, index) => <span key={index} className="size-1.5 rounded-full bg-primary/70" />)}</div> : null}
-      {rawTitle || layout === "show" ? (
-        <p className={`max-w-full truncate text-center text-xs font-semibold tracking-[0.16em] text-zinc-300 ${layout === "show" ? "col-start-2" : ""}`} dir="auto">
+      {layout === "spotlight" ? <div className="pointer-events-none absolute inset-3 rounded-2xl border border-white/10" aria-hidden /> : null}
+      {layout === "orbit" ? <div className="pointer-events-none absolute inset-3 rounded-full border border-dashed border-white/20" aria-hidden /> : null}
+      {(
+        <p className={`relative max-w-full text-center font-semibold tracking-[0.16em] text-zinc-300 ${layout === "show" ? "border-b border-white/10 pb-3 text-base" : "text-xs"} ${sidePanel ? "col-start-2 self-end" : ""}`} dir="auto">
           {rawTitle || (lang === "ar" ? "عجلة الحظ" : "Wheel of fortune")}
         </p>
-      ) : null}
+      )}
 
-      <div className={`relative aspect-square w-full max-w-[320px] ${layout === "show" ? "col-start-1 row-start-1 row-span-3" : ""}`} data-wheel-slices={slices.length}>
+      <div className={`relative shrink-0 ${layout === "bottom" ? "overflow-hidden" : ""} ${sidePanel ? "col-start-1 row-start-1 row-span-3" : ""}`} style={{ width: wheelSize, height: layout === "bottom" ? wheelSize * 0.6 : wheelSize }} data-wheel-slices={slices.length}>
+        <div className="relative" style={{ width: wheelSize, height: wheelSize }}>
         <div className="absolute inset-0 will-change-transform" style={{ transform: `rotate(${rotation}deg)` }}>
           <svg viewBox="0 0 320 320" className="size-full overflow-visible" aria-hidden>
             <defs>
@@ -443,10 +455,14 @@ export function SpinWheelView({
         </div>
 
         <svg viewBox="0 0 320 320" className="pointer-events-none absolute inset-0 size-full" aria-hidden>
-          {layout === "bare" ? null : (
+          {layout === "bare" ? <circle cx={CX} cy={CY} r="150" fill="none" stroke={style.accentColor} strokeWidth="1" /> : (
             <>
-              <circle cx={CX} cy={CY} r={layout === "compact" ? 150 : 148} fill="none" stroke={layout === "compact" ? "#52525B" : "#3F3F46"} strokeWidth={layout === "compact" ? 6 : 10} />
-              <circle cx={CX} cy={CY} r="142" fill="none" stroke="#E4E4E7" strokeWidth={layout === "compact" ? 2 : 5} />
+              <circle cx={CX} cy={CY} r="150" fill="none" stroke="#303034" strokeWidth={layout === "show" ? 12 : 6} />
+              <circle cx={CX} cy={CY} r="144" fill="none" stroke={style.accentColor} strokeWidth={layout === "orbit" ? 3 : 1.5} />
+              {layout === "spotlight" || layout === "show" ? Array.from({ length: 24 }, (_, index) => {
+                const point = polar(151, index * 15);
+                return <circle key={index} cx={point.x} cy={point.y} r="1.4" fill={style.accentColor} />;
+              }) : null}
             </>
           )}
           {logoUrl ? (
@@ -477,15 +493,25 @@ export function SpinWheelView({
             strokeLinejoin="round"
           />
         </svg>
+        </div>
       </div>
 
       {landed && winnerIndex >= 0 ? (
-        <p className={`max-w-full truncate text-center text-lg font-semibold text-zinc-50 ${layout === "show" ? "col-start-2" : ""}`} dir="auto">
+        <p className={`relative max-w-full break-words text-center text-lg font-semibold text-zinc-50 ${sidePanel ? "col-start-2" : ""}`} dir="auto">
           {slices[winnerIndex]?.label}
         </p>
       ) : (
-        <p className={layout === "show" ? "col-start-2 text-center text-sm text-zinc-400" : "h-7"} aria-hidden={layout !== "show"}>{layout === "show" ? `${placeholder ? 0 : slices.length} ${lang === "ar" ? "جوائز" : "prizes"}` : null}</p>
+        <p className={`relative text-center text-xs text-zinc-500 ${sidePanel ? "col-start-2 self-start" : ""}`}>{`${placeholder ? 0 : slices.length} ${lang === "ar" ? "جوائز" : "prizes"}`}</p>
       )}
+
+      {(layout === "show" || layout === "studio") && !placeholder ? (
+        <div className={layout === "show" ? "grid w-full grid-cols-3 gap-2 border-t border-white/10 pt-4" : "col-start-2 space-y-2 border-t border-white/10 pt-3"}>
+          {slices.filter(slice => !slice.placeholder).slice(0, 3).map((slice, index) => <div key={index} className={layout === "show" ? "flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-white/5 bg-white/[0.025] px-2 py-3 text-center" : "flex items-center gap-2 text-start"}>
+            <span className="font-mono text-[9px] opacity-35" dir="ltr">{String(index + 1).padStart(2, "0")}</span>
+            <span className="min-w-0 truncate text-[10px]" dir="auto">{slice.label}</span>
+          </div>)}
+        </div>
+      ) : null}
 
       {onSpin ? (
         <button

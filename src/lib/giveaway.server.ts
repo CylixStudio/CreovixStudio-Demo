@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/supabase/types";
+import { normalizeGiveawayLayout, type GiveawayLayout } from "@/lib/giveawayLayouts";
 
 export type GiveawayPlatform = "KICK" | "TWITCH" | "YOUTUBE" | "TIKTOK";
 
@@ -12,8 +13,7 @@ export type EntryInput = {
 };
 
 export type EntryResult =
-  | { status: "ignored"; reason: string }
-  | { status: "entered"; entries: number };
+  { status: "ignored"; reason: string } | { status: "entered"; entries: number };
 
 type Admin = SupabaseClient<Database>;
 
@@ -35,7 +35,8 @@ export async function captureGiveawayEntry(
   input: EntryInput,
 ): Promise<EntryResult> {
   const { userHasActivePro } = await import("@/lib/subscription.server");
-  if (!(await userHasActivePro(admin, userId))) return { status: "ignored", reason: "pro_required" };
+  if (!(await userHasActivePro(admin, userId)))
+    return { status: "ignored", reason: "pro_required" };
 
   const { data: settings } = await admin
     .from("giveaway_settings")
@@ -89,7 +90,7 @@ export type StoredGiveawayDraw = {
   pending_winner: GiveawayPendingWinner | null;
   confirmed_at: string | null;
   confirm_nonce: string | null;
-  overlayLayout: "glass" | "direct" | "bold";
+  overlayLayout: GiveawayLayout;
 };
 
 function asRecord(raw: unknown): Record<string, unknown> | null {
@@ -128,7 +129,8 @@ export function readGiveawayDraw(raw: unknown): StoredGiveawayDraw {
             platform: typeof winnerPlatform === "string" ? winnerPlatform : "",
           }
         : null,
-    claimState: claim === "confirmed" || claim === "expired" || claim === "pending" ? claim : "pending",
+    claimState:
+      claim === "confirmed" || claim === "expired" || claim === "pending" ? claim : "pending",
     claimUntil: typeof claimUntil === "string" ? claimUntil : null,
     keyword: typeof keyword === "string" ? keyword : "",
     pending_winner:
@@ -141,7 +143,7 @@ export function readGiveawayDraw(raw: unknown): StoredGiveawayDraw {
         : null,
     confirmed_at: typeof confirmedAt === "string" ? confirmedAt : null,
     confirm_nonce: typeof nonce === "string" ? nonce : null,
-    overlayLayout: field(value, "overlayLayout") === "direct" || field(value, "overlayLayout") === "bold" ? (field(value, "overlayLayout") as "direct" | "bold") : "glass",
+    overlayLayout: normalizeGiveawayLayout(field(value, "overlayLayout")),
   };
 }
 
@@ -152,8 +154,7 @@ export type ConfirmInput = {
 };
 
 export type ConfirmResult =
-  | { status: "confirmed"; confirmedAt: string }
-  | { status: "ignored"; reason: string };
+  { status: "confirmed"; confirmedAt: string } | { status: "ignored"; reason: string };
 
 /**
  * A pending winner confirms they are present by sending a chat message that
@@ -166,7 +167,8 @@ export async function confirmGiveawayPresence(
   input: ConfirmInput,
 ): Promise<ConfirmResult> {
   const { userHasActivePro } = await import("@/lib/subscription.server");
-  if (!(await userHasActivePro(admin, userId))) return { status: "ignored", reason: "pro_required" };
+  if (!(await userHasActivePro(admin, userId)))
+    return { status: "ignored", reason: "pro_required" };
   if (input.isTest) return { status: "ignored", reason: "test" };
 
   const username = input.username.trim();

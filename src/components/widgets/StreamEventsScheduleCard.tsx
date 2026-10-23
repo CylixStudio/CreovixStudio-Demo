@@ -7,7 +7,7 @@ import {
   resolveStreamSchedule,
   type StreamEventsRuntime,
 } from "@/lib/streamEventsSchedule";
-import { parseStreamEventsScheduleConfig, parseStreamEventsScheduleState } from "@/lib/widgets";
+import { parseStreamEventsScheduleConfig } from "@/lib/widgets";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 import { chromeLayoutClass, parseChromeLayout } from "@/lib/widgetLayouts";
@@ -94,8 +94,272 @@ export function StreamEventsScheduleCard({
   );
 
   const chrome = parseChromeLayout(config);
+  if (style.layout !== "direct" && style.layout !== "timeline") {
+    const agenda = style.layout === "agenda";
+    const calendar = style.layout === "calendar";
+    const bold = style.layout === "bold";
+    const roadmap = style.layout === "roadmap";
+    const spotlight = style.layout === "spotlight";
+    const glass = style.layout === "glass";
+    const currentColor =
+      urgency === "critical" ? "#fb7185" : urgency === "warn" ? "#fcd34d" : style.accentColor;
+    const clock = (
+      <span
+        dir="ltr"
+        className={cn(
+          "font-mono font-bold tabular-nums",
+          urgency === "critical" && "animate-pulse",
+        )}
+        style={{
+          color: currentColor,
+          fontSize: `${Math.max(24, Math.round(style.fontSize * (bold ? 1.8 : spotlight ? 1.5 : 1.1)))}px`,
+        }}
+      >
+        {countdown}
+      </span>
+    );
+    return (
+      <section
+        data-layout-content
+        dir={dir}
+        data-schedule-layout={style.layout}
+        className={cn(
+          "w-full overflow-hidden border border-white/10 text-zinc-100",
+          bold ? "border-t-4" : "rounded-2xl",
+          glass ? "bg-[#0a0a0a]/75 backdrop-blur-2xl" : "bg-[#0a0a0a]",
+          compact ? "p-3" : "p-4",
+        )}
+        style={{
+          fontFamily: style.fontFamily,
+          borderTopColor: bold ? style.accentColor : undefined,
+        }}
+      >
+        <header className="flex min-w-0 items-center justify-between gap-3">
+          <h2 className="min-w-0 truncate text-sm font-semibold" dir="auto">
+            {style.title}
+          </h2>
+          <span
+            className="shrink-0 text-[0.55rem] font-bold uppercase tracking-widest"
+            style={{ color: style.accentColor }}
+          >
+            {badge}
+          </span>
+        </header>
+
+        {!agenda && !calendar && !roadmap ? (
+          <div
+            className={cn(
+              "my-4",
+              glass && "rounded-xl border border-white/10 bg-white/[0.04] p-4",
+              bold && "flex flex-col border-b border-white/20 pb-4",
+              spotlight && "flex flex-col items-center text-center",
+            )}
+          >
+            {spotlight ? (
+              <div
+                className="mb-3 grid size-36 place-items-center rounded-full border-[3px] shadow-[0_0_35px_rgba(190,225,252,.06)]"
+                style={{ borderColor: currentColor }}
+              >
+                {clock}
+              </div>
+            ) : (
+              <div
+                className={cn("flex items-center justify-between gap-3", bold && "order-2 mt-2")}
+              >
+                {clock}
+                {glass ? <Clock3 className="size-6 text-white/20" aria-hidden /> : null}
+              </div>
+            )}
+            <p
+              className={cn(
+                "break-words font-semibold",
+                bold ? "text-2xl font-black leading-tight" : "mt-2 text-base",
+              )}
+              dir="auto"
+            >
+              {eventTitle}
+            </p>
+            {snapshot.status === "active" && snapshot.next ? (
+              <p className="mt-2 text-xs text-zinc-500" dir="auto">
+                {t("scheduleCard.next", { title: snapshot.next.title })}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div
+          className={cn(
+            "mt-4",
+            calendar
+              ? "grid grid-cols-2 gap-2"
+              : glass
+                ? "flex gap-2 overflow-x-auto pb-2"
+                : spotlight
+                  ? "flex flex-wrap justify-center gap-1.5"
+                  : roadmap
+                    ? "relative space-y-4 py-2"
+                    : "space-y-0",
+          )}
+        >
+          {roadmap ? (
+            <div className="absolute inset-y-2 start-1/2 w-px bg-white/10" aria-hidden />
+          ) : null}
+          {style.events.map((event, index) => {
+            const current = index === activeIndex;
+            const passed = activeIndex > index;
+            return (
+              <div
+                key={event.id}
+                className={cn(
+                  "relative min-w-0",
+                  calendar
+                    ? "flex min-h-32 flex-col rounded-lg border p-3"
+                    : agenda
+                      ? "grid grid-cols-[3.5rem_minmax(0,1fr)] gap-3 border-b border-white/[.07] py-3"
+                      : bold
+                        ? "flex items-center gap-3 border-b border-white/10 py-3"
+                        : roadmap
+                          ? "w-[calc(50%-10px)] rounded-xl border p-3"
+                          : spotlight
+                            ? "max-w-full rounded-full border px-3 py-1.5 text-xs"
+                            : "flex w-28 shrink-0 flex-col rounded-lg border p-3",
+                  passed && "opacity-40",
+                  roadmap && (index % 2 === 0 ? "me-auto" : "ms-auto"),
+                )}
+                style={{
+                  borderColor: current ? style.accentColor : "rgba(255,255,255,.1)",
+                  background: current ? "rgba(190,225,252,.06)" : undefined,
+                }}
+              >
+                {agenda ? (
+                  <span dir="ltr" className="pt-1 font-mono text-xs tabular-nums text-zinc-500">
+                    {formatCountdown(cumulativeStarts[index] ?? 0)}
+                  </span>
+                ) : null}
+                {!agenda && !spotlight ? (
+                  <span
+                    dir="ltr"
+                    className={cn(
+                      "font-mono font-bold tabular-nums",
+                      bold ? "w-9 shrink-0 text-3xl" : "mb-2 text-xs",
+                    )}
+                    style={{ color: current ? style.accentColor : "#71717a" }}
+                  >
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                ) : null}
+                <div
+                  className={cn("min-w-0", bold && "flex-1", calendar && "flex flex-1 flex-col")}
+                >
+                  <p
+                    dir="auto"
+                    className={cn(
+                      "break-words font-semibold",
+                      bold
+                        ? "text-base"
+                        : spotlight
+                          ? "truncate text-[0.65rem]"
+                          : "text-xs leading-relaxed",
+                    )}
+                  >
+                    {event.title}
+                  </p>
+                  {!spotlight ? (
+                    <div
+                      className={cn(
+                        "mt-2 flex flex-wrap items-center justify-between gap-1",
+                        calendar && "mt-auto pt-3",
+                      )}
+                    >
+                      <span
+                        dir="ltr"
+                        className="font-mono text-[0.6rem] tabular-nums text-zinc-500"
+                      >
+                        {calendar || roadmap
+                          ? `${formatCountdown(cumulativeStarts[index] ?? 0)} · `
+                          : ""}
+                        {formatCountdown(event.durationSeconds)}
+                      </span>
+                      {current ? (
+                        <span
+                          className="text-[0.5rem] font-bold uppercase"
+                          style={{ color: style.accentColor }}
+                        >
+                          {badge}
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {current && (agenda || calendar || roadmap) ? (
+                    <div className="mt-1">{clock}</div>
+                  ) : null}
+                </div>
+                {roadmap ? (
+                  <span
+                    className={cn(
+                      "absolute top-5 size-2 rounded-full",
+                      index % 2 === 0 ? "-end-[15px]" : "-start-[15px]",
+                    )}
+                    style={{
+                      background: current ? style.accentColor : passed ? "#71717a" : "#27272a",
+                    }}
+                    aria-hidden
+                  />
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+        {(agenda || calendar || roadmap) && snapshot.status !== "active" ? (
+          <div className="mt-4 border-t border-white/10 pt-3">
+            <p className="text-sm text-zinc-400" dir="auto">
+              {eventTitle}
+            </p>
+            {clock}
+          </div>
+        ) : null}
+        <footer className="mt-4 flex items-center justify-between gap-2 border-t border-white/[.06] pt-3">
+          <span className="flex items-center gap-2 text-[0.55rem] uppercase tracking-widest text-zinc-500">
+            <span
+              className="size-1.5 rounded-full"
+              style={{
+                background: effectiveRuntime.startedAt || demo ? style.accentColor : "#52525b",
+              }}
+            />
+            {t("scheduleCard.live")}
+            {style.showUptime ? (
+              <span dir="ltr" className="font-mono normal-case tabular-nums tracking-normal">
+                {formatUptime(uptimeSeconds)}
+              </span>
+            ) : null}
+          </span>
+          {showNav ? (
+            <div className="flex gap-1">
+              <button
+                type="button"
+                onClick={onPrevious}
+                aria-label={dir === "rtl" ? "الفعالية السابقة" : "Previous event"}
+                className="rounded-lg border border-white/10 p-1.5"
+              >
+                <ChevronLeft className="size-3.5 rtl:rotate-180" />
+              </button>
+              <button
+                type="button"
+                onClick={onNext}
+                aria-label={dir === "rtl" ? "الفعالية التالية" : "Next event"}
+                className="rounded-lg border border-white/10 p-1.5"
+              >
+                <ChevronRight className="size-3.5 rtl:rotate-180" />
+              </button>
+            </div>
+          ) : null}
+        </footer>
+      </section>
+    );
+  }
   return (
     <div
+      data-layout-content
       className={cn(
         "w-full overflow-hidden rounded-2xl border border-white/10 shadow-[0_18px_60px_rgba(0,0,0,.4)]",
         chrome === "glass" ? "bg-[#0c0e14]/78 backdrop-blur-xl" : "bg-zinc-950",
@@ -106,51 +370,6 @@ export function StreamEventsScheduleCard({
       dir={dir}
       style={{ fontFamily: style.fontFamily, fontSize: `${style.fontSize}px` }}
     >
-      {style.layout === "agenda" ? (
-        <div className="mt-3 space-y-1.5">
-          {style.events.map((event, index) => {
-            const current = index === activeIndex;
-            const passed = activeIndex > index;
-            return (
-              <div
-                key={event.id}
-                className={cn(
-                  "flex min-w-0 items-center gap-3 rounded-xl border px-3 py-2",
-                  current ? "border-white/20 bg-white/10" : "border-white/5 bg-white/[0.025]",
-                )}
-                style={{
-                  borderInlineStart: `3px solid ${current ? style.accentColor : "transparent"}`,
-                }}
-              >
-                <span
-                  className="w-8 shrink-0 font-mono text-xs tabular-nums text-zinc-500"
-                  dir="ltr"
-                >
-                  {(index + 1).toLocaleString("en-US").padStart(2, "0")}
-                </span>
-                <span
-                  className={cn(
-                    "min-w-0 flex-1 truncate text-sm",
-                    passed ? "text-zinc-500" : "text-zinc-100",
-                  )}
-                  dir="auto"
-                >
-                  {event.title}
-                </span>
-                <span className="shrink-0 font-mono text-xs tabular-nums text-zinc-400" dir="ltr">
-                  {formatCountdown(event.durationSeconds)}
-                </span>
-                {current ? (
-                  <span className="shrink-0 text-[0.58rem] font-bold uppercase text-sky-200">
-                    {badge}
-                  </span>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-      ) : null}
-
       {style.layout === "timeline" ? (
         <div className="mt-4 flex items-stretch gap-0 overflow-x-auto pb-1">
           {style.events.map((event, index) => {
@@ -194,44 +413,6 @@ export function StreamEventsScheduleCard({
                     style={{ background: passed ? style.accentColor : "rgba(255,255,255,.18)" }}
                   />
                 ) : null}
-              </div>
-            );
-          })}
-        </div>
-      ) : null}
-
-      {style.layout === "calendar" ? (
-        <div className="mt-3 grid grid-cols-2 gap-1.5">
-          {style.events.map((event, index) => {
-            const current = index === activeIndex;
-            const passed = activeIndex > index;
-            return (
-              <div
-                key={event.id}
-                className={cn(
-                  "flex min-h-[92px] min-w-[140px] flex-col rounded-xl border p-2",
-                  current ? "bg-white/10" : "bg-white/[0.025]",
-                )}
-                style={{ borderColor: current ? style.accentColor : "rgba(255,255,255,.08)" }}
-              >
-                <span className="font-mono text-[0.62rem] tabular-nums text-zinc-500" dir="ltr">
-                  {formatCountdown(cumulativeStarts[index] ?? 0)}
-                </span>
-                <span
-                  className={cn(
-                    "mt-1 break-words text-[0.68rem] font-semibold leading-tight",
-                    passed ? "text-zinc-500" : "text-zinc-100",
-                  )}
-                  dir="auto"
-                >
-                  {event.title}
-                </span>
-                <span
-                  className="mt-auto pt-1 font-mono text-[0.6rem] tabular-nums text-zinc-400"
-                  dir="ltr"
-                >
-                  {formatCountdown(event.durationSeconds)}
-                </span>
               </div>
             );
           })}

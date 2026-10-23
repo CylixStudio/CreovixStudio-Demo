@@ -4,6 +4,8 @@ import { useLanguage } from "@/lib/i18n";
 import { isProWidgetLayout } from "@/lib/widgetLayoutAccess";
 import { useSubscription } from "@/hooks/useSubscription";
 import { DEMO_USER_ID } from "@/lib/demoMode";
+import { LayoutThumbnail } from "@/components/widgets/LayoutThumbnail";
+import { Check, LockKeyhole } from "lucide-react";
 
 export const WidgetLayoutTypeContext = createContext("");
 
@@ -141,33 +143,26 @@ export function LayoutCards({
                 setLocked(false);
                 onSelect(option.value);
               }}
-              className={`group min-w-0 overflow-hidden rounded-xl border text-start transition-colors ${
-                selected ? "border-primary bg-primary/10" : "border-white/10 hover:border-white/25"
+              className={`group relative min-w-0 overflow-hidden rounded-2xl border text-start shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] transition-[border-color,background-color,box-shadow] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                selected ? "border-primary/80 bg-primary/[0.07] shadow-[0_0_0_1px_rgba(190,225,252,0.12)]" : "border-white/10 bg-[#111113] hover:border-white/30 hover:bg-[#171719]"
               }`}
             >
               <span
                 aria-hidden
                 dir="ltr"
-                className="pointer-events-none relative block h-24 overflow-hidden bg-[repeating-conic-gradient(#161616_0%_25%,#101010_0%_50%)] bg-[length:16px_16px]"
+                className="pointer-events-none relative block overflow-hidden border-b border-white/[0.06] bg-[radial-gradient(ellipse_at_center,#242427_0%,#131315_75%)]"
               >
-                <span
-                  className={
-                    mini
-                      ? "block"
-                      : "absolute left-0 top-0 grid h-[333.33%] w-[333.33%] origin-top-left scale-[0.3] place-items-center"
-                  }
-                >
-                  {renderPreview(option.value)}
-                </span>
+                {mini ? renderPreview(option.value) : <LayoutThumbnail>{renderPreview(option.value)}</LayoutThumbnail>}
+                {selected ? <span className="absolute end-2 top-2 grid size-5 place-items-center rounded-full bg-primary text-black"><Check size={12} /></span> : null}
               </span>
-              <span className="block px-2.5 py-2">
+              <span className="block px-3 py-3">
                 <span
                   className={`flex items-center justify-between gap-1 text-xs font-semibold ${selected ? "text-primary" : ""}`}
                 >
-                  {option.label}
+                  <span className="min-w-0 text-[11px] leading-relaxed">{option.label}</span>
                   {pro ? (
-                    <span className="shrink-0 rounded-md border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[9px] text-primary">
-                      PRO
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-primary/25 bg-primary/10 px-1.5 py-1 text-[9px] font-bold tracking-wide text-primary">
+                      <LockKeyhole size={9} /> PRO
                     </span>
                   ) : null}
                 </span>

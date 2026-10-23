@@ -33,6 +33,7 @@ export type ToolCardProps = {
   /** Grid placement only. Does not change the card chrome. */
   className?: string;
   style?: CSSProperties;
+  variant?: "standard" | "interactive";
 };
 
 export function ToolCard({
@@ -56,6 +57,7 @@ export function ToolCard({
   comingSoon = false,
   className,
   style,
+  variant = "standard",
 }: ToolCardProps) {
   const { t } = useLanguage();
   const resolvedDeleteLabel = deleteLabel === "Delete widget" ? t("home.delete") : deleteLabel;
@@ -83,7 +85,8 @@ export function ToolCard({
 
   return (
     <div
-      className={`glass-3d glass-lift relative flex h-full flex-col overflow-visible rounded-2xl p-4 text-start transition-[opacity,transform] duration-300 ease-out ${
+      data-tool-card={variant}
+      className={`${variant === "interactive" ? "group border border-white/10 bg-[#141416] shadow-[inset_0_1px_0_rgba(255,255,255,0.045),0_10px_35px_-20px_rgba(0,0,0,0.7)] hover:border-white/20 hover:bg-[#18181a]" : "glass-3d glass-lift"} relative flex h-full flex-col overflow-visible rounded-2xl p-4 text-start transition-[opacity,transform,background-color,border-color] duration-300 ease-out ${
         removing ? "pointer-events-none scale-95 opacity-0" : "scale-100 opacity-100"
       } ${comingSoon ? "pointer-events-none opacity-60" : ""} ${className ?? ""}`}
       style={style}
@@ -100,7 +103,7 @@ export function ToolCard({
         </button>
       ) : null}
 
-      <div className="relative h-[132px] overflow-hidden rounded-xl border border-[oklch(1_0_0/0.06)] bg-[oklch(1_0_0/0.02)]">
+      <div className={`relative h-[132px] overflow-hidden rounded-xl border border-white/[0.06] ${variant === "interactive" ? "bg-[radial-gradient(ellipse_at_top,#262628,#101012)] shadow-inner" : "bg-[oklch(1_0_0/0.02)]"}`}>
         <div className={`h-full overflow-hidden ${previewLocked ? "blur-[3px] saturate-50" : ""}`}>
           {preview}
         </div>
@@ -157,7 +160,7 @@ export function ToolCard({
         </div>
       </div>
 
-      <div className="relative mt-auto flex items-center justify-between gap-2 pt-4">
+      <div className={`relative mt-auto flex items-center justify-between gap-2 pt-4 ${variant === "interactive" ? "mt-4 border-t border-white/[0.06]" : ""}`}>
         <span className="flex items-center gap-1.5 text-[0.58rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
           {status ? (
             <span

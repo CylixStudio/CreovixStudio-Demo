@@ -1356,6 +1356,8 @@ export const EN = {
   "sub.layout.split_clock.hint": "Individual timer blocks with a compact status rail",
   "sub.layout.broadcast": "Broadcast panel",
   "sub.layout.broadcast.hint": "Large live timer with a separate broadcast identity column",
+  "sub.layout.tower": "Timer Tower",
+  "sub.layout.tower.hint": "Vertical countdown with stacked time units",
   "layout.wheel.classic": "Classic circular wheel",
   "layout.wheel.glow": "Glow wheel",
   "layout.wheel.compact": "Compact wheel",

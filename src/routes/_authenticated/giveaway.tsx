@@ -8,11 +8,17 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/layout/AppShell";
 import { DarkSelect } from "@/components/ui/dark-select";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { GiveawayDisplay, ParticipantAvatar, type DrawPhase } from "@/components/widgets/GiveawayDisplay";
-import { ProFeatureGate } from "@/components/subscription/ProLockedScreen";
+import {
+  GiveawayDisplay,
+  ParticipantAvatar,
+  type DrawPhase,
+} from "@/components/widgets/GiveawayDisplay";
+import { DemoLayoutPlanSwitch } from "@/components/widgets/DemoLayoutPlanSwitch";
+import { LayoutCards } from "@/components/widgets/builderUi";
 import { notePlanError } from "@/components/subscription/upgradePlan";
 import { useLiveChat } from "@/hooks/useLiveChat";
 import { useWorkspace } from "@/hooks/useWorkspace";
+import { useSubscription } from "@/hooks/useSubscription";
 import {
   DEFAULT_GIVEAWAY,
   announceGiveawayWinner,
@@ -25,11 +31,18 @@ import {
   joinGiveaway,
   pickGiveawayWinner,
   saveGiveawaySettings,
+  saveGiveawayLayout,
   type GiveawayDrawState,
   type GiveawaySettings,
 } from "@/lib/giveaway.functions";
 import { useLanguage } from "@/lib/i18n";
 import { isTestMode } from "@/lib/testMode";
+import {
+  GIVEAWAY_LAYOUTS,
+  normalizeGiveawayLayout,
+  type GiveawayLayout,
+} from "@/lib/giveawayLayouts";
+import { isProWidgetLayout } from "@/lib/widgetLayoutAccess";
 
 export const Route = createFileRoute("/_authenticated/giveaway")({
   head: () => ({
@@ -53,17 +66,13 @@ export const Route = createFileRoute("/_authenticated/giveaway")({
 });
 
 function GiveawayRoute() {
-  const { user } = Route.useRouteContext();
-  return (
-    <ProFeatureGate userId={user.id}>
-      <GiveawayPage />
-    </ProFeatureGate>
-  );
+  return <GiveawayPage />;
 }
 
 const field =
   "w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-foreground outline-none focus:border-zinc-600";
-const label = "mb-1.5 block text-[0.68rem] font-medium uppercase tracking-wide text-muted-foreground";
+const label =
+  "mb-1.5 block text-[0.68rem] font-medium uppercase tracking-wide text-muted-foreground";
 const primary =
   "inline-flex items-center gap-2 rounded-full bg-[#bee1fc] px-5 py-2.5 text-sm font-semibold text-[#0a0a0a] transition-opacity hover:opacity-90 disabled:opacity-40";
 const selectClass = "h-10 rounded-xl border-zinc-800 bg-zinc-900";
@@ -71,6 +80,14 @@ const selectClass = "h-10 rounded-xl border-zinc-800 bg-zinc-900";
 const SPIN_DURATIONS = [3, 5, 8, 10, 15];
 const CLAIM_WINDOWS = [60, 120, 300, 600];
 const MULTIPLIERS = [1, 2, 3, 5, 10];
+const PREVIEW_PARTICIPANTS = [
+  { id: "preview-1", username: "Nova", platform: "TWITCH" },
+  { id: "preview-2", username: "ليان", platform: "KICK" },
+  { id: "preview-3", username: "Mira", platform: "YOUTUBE" },
+  { id: "preview-4", username: "فهد", platform: "KICK" },
+  { id: "preview-5", username: "Alex", platform: "TIKTOK" },
+  { id: "preview-6", username: "سارة", platform: "TWITCH" },
+];
 
 const avatarKey = (platform: string, username: string) =>
   `${platform.toUpperCase()}:${username.toLowerCase()}`;
@@ -79,6 +96,7 @@ function formatEntered(iso: string, lang: string) {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
   return new Intl.DateTimeFormat(lang === "ar" ? "ar" : "en", {
+    numberingSystem: "latn",
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -92,6 +110,8 @@ function GiveawayPage() {
   const { t, lang } = useLanguage();
   const queryClient = useQueryClient();
   const guest = isTestMode();
+  const subscription = useSubscription(user.id);
+  const proActive = subscription.data?.isActive === true;
 
   const fetchState = useServerFn(getGiveawayState);
   const fetchSources = useServerFn(getGiveawayChatSources);
@@ -103,6 +123,7 @@ function GiveawayPage() {
   const publishDraw = useServerFn(publishGiveawayDraw);
   const confirmChat = useServerFn(confirmGiveawayFromChat);
   const fetchOverlayToken = useServerFn(getGiveawayOverlayToken);
+  const saveLayout = useServerFn(saveGiveawayLayout);
 
   const state = useQuery({
     queryKey: ["giveaway"],
@@ -114,18 +135,20 @@ function GiveawayPage() {
   const sources = useQuery({
     queryKey: ["giveaway-chat-sources"],
     queryFn: () => fetchSources(),
-    enabled: !guest,
+    enabled: !guest && proActive,
     retry: false,
   });
   const overlay = useQuery({
     queryKey: ["giveaway-overlay-token"],
     queryFn: () => fetchOverlayToken(),
-    enabled: !guest,
+    enabled: !guest && proActive,
     retry: false,
   });
-  const overlayUrl = overlay.data?.overlayUrl || "";
+  const overlayUrl = proActive ? overlay.data?.overlayUrl || "" : "";
 
   const [form, setForm] = useState<GiveawaySettings>(DEFAULT_GIVEAWAY);
+  const [layout, setLayout] = useState<GiveawayLayout>("glass");
+  const layoutLoaded = useRef(false);
   const loaded = useRef(false);
   useEffect(() => {
     if (state.data?.settings && !loaded.current) {
@@ -133,6 +156,28 @@ function GiveawayPage() {
       loaded.current = true;
     }
   }, [state.data]);
+  useEffect(() => {
+    if (state.data && !layoutLoaded.current) {
+      setLayout(normalizeGiveawayLayout(state.data.overlayLayout));
+      layoutLoaded.current = true;
+    }
+  }, [state.data]);
+  const displayLayout = !proActive && isProWidgetLayout("GIVEAWAY", { layout }) ? "glass" : layout;
+  const layoutMutation = useMutation({
+    mutationFn: (next: GiveawayLayout) => saveLayout({ data: { layout: next } }),
+    onSuccess: (result, next) => {
+      if (!result.ok) {
+        if (!notePlanError(result.error)) toast.error(result.error);
+        return;
+      }
+      setLayout(next);
+      toast.success(t("giveaway.saved"));
+      void queryClient.invalidateQueries({ queryKey: ["giveaway"] });
+    },
+    onError: (error: Error) => {
+      if (!notePlanError(error)) toast.error(error.message);
+    },
+  });
 
   const [avatars, setAvatars] = useState<Record<string, string>>({});
   const participants = useMemo(
@@ -205,7 +250,7 @@ function GiveawayPage() {
   // ---- Live keyword capture from the connected chats (Twitch + Kick) ----
   const seen = useRef(new Set<string>());
   useLiveChat(
-    sources.data
+    proActive && sources.data
       ? {
           twitchChannel: sources.data.twitchChannel,
           kickChatroomId: sources.data.kickChatroomId,
@@ -288,7 +333,7 @@ function GiveawayPage() {
   });
 
   const runDraw = async () => {
-    if (!participants.length || spinning) return;
+    if (!participants.length || spinning || !proActive) return;
     const started = Date.now();
     setSpinning(true);
     setWinner(null);
@@ -327,8 +372,7 @@ function GiveawayPage() {
     }).catch(() => undefined);
   };
 
-  const minutes = (n: number) =>
-    n === 1 ? t("giveaway.minutes1") : t("giveaway.minutesN", { n });
+  const minutes = (n: number) => (n === 1 ? t("giveaway.minutes1") : t("giveaway.minutesN", { n }));
 
   return (
     <AppShell
@@ -338,7 +382,68 @@ function GiveawayPage() {
       subtitle={t("giveaway.subtitle")}
     >
       <div className="flex flex-col gap-12 lg:gap-16">
-        <div className="flex flex-wrap items-end gap-x-5 gap-y-5">
+        <section
+          className="min-w-0 space-y-4"
+          aria-label={lang === "ar" ? "تصميم السحب" : "Giveaway design"}
+        >
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 className="text-base font-semibold">
+                {lang === "ar" ? "تصميم السحب" : "Giveaway design"}
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {lang === "ar"
+                  ? "8 تصاميم · 2 مجاناً و6 برو. المعاينات فقط تستخدم أسماء توضيحية."
+                  : "8 layouts · 2 Free and 6 Pro. Only these thumbnails use sample names."}
+              </p>
+            </div>
+            <DemoLayoutPlanSwitch userId={user.id} className="sm:max-w-sm" />
+          </div>
+          <LayoutCards
+            widgetType="GIVEAWAY"
+            options={GIVEAWAY_LAYOUTS.map((option) => ({
+              value: option.value,
+              label: lang === "ar" ? option.ar : option.en,
+              hint: lang === "ar" ? option.hintAr : option.hintEn,
+            }))}
+            value={layout}
+            onSelect={(next) => {
+              if (!layoutMutation.isPending) layoutMutation.mutate(normalizeGiveawayLayout(next));
+            }}
+            ariaLabel={lang === "ar" ? "تخطيط السحب" : "Giveaway layout"}
+            renderPreview={(next) => (
+              <div className="aspect-video w-full">
+                <GiveawayDisplay
+                  participants={PREVIEW_PARTICIPANTS}
+                  winner={PREVIEW_PARTICIPANTS[0]!}
+                  phase="settled"
+                  claimState="pending"
+                  claimLeft={120}
+                  keyword="+1"
+                  expanded={false}
+                  transparent
+                  layout={normalizeGiveawayLayout(next)}
+                />
+              </div>
+            )}
+          />
+          {layoutMutation.isPending ? (
+            <p className="text-xs text-muted-foreground" role="status">
+              {lang === "ar" ? "جارٍ حفظ التصميم…" : "Saving layout…"}
+            </p>
+          ) : null}
+          {!proActive && (
+            <p className="rounded-xl border border-border bg-muted/20 p-3 text-sm text-muted-foreground">
+              {lang === "ar"
+                ? "التصميمان المجانيان متاحان للمعاينة والحفظ. تشغيل السحب وربط الشات ومصدر OBS تتطلب برو. لا يتغير أي تصميم برو محفوظ عند تبديل الخطة."
+                : "The two Free layouts can be previewed and saved. Live draws, chat capture, and the OBS source require Pro. Switching plans does not overwrite a saved Pro layout."}
+            </p>
+          )}
+        </section>
+        <fieldset
+          disabled={!proActive}
+          className="flex min-w-0 flex-wrap items-end gap-x-5 gap-y-5 disabled:opacity-60"
+        >
           <label className="min-w-[8.5rem] flex-1 basis-40 sm:max-w-[13rem]">
             <span className={label}>{t("giveaway.keyword")}</span>
             <input
@@ -386,9 +491,7 @@ function GiveawayPage() {
               options={CLAIM_WINDOWS.map((seconds) => ({
                 value: String(seconds),
                 label:
-                  seconds >= 60
-                    ? minutes(seconds / 60)
-                    : t("giveaway.seconds", { n: seconds }),
+                  seconds >= 60 ? minutes(seconds / 60) : t("giveaway.seconds", { n: seconds }),
               }))}
             />
           </label>
@@ -428,7 +531,7 @@ function GiveawayPage() {
               {t("giveaway.clear")}
             </button>
           </div>
-        </div>
+        </fieldset>
 
         <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_15.5rem] lg:gap-14">
           <div className="min-w-0">
@@ -449,15 +552,16 @@ function GiveawayPage() {
                   keyword={form.keyword}
                   lastWinner={state.data?.lastWinner}
                   expanded={false}
+                  layout={displayLayout}
                   onToggleExpand={() => setExpanded(true)}
-                  onReroll={() => void runDraw()}
+                  onReroll={proActive ? () => void runDraw() : undefined}
                 />
               </div>
               <div className="mt-5 flex justify-center">
                 <button
                   type="button"
                   onClick={() => void runDraw()}
-                  disabled={spinning || participants.length === 0}
+                  disabled={!proActive || spinning || participants.length === 0}
                   className={primary}
                 >
                   {spinning ? (
@@ -497,7 +601,9 @@ function GiveawayPage() {
                       ringWidth={2}
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm" dir="auto">{participant.username}</p>
+                      <p className="truncate text-sm" dir="auto">
+                        {participant.username}
+                      </p>
                       {participant.createdAt ? (
                         <p className="text-[0.68rem] text-muted-foreground">
                           {t("giveaway.enteredAt", {
@@ -553,8 +659,9 @@ function GiveawayPage() {
             keyword={form.keyword}
             lastWinner={state.data?.lastWinner}
             expanded
+            layout={displayLayout}
             onToggleExpand={() => setExpanded(false)}
-            onReroll={() => void runDraw()}
+            onReroll={proActive ? () => void runDraw() : undefined}
           />
         </DialogContent>
       </Dialog>

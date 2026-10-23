@@ -22,7 +22,7 @@ import {
   isSplitGoalKind,
   type WidgetType,
 } from "@/lib/widgets";
-import { GOAL_LAYOUTS, parseGoalLayout } from "@/lib/widgetLayouts";
+import { GOAL_LAYOUTS, parseGoalLayout, widgetLayoutLabel } from "@/lib/widgetLayouts";
 
 export type GoalKind = "donation" | "follower" | "subscriber" | "kicks" | "bar";
 
@@ -97,7 +97,7 @@ export function GoalWidgetFields({
   progressExtra?: ReactNode;
   testPanel?: ReactNode;
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [pane, setPane] = useState<Pane>("layout");
   const [custom, setCustom] = useState("");
   const style = parseGoalConfig(config);
@@ -125,7 +125,7 @@ export function GoalWidgetFields({
               onChange={(id) => set("layout", parseGoalLayout({ layout: id }))}
               options={GOAL_LAYOUTS.map((id) => ({
                 id,
-                label: t(`layout.goal.${id}`),
+                label: widgetLayoutLabel("goal", id, lang),
                 mini: (
                   <GoalMini
                     layout={id}

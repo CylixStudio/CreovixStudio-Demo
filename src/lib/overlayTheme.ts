@@ -5,7 +5,15 @@
  * tolerates missing/legacy keys and always returns a complete theme.
  */
 
-export type OverlayLayout = "island" | "cute_heart" | "circular_pomodoro" | "multi_ring_countdown" | "raw_digits" | "split_clock" | "broadcast";
+export type OverlayLayout =
+  | "island"
+  | "cute_heart"
+  | "circular_pomodoro"
+  | "multi_ring_countdown"
+  | "raw_digits"
+  | "split_clock"
+  | "broadcast"
+  | "tower";
 export type OverlayAnimation = "none" | "pulse" | "flash" | "bounce";
 export type OverlayTimeFormat = "dhms" | "hms" | "ms";
 
@@ -52,7 +60,7 @@ export const DEFAULT_OVERLAY_THEME: OverlayTheme = {
 export const OVERLAY_TIME_FORMATS: {
   value: OverlayTimeFormat;
   label: string;
-  }[] = [
+}[] = [
   { value: "dhms", label: "Days, Hours, Minutes, Seconds" },
   { value: "hms", label: "Hours, Minutes, Seconds" },
   { value: "ms", label: "Minutes, Seconds" },
@@ -76,10 +84,13 @@ export function formatOverlayTime(totalSeconds: number, format: OverlayTimeForma
 export const OVERLAY_LAYOUTS: {
   value: OverlayLayout;
   label: string;
-    hint: string;
+  hint: string;
 }[] = [
-  { value: "split_clock", label: "Split clock", hint: "Individual timer blocks" },
-  { value: "broadcast", label: "Broadcast panel", hint: "Timer and broadcast identity columns" },
+  {
+    value: "raw_digits",
+    label: "Raw Digits",
+    hint: "Borderless transparent digits only",
+  },
   {
     value: "island",
     label: "Dynamic Island",
@@ -90,6 +101,8 @@ export const OVERLAY_LAYOUTS: {
     label: "Cute Heart",
     hint: "Dark capsule with a pink heart badge",
   },
+  { value: "broadcast", label: "Broadcast panel", hint: "Timer and broadcast identity columns" },
+  { value: "split_clock", label: "Split clock", hint: "Individual flip-clock timer blocks" },
   {
     value: "circular_pomodoro",
     label: "Circular Pomodoro",
@@ -98,12 +111,12 @@ export const OVERLAY_LAYOUTS: {
   {
     value: "multi_ring_countdown",
     label: "Multi-Ring Countdown",
-    hint: "Four circular rings for days, hours, minutes and seconds",
+    hint: "Individual progress dials matching the selected time format",
   },
   {
-    value: "raw_digits",
-    label: "Raw Digits",
-    hint: "Borderless transparent digits only",
+    value: "tower",
+    label: "Timer Tower",
+    hint: "Vertical countdown with stacked time units",
   },
 ];
 
@@ -153,41 +166,41 @@ export function parseOverlayTheme(raw: unknown): OverlayTheme {
   const source = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const d = DEFAULT_OVERLAY_THEME;
   const allowedLayouts = OVERLAY_LAYOUTS.map((entry) => entry.value);
-  const rawLayout = source['layout'];
+  const rawLayout = source["layout"];
   const layout: OverlayLayout =
     typeof rawLayout === "string" && allowedLayouts.includes(rawLayout as OverlayLayout)
       ? (rawLayout as OverlayLayout)
       : d.layout;
   const fontFamily =
-    typeof source['fontFamily'] === "string" && source['fontFamily'].trim().length > 0
-      ? source['fontFamily']
+    typeof source["fontFamily"] === "string" && source["fontFamily"].trim().length > 0
+      ? source["fontFamily"]
       : // legacy seed shape: { font: "Space Grotesk" }
-        (OVERLAY_FONTS.find((entry) => entry.label === source['font'])?.value ?? d.fontFamily);
+        (OVERLAY_FONTS.find((entry) => entry.label === source["font"])?.value ?? d.fontFamily);
 
   return {
     layout,
     fontFamily,
-    fontSize: num(source['fontSize'], d.fontSize, 16, 220),
-    textColor: hex(source['textColor'], d.textColor),
-    backgroundColor: hex(source['backgroundColor'], d.backgroundColor),
-    backgroundOpacity: num(source['backgroundOpacity'], d.backgroundOpacity, 0, 100),
-    accentColor: hex(source['accent'] ?? source['accentColor'], d.accentColor),
+    fontSize: num(source["fontSize"], d.fontSize, 16, 220),
+    textColor: hex(source["textColor"], d.textColor),
+    backgroundColor: hex(source["backgroundColor"], d.backgroundColor),
+    backgroundOpacity: num(source["backgroundOpacity"], d.backgroundOpacity, 0, 100),
+    accentColor: hex(source["accent"] ?? source["accentColor"], d.accentColor),
     animation: oneOf(
-      source['animation'],
+      source["animation"],
       OVERLAY_ANIMATIONS.map((entry) => entry.value),
       d.animation,
     ),
-    label: typeof source['label'] === "string" ? source['label'].slice(0, 40) : d.label,
-    showLabel: bool(source['showLabel'], d.showLabel),
-    showStatus: bool(source['showStatus'], d.showStatus),
-    showAddedPopups: bool(source['showAddedPopups'], d.showAddedPopups),
-    milestoneTarget: num(source['milestoneTarget'], d.milestoneTarget, 1, 100_000),
+    label: typeof source["label"] === "string" ? source["label"].slice(0, 40) : d.label,
+    showLabel: bool(source["showLabel"], d.showLabel),
+    showStatus: bool(source["showStatus"], d.showStatus),
+    showAddedPopups: bool(source["showAddedPopups"], d.showAddedPopups),
+    milestoneTarget: num(source["milestoneTarget"], d.milestoneTarget, 1, 100_000),
     timeFormat: oneOf(
-      source['timeFormat'],
+      source["timeFormat"],
       OVERLAY_TIME_FORMATS.map((entry) => entry.value),
       d.timeFormat,
     ),
-    hideBackground: bool(source['hideBackground'], d.hideBackground),
+    hideBackground: bool(source["hideBackground"], d.hideBackground),
   };
 }
 

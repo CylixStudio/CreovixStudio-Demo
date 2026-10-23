@@ -4,6 +4,8 @@ import { CheckCircle2, Expand, Minimize2, RotateCcw, Trophy } from "lucide-react
 import { OverlayStage, STAGE_H, STAGE_W } from "@/components/widgets/overlayKit";
 import { PlatformIcon } from "@/components/widgets/PlatformIcon";
 import { useLanguage } from "@/lib/i18n";
+import type { GiveawayLayout } from "@/lib/giveawayLayouts";
+import "./GiveawayDisplay.css";
 
 export type DrawPhase = "idle" | "shuffling" | "revealing" | "settled";
 export type ClaimState = "pending" | "confirmed" | "expired";
@@ -33,7 +35,8 @@ const PLATFORM_RING: Record<string, string> = {
   YOUTUBE: "#ff4e45",
   TIKTOK: "#25f4ee",
 };
-const ringFor = (platform: string) => PLATFORM_RING[platform.toUpperCase()] ?? "rgba(255,255,255,0.4)";
+const ringFor = (platform: string) =>
+  PLATFORM_RING[platform.toUpperCase()] ?? "rgba(255,255,255,0.4)";
 
 const MAX_VISIBLE = 60;
 const NAMES_UP_TO = 28;
@@ -84,7 +87,8 @@ export function ParticipantAvatar({
   ringWidth?: number;
   badge?: boolean;
 }) {
-  const usable = typeof avatarUrl === "string" && /^https?:\/\//i.test(avatarUrl) ? avatarUrl : null;
+  const usable =
+    typeof avatarUrl === "string" && /^https?:\/\//i.test(avatarUrl) ? avatarUrl : null;
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const showImage = usable !== null && failedUrl !== usable;
   const style = {
@@ -108,7 +112,10 @@ export function ParticipantAvatar({
         </span>
       )}
       {badge ? (
-        <span className="giveaway-platform-badge" style={{ width: size * 0.32, height: size * 0.32 }}>
+        <span
+          className="giveaway-platform-badge"
+          style={{ width: size * 0.32, height: size * 0.32 }}
+        >
           <PlatformIcon platform={platform} size={Math.max(10, size * 0.2)} />
         </span>
       ) : null}
@@ -119,9 +126,27 @@ export function ParticipantAvatar({
 type Placed = { participant: GiveawayParticipant; x: number; y: number; index: number };
 
 /** Spreads avatars over rows without overlap; positions depend only on the participant ids. */
-function layoutAvatars(list: GiveawayParticipant[], showNames: boolean) {
+function layoutAvatars(list: GiveawayParticipant[], showNames: boolean, layout: GiveawayLayout) {
   const count = list.length;
   if (count === 0) return { size: 0, placed: [] as Placed[] };
+  if (layout === "spotlight") {
+    return {
+      size: count <= 12 ? 120 : 64,
+      placed: list.map((participant, index) => {
+        const ring = count <= 12 ? 0 : index < 12 ? 0 : index < 32 ? 1 : 2;
+        const start = ring === 0 ? 0 : ring === 1 ? 12 : 32;
+        const capacity = count <= 12 ? count : ring === 0 ? 12 : ring === 1 ? 20 : 28;
+        const angle = ((index - start) / capacity) * Math.PI * 2 - Math.PI / 2;
+        const radius = count <= 12 ? 310 : [160, 290, 420][ring]!;
+        return {
+          participant,
+          index,
+          x: STAGE_W / 2 + Math.cos(angle) * radius,
+          y: STAGE_H / 2 + Math.sin(angle) * radius,
+        };
+      }),
+    };
+  }
   const left = 150;
   const top = 170;
   const width = STAGE_W - left * 2;
@@ -132,7 +157,9 @@ function layoutAvatars(list: GiveawayParticipant[], showNames: boolean) {
   const cellW = width / perRow;
   const cellH = height / rows;
   const labelH = showNames ? 40 : 0;
-  const size = Math.round(Math.min(132, Math.max(52, Math.min(cellW * 0.74, (cellH - labelH) * 0.74))));
+  const size = Math.round(
+    Math.min(132, Math.max(52, Math.min(cellW * 0.74, (cellH - labelH) * 0.74))),
+  );
   const jitterX = Math.max(0, (cellW - size) * 0.26);
   const jitterY = Math.max(0, (cellH - size - labelH) * 0.26);
 
@@ -183,13 +210,13 @@ export function GiveawayDisplay({
   keyword: string;
   lastWinner?: { username: string; platform: string } | null | undefined;
   expanded: boolean;
-  layout?: "glass" | "direct" | "bold";
+  layout?: GiveawayLayout;
   /** OBS browser source: drop the frame/controls and render on transparency. */
   transparent?: boolean;
   onToggleExpand?: (() => void) | undefined;
   onReroll?: (() => void) | undefined;
 }) {
-  const { t, dir } = useLanguage();
+  const { t, dir, lang } = useLanguage();
   const keywordLabel = keyword || "+1";
 
   const phaseLabel =
@@ -201,7 +228,7 @@ export function GiveawayDisplay({
           ? t("giveaway.winnerSelected")
           : t("giveaway.liveEntries");
 
-  const showNames = participants.length <= NAMES_UP_TO;
+  const showNames = participants.length <= (layout === "spotlight" ? 12 : NAMES_UP_TO);
   const { visible, hidden } = useMemo(() => {
     let list = participants.slice(0, MAX_VISIBLE);
     if (winner && !list.some((p) => sameAccount(p, winner))) {
@@ -210,26 +237,37 @@ export function GiveawayDisplay({
     }
     return { visible: list, hidden: participants.length - list.length };
   }, [participants, winner]);
-  const { size, placed } = useMemo(() => layoutAvatars(visible, showNames), [visible, showNames]);
+  const { size, placed } = useMemo(
+    () => layoutAvatars(visible, showNames, layout),
+    [visible, showNames, layout],
+  );
 
   const revealing = Boolean(winner) && (phase === "revealing" || phase === "settled");
   const winnerAvatar =
     winner?.avatarUrl ?? participants.find((p) => sameAccount(p, winner))?.avatarUrl ?? null;
   const ringWidth = layout === "bold" ? 6 : 4;
   const live = phase === "shuffling" || phase === "revealing";
+  const gridLayout =
+    layout === "podium" || layout === "ticket" || layout === "split" || layout === "ribbon";
+  const entrySize = gridLayout ? Math.min(size, layout === "ribbon" ? 42 : 48) : size;
+  const winnerAvatarSize = layout === "ribbon" ? 170 : layout === "direct" ? 200 : 260;
 
   return (
     <section
       className={
         transparent
-          ? "flex h-full w-full flex-col bg-transparent"
-          : `flex h-full w-full flex-col ${layout === "direct" ? "bg-zinc-950" : expanded ? "bg-background" : ""}`
+          ? "giveaway-design flex h-full w-full flex-col bg-transparent"
+          : `giveaway-design flex h-full w-full flex-col ${layout === "direct" ? "bg-zinc-950" : expanded ? "bg-background" : ""}`
       }
     >
       {!transparent ? (
         <div className="mb-3 flex items-center gap-2">
-          <span className={`size-1.5 rounded-full ${live ? "bg-kick animate-pulse" : "bg-primary"}`} />
-          <p className="text-[0.68rem] uppercase tracking-wide text-muted-foreground">{phaseLabel}</p>
+          <span
+            className={`size-1.5 rounded-full ${live ? "bg-kick animate-pulse" : "bg-primary"}`}
+          />
+          <p className="text-[0.68rem] uppercase tracking-wide text-muted-foreground">
+            {phaseLabel}
+          </p>
           {onToggleExpand ? (
             <button
               type="button"
@@ -238,7 +276,11 @@ export function GiveawayDisplay({
               aria-label={expanded ? t("giveaway.collapse") : t("giveaway.expand")}
               title={expanded ? t("giveaway.collapse") : t("giveaway.expand")}
             >
-              {expanded ? <Minimize2 className="size-4" aria-hidden /> : <Expand className="size-4" aria-hidden />}
+              {expanded ? (
+                <Minimize2 className="size-4" aria-hidden />
+              ) : (
+                <Expand className="size-4" aria-hidden />
+              )}
             </button>
           ) : null}
         </div>
@@ -248,7 +290,9 @@ export function GiveawayDisplay({
         <OverlayStage
           mode="box"
           dir={dir}
-          className={transparent || expanded ? "h-full w-full" : "aspect-video w-full rounded-xl"}
+          className={`giveaway-canvas giveaway-layout-${layout} ${
+            transparent || expanded ? "h-full w-full" : "aspect-video w-full rounded-xl"
+          }`}
         >
           {transparent && participants.length > 0 && !revealing ? (
             <div className="giveaway-status" data-live={live || undefined}>
@@ -261,20 +305,23 @@ export function GiveawayDisplay({
           ) : null}
 
           {participants.length === 0 ? (
-            transparent ? null : (
-              <div className="giveaway-empty">{t("giveaway.joinHint", { keyword: keywordLabel })}</div>
+            transparent || revealing ? null : (
+              <div className="giveaway-empty">
+                {t("giveaway.joinHint", { keyword: keywordLabel })}
+              </div>
             )
           ) : (
             <div
               className={`giveaway-entries ${phase === "shuffling" ? "is-shuffling" : ""} ${revealing ? "is-revealing" : ""}`}
+              data-layout-content={!revealing ? "" : undefined}
               aria-label={t("giveaway.liveEntries")}
             >
               {placed.map(({ participant, x, y, index }) => {
                 const isWinner = sameAccount(participant, winner);
                 const style = {
-                  left: x,
-                  top: y,
-                  "--size": `${size}px`,
+                  left: gridLayout ? undefined : x,
+                  top: gridLayout ? undefined : y,
+                  "--size": `${entrySize}px`,
                   "--drift-x": `${index % 2 === 0 ? 7 : -7}px`,
                   "--drift-y": `${index % 3 === 0 ? -9 : 9}px`,
                   "--float-duration": `${7 + (index % 5)}s`,
@@ -284,7 +331,9 @@ export function GiveawayDisplay({
                 return (
                   <div
                     key={participant.id}
-                    className={`giveaway-entry-slot ${isWinner ? "is-winner" : "is-other"}`}
+                    className={`giveaway-entry-slot ${isWinner ? "is-winner" : "is-other"} ${
+                      gridLayout ? "is-layout-card" : ""
+                    }`}
                     style={style}
                   >
                     <div className="giveaway-entry" title={participant.username}>
@@ -292,7 +341,7 @@ export function GiveawayDisplay({
                         username={participant.username}
                         platform={participant.platform}
                         avatarUrl={participant.avatarUrl}
-                        size={size}
+                        size={entrySize}
                         ringWidth={ringWidth}
                       />
                       {showNames ? (
@@ -316,20 +365,23 @@ export function GiveawayDisplay({
           ) : null}
 
           {winner && revealing ? (
-            <div className="giveaway-winner-reveal">
-              <div className="giveaway-winner-badge">
+            <div
+              className={`giveaway-winner-reveal giveaway-winner-reveal-${layout}`}
+              data-layout-content
+              role="status"
+              aria-live="polite"
+            >
+              <div className="giveaway-winner-badge giveaway-layout-badge">
                 <Trophy aria-hidden style={{ width: 30, height: 30 }} />
                 {t("overlay.giveaway.winner")}
               </div>
-              <div className="giveaway-winner-stage">
+              <div className="giveaway-winner-stage giveaway-layout-winner-stage">
                 <span className="giveaway-halo" aria-hidden />
-                <span className="giveaway-pulse" aria-hidden />
-                <span className="giveaway-pulse is-late" aria-hidden />
                 <ParticipantAvatar
                   username={winner.username}
                   platform={winner.platform}
                   avatarUrl={winnerAvatar}
-                  size={300}
+                  size={winnerAvatarSize}
                   ringWidth={8}
                 />
               </div>
@@ -341,25 +393,35 @@ export function GiveawayDisplay({
                 {t("giveaway.from")}: {platformLabel(winner.platform)}
               </p>
 
-              {phase === "settled" && claimState === "pending" ? (
-                <div className="giveaway-claim">
-                  <p className="giveaway-claim-title">{t("giveaway.pendingConfirm")}</p>
-                  <p className="giveaway-claim-time" dir="ltr">
-                    {Math.floor(claimLeft / 60)}:{String(claimLeft % 60).padStart(2, "0")}
+              <div className="giveaway-claim-area">
+                {phase === "settled" && claimState === "pending" ? (
+                  <div className="giveaway-claim">
+                    <p className="giveaway-claim-title">{t("giveaway.pendingConfirm")}</p>
+                    <p className="giveaway-claim-time" dir="ltr">
+                      {Math.floor(Math.max(0, claimLeft) / 60)}:
+                      {String(Math.max(0, claimLeft) % 60).padStart(2, "0")}
+                    </p>
+                    <p className="giveaway-claim-hint">
+                      {t("giveaway.claimHint", { keyword: keywordLabel })}
+                    </p>
+                  </div>
+                ) : phase === "settled" && claimState === "confirmed" ? (
+                  <p className="giveaway-claim is-confirmed">
+                    <CheckCircle2 aria-hidden style={{ width: 34, height: 34 }} />
+                    {t("giveaway.confirmed")}
                   </p>
-                  <p className="giveaway-claim-hint">{t("giveaway.claimHint", { keyword: keywordLabel })}</p>
-                </div>
-              ) : phase === "settled" && claimState === "confirmed" ? (
-                <p className="giveaway-claim is-confirmed">
-                  <CheckCircle2 aria-hidden style={{ width: 34, height: 34 }} />
-                  {t("giveaway.confirmed")}
-                </p>
-              ) : phase === "settled" && claimState === "expired" && onReroll && !transparent ? (
-                <button type="button" onClick={onReroll} className="giveaway-reroll">
-                  <RotateCcw aria-hidden style={{ width: 30, height: 30 }} />
-                  {t("giveaway.reroll")}
-                </button>
-              ) : null}
+                ) : phase === "settled" && claimState === "expired" ? (
+                  <div className="giveaway-expired">
+                    <p>{lang === "ar" ? "انتهت مهلة التأكيد" : "Claim window expired"}</p>
+                    {onReroll && !transparent ? (
+                      <button type="button" onClick={onReroll} className="giveaway-reroll">
+                        <RotateCcw aria-hidden style={{ width: 30, height: 30 }} />
+                        {t("giveaway.reroll")}
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
             </div>
           ) : null}
         </OverlayStage>
@@ -367,7 +429,8 @@ export function GiveawayDisplay({
         {lastWinner && !winner && !transparent ? (
           <p className="absolute bottom-2 start-3 z-30 flex items-center gap-2 text-xs text-muted-foreground">
             <Trophy className="size-3.5" aria-hidden />
-            {t("giveaway.lastWinner")}: <span dir="auto">{lastWinner.username}</span> ({lastWinner.platform})
+            {t("giveaway.lastWinner")}: <span dir="auto">{lastWinner.username}</span> (
+            {lastWinner.platform})
           </p>
         ) : null}
       </div>
