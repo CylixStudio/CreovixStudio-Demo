@@ -37,7 +37,12 @@ test("draw parsing preserves every layout and the actual winner, claim, and conf
       confirm_nonce: null,
       overlayLayout,
     };
-    assert.deepEqual(readGiveawayDraw(saved), saved);
+    assert.deepEqual(readGiveawayDraw(saved), {
+      ...saved,
+      presentation: { animation: "roulette", speed: 1 },
+      revealStartedAt: null,
+      revealDuration: 5,
+    });
     assert.equal(
       readGiveawayDraw({ ...saved, claimState: "confirmed", confirmed_at: "confirmed" }).claimState,
       "confirmed",

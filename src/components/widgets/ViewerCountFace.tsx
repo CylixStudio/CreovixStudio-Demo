@@ -1,4 +1,4 @@
-import { Eye, Radio, Users } from "lucide-react";
+import { Eye, Radio, Users, ArrowUpRight } from "lucide-react";
 
 import { useLanguage } from "@/lib/i18n";
 import type { ViewerLayout } from "@/lib/widgetLayouts";
@@ -47,6 +47,100 @@ export function ViewerCountFace({
       </div>
     );
   }
+  if (["island", "bar", "lower-third", "hud", "ambient"].includes(layout))
+    return (
+      <div
+        data-viewer-layout={layout}
+        data-layout-content
+        className={`viewer-refined viewer-refined-${layout}`}
+        dir={dir}
+        style={{ ...root, "--viewer-accent": accent } as import("react").CSSProperties}
+      >
+        {layout === "island" ? (
+          <>
+            <span className="viewer-capsule-mark">
+              <Eye size={24} />
+            </span>
+            <div className="viewer-copy">
+              <span className="viewer-caption">{label}</span>
+              <span className="viewer-live">
+                <i />
+                {live}
+              </span>
+            </div>
+            <span className="viewer-large">{number}</span>
+          </>
+        ) : layout === "bar" ? (
+          <>
+            <header>
+              <span className="viewer-live">
+                <i />
+                {live} / {style.platform}
+              </span>
+              <ArrowUpRight size={16} />
+            </header>
+            <div className="viewer-rail-number">
+              {number}
+              <span className="viewer-caption">{label}</span>
+            </div>
+            <div className="viewer-rail-rule">
+              <span />
+              <span />
+              <span />
+            </div>
+          </>
+        ) : layout === "lower-third" ? (
+          <>
+            <span className="viewer-studio-label">{live}</span>
+            <div className="viewer-studio-main">
+              <span className="viewer-caption">
+                <Radio size={15} />
+                {label}
+              </span>
+              {number}
+            </div>
+            <span className="viewer-studio-platform">{style.platform}</span>
+          </>
+        ) : layout === "hud" ? (
+          <>
+            <header>
+              <Eye size={17} />
+              <span>{style.platform}</span>
+              <span className="viewer-live">
+                <i />
+                {live}
+              </span>
+            </header>
+            <div className="viewer-hud-number">
+              {number}
+              <span className="viewer-caption">{label}</span>
+            </div>
+            <footer aria-hidden>
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+            </footer>
+          </>
+        ) : (
+          <>
+            <span className="viewer-live">
+              <i />
+              {live}
+            </span>
+            <div className="viewer-ambient-number">
+              {number}
+              <Eye size={24} strokeWidth={1} />
+            </div>
+            <span className="viewer-caption">
+              {label} <span className="viewer-ambient-platform">/ {style.platform}</span>
+            </span>
+            <span className="viewer-ambient-rule" />
+          </>
+        )}
+      </div>
+    );
   let body;
   if (layout === "island") {
     body = (

@@ -150,7 +150,10 @@ test("all timer geometries render exact Latin countdowns without changing zero o
       assert.equal(formatOverlayTime(seconds, format), expected);
       if (["split_clock", "tower", "multi_ring_countdown"].includes(layout)) {
         for (const value of expected.split(":"))
-          assert.ok(html.includes(`>${value}</span>`), `${layout}/${format}: ${value}`);
+          assert.ok(
+            new RegExp(`>${value}</(?:span|strong)>`).test(html),
+            `${layout}/${format}: ${value}`,
+          );
       } else assert.ok(html.includes(expected), `${layout}/${format}`);
     }
   }
@@ -183,6 +186,10 @@ test("pinned root uses consistent border edges across layout rerenders without s
     const rootStyle = html.match(/data-pinned-layout="[^"]+"[^>]*style="([^"]+)"/)?.[1];
     assert.ok(rootStyle, layout);
     assert.doesNotMatch(rootStyle, /(?:^|;)border:/, layout);
+    if (html.includes("pinned-refined")) {
+      assert.ok(html.includes(`pinned-refined-${layout}`));
+      continue;
+    }
     for (const edge of ["top", "right", "bottom", "left"]) {
       assert.ok(rootStyle.includes(`border-${edge}:`), `${layout}/${edge}`);
     }
@@ -194,9 +201,8 @@ test("direct is transparent and new layouts do not change persisted pin/reply/au
     createElement(PinnedMessageCard, { config: { layout: "direct" }, message }),
   );
   assert.ok(html.includes("background:transparent"));
-  for (const edge of ["top", "right", "bottom", "left"]) {
-    assert.ok(html.includes(`border-${edge}:none`));
-  }
+  const css = readFileSync(resolve(src, "components/widgets/WidgetRefinement.css"), "utf8");
+  assert.match(css, /\.pinned-refined-direct\s*\{[^}]*border:\s*(?:0|none)/);
   for (const layout of CHROME_LAYOUTS) {
     assert.deepEqual(
       parseSpotlightState({ spotlight: message, layout }),
@@ -228,8 +234,8 @@ test("circular thumbnails own distinct SVG paint references and transparent back
     ),
   );
   const ids = [...html.matchAll(/<linearGradient id="([^"]+)"/g)].map((match) => match[1]);
-  assert.equal(ids.length, 2);
-  assert.equal(new Set(ids).size, 2);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.equal((html.match(/timer-dual-arc/g) ?? []).length, 2);
   assert.ok(html.includes("background:transparent"));
   assert.ok(!html.includes(">SUBATHON</span>"));
 });

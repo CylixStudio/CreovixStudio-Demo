@@ -94,6 +94,97 @@ export function StreamEventsScheduleCard({
   );
 
   const chrome = parseChromeLayout(config);
+  if (["agenda", "bold", "roadmap", "spotlight"].includes(style.layout)) {
+    const next = style.events[Math.max(0, activeIndex + 1)];
+    return (
+      <section
+        data-layout-content
+        data-schedule-layout={style.layout}
+        dir={dir}
+        className={`schedule-refined schedule-refined-${style.layout}`}
+        style={
+          {
+            fontFamily: style.fontFamily,
+            "--schedule-accent": style.accentColor,
+            "--schedule-font": `${Math.max(16, style.fontSize)}px`,
+          } as import("react").CSSProperties
+        }
+      >
+        <header>
+          <span>{style.title}</span>
+          <span className="schedule-status">
+            <i />
+            {badge}
+          </span>
+        </header>
+        <div className="schedule-current">
+          <div>
+            <small>{t("scheduleCard.onStream")}</small>
+            <h2 dir="auto">{eventTitle}</h2>
+          </div>
+          <strong dir="ltr">{countdown}</strong>
+        </div>
+        {style.layout === "spotlight" ? (
+          <div className="schedule-next-feature">
+            <span className="schedule-next-label">{t("scheduleCard.upNext")}</span>
+            <h3 dir="auto">{next?.title ?? t("scheduleCard.complete")}</h3>
+            <span className="schedule-next-duration" dir="ltr">
+              {next ? formatCountdown(next.durationSeconds) : "—"}
+            </span>
+          </div>
+        ) : (
+          <div className="schedule-items">
+            {style.events.map((event, index) => (
+              <article
+                key={event.id}
+                className={
+                  index === activeIndex ? "is-active" : index < activeIndex ? "is-past" : ""
+                }
+              >
+                <span className="schedule-item-index" dir="ltr">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <span className="schedule-start" dir="ltr">
+                    {formatCountdown(cumulativeStarts[index] ?? 0)}
+                  </span>
+                  <h3 dir="auto">{event.title}</h3>
+                </div>
+                <span className="schedule-duration" dir="ltr">
+                  {formatCountdown(event.durationSeconds)}
+                </span>
+                {index === activeIndex ? <span className="schedule-item-live">{badge}</span> : null}
+              </article>
+            ))}
+          </div>
+        )}
+        <footer>
+          <span>
+            {t("scheduleCard.live")}
+            {style.showUptime ? <bdi>{formatUptime(uptimeSeconds)}</bdi> : null}
+          </span>
+          {showNav ? (
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onPrevious}
+                aria-label={dir === "rtl" ? "السابق" : "Previous"}
+              >
+                <ChevronLeft size={16} className="rtl:rotate-180" />
+              </button>
+              <button type="button" onClick={onNext} aria-label={dir === "rtl" ? "التالي" : "Next"}>
+                <ChevronRight size={16} className="rtl:rotate-180" />
+              </button>
+            </div>
+          ) : (
+            <span className="schedule-footer-count" dir="ltr">
+              {style.events.length.toLocaleString("en-US")}
+            </span>
+          )}
+        </footer>
+      </section>
+    );
+  }
   if (style.layout !== "direct" && style.layout !== "timeline") {
     const agenda = style.layout === "agenda";
     const calendar = style.layout === "calendar";
@@ -552,7 +643,15 @@ export function StreamEventsScheduleView({
   demo?: boolean;
 }) {
   return (
-    <div className="w-full max-w-[340px]">
+    <div
+      className={
+        ["agenda", "bold", "roadmap", "spotlight"].includes(
+          parseStreamEventsScheduleConfig(config).layout,
+        )
+          ? "w-full max-w-[560px]"
+          : "w-full max-w-[340px]"
+      }
+    >
       <StreamEventsScheduleCard config={config} runtime={runtime ?? null} demo={demo} />
     </div>
   );

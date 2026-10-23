@@ -171,6 +171,110 @@ export function PinnedMessageCard({
   );
   let content: ReactNode;
   let decoration: CSSProperties = {};
+  const redesigned = ["glass", "direct", "lower-third", "bold", "message", "split"].includes(
+    chrome,
+  );
+  if (redesigned) {
+    return (
+      <article
+        data-layout-content
+        data-pinned-layout={chrome}
+        data-motion={motion}
+        className={`overlay-spotlight-swap pinned-refined pinned-refined-${chrome}`}
+        dir={lang === "ar" ? "rtl" : "ltr"}
+        style={
+          {
+            fontFamily: skin.fontFamily ?? style.fontFamily,
+            color: style.textColor,
+            background: chrome === "direct" || chrome === "message" ? "transparent" : surface,
+            "--pin-accent": accent,
+          } as CSSProperties
+        }
+      >
+        {chrome === "direct" ? (
+          <>
+            <header>
+              {pinLabel}
+              <span className="pinned-strip-rule" />
+            </header>
+            <div className="pinned-strip-line">
+              {author}
+              <span className="pinned-separator" />
+              {text}
+            </div>
+          </>
+        ) : chrome === "glass" ? (
+          <>
+            <span className="pinned-float-icon">
+              <Pin size={20} />
+            </span>
+            <div className="pinned-float-content">
+              <header>
+                {author}
+                <span className="pinned-float-caption">{title}</span>
+              </header>
+              {text}
+            </div>
+          </>
+        ) : chrome === "bold" ? (
+          <>
+            <header>
+              {pinLabel}
+              <span className="pinned-on-air">{lang === "ar" ? "على الشاشة" : "ON SCREEN"}</span>
+            </header>
+            <div className="pinned-broadcast-body">
+              <Quote size={38} strokeWidth={1.2} />
+              {text}
+            </div>
+            <footer>
+              {author}
+              <span className="pinned-broadcast-rule" />
+            </footer>
+          </>
+        ) : chrome === "lower-third" ? (
+          <>
+            <span className="pinned-lower-mark">
+              <Pin size={19} />
+            </span>
+            <div className="pinned-lower-text">
+              {text}
+              <div>
+                {author}
+                <span className="pinned-float-caption">{title}</span>
+              </div>
+            </div>
+          </>
+        ) : chrome === "message" ? (
+          <>
+            <div className="pinned-message-meta">
+              <span className="pinned-message-initial" aria-hidden>
+                {Array.from(message.author.trim())[0] ?? "?"}
+              </span>
+              {author}
+              {pinLabel}
+            </div>
+            <div className="pinned-message-bubble">{text}</div>
+          </>
+        ) : (
+          <>
+            <aside>
+              <span className="pinned-split-index">
+                <Pin size={24} />
+              </span>
+              <span className="pinned-split-caption">{title}</span>
+            </aside>
+            <div className="pinned-split-body">
+              {text}
+              <footer>
+                {author}
+                <Quote size={22} strokeWidth={1.2} />
+              </footer>
+            </div>
+          </>
+        )}
+      </article>
+    );
+  }
 
   switch (chrome) {
     case "direct":

@@ -50,6 +50,7 @@ const OPTION_KIND: Record<EventLabelOption, LabelKind> = {
 const TOP_TODAY = new Set<EventLabelOption>(["topKicks", "topRaid", "topBits", "topGift"]);
 
 export type StoredEventInput = {
+  id?: string;
   eventType: string;
   actorName: string | null;
   platform?: string | null;
@@ -62,6 +63,7 @@ export type StoredEventInput = {
 };
 
 export type EventLabelLine = {
+  eventId?: string;
   option: EventLabelOption;
   username: string;
   amount: string | null;
@@ -74,7 +76,11 @@ function isOptionId(value: string): value is EventLabelOption {
 /** Known option ids, in checklist order. Legacy free text falls back to every line. */
 export function selectedEventLabelOptions(raw: unknown): EventLabelOption[] {
   if (!Array.isArray(raw)) return [...EVENT_LABEL_OPTIONS];
-  const known = new Set(raw.filter((entry): entry is EventLabelOption => typeof entry === "string" && isOptionId(entry)));
+  const known = new Set(
+    raw.filter(
+      (entry): entry is EventLabelOption => typeof entry === "string" && isOptionId(entry),
+    ),
+  );
   if (raw.length > 0 && known.size === 0) return [...EVENT_LABEL_OPTIONS];
   return EVENT_LABEL_OPTIONS.filter((option) => known.has(option));
 }
@@ -164,7 +170,11 @@ function pickLatest(events: StoredEventInput[], kind: LabelKind): StoredEventInp
   return best;
 }
 
-function pickTopToday(events: StoredEventInput[], kind: LabelKind, now: Date): StoredEventInput | null {
+function pickTopToday(
+  events: StoredEventInput[],
+  kind: LabelKind,
+  now: Date,
+): StoredEventInput | null {
   const start = startOfLocalDay(now);
   let best: StoredEventInput | null = null;
   let bestScore = -1;
@@ -200,7 +210,12 @@ export function resolveEventLabelLines(
     const event = TOP_TODAY.has(option) ? pickTopToday(real, kind, now) : pickLatest(real, kind);
     const username = event?.actorName?.trim() ?? "";
     if (!event || !username) continue;
-    lines.push({ option, username, amount: amountText(event, kind) });
+    lines.push({
+      option,
+      username,
+      amount: amountText(event, kind),
+      ...(event.id ? { eventId: event.id } : {}),
+    });
   }
   return lines;
 }

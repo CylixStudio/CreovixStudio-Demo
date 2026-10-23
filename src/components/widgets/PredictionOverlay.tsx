@@ -20,6 +20,7 @@ import {
 import { useLanguage } from "@/lib/i18n";
 import { parsePredictionConfig } from "@/lib/widgets";
 import { ParticleClashOverlay } from "@/components/widgets/ParticleClashOverlay";
+import { VotingResultsFace } from "@/components/widgets/VotingResultsFace";
 
 const GREEN = "#00c70f";
 const RED = "#ff2b2b";
@@ -169,7 +170,47 @@ export function PredictionOverlay({
     backdropFilter: "blur(22px)",
   };
 
-  if (["scoreboard", "duel", "ribbon", "odds"].includes(parsed.layout)) {
+  if (["classic", "split", "ribbon", "odds"].includes(parsed.layout))
+    return (
+      <OverlayStage {...stageProps}>
+        <OverlayMotionStyles />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "grid",
+            placeItems: "center",
+            padding: 64,
+          }}
+        >
+          <VotingResultsFace
+            family="prediction"
+            layout={parsed.layout}
+            title={shown.title || t("widget.prediction.heading")}
+            options={outcomes.map((option, index) => ({
+              id: option.id,
+              label: option.label,
+              value: option.points,
+              voters: option.voters,
+              percent: whole[index] ?? 0,
+            }))}
+            focus={winnerIndex}
+            open={open}
+            remaining={remaining}
+            accent={accent}
+            color={text}
+            background={hexToRgba(
+              parsed.backgroundColor === "#1A1B23" ? "#101216" : parsed.backgroundColor,
+              parsed.backgroundOpacity / 100,
+            )}
+            fontFamily={parsed.fontFamily}
+            fontSize={parsed.fontSize}
+            leaving={leaving}
+          />
+        </div>
+      </OverlayStage>
+    );
+  if (["scoreboard", "duel"].includes(parsed.layout)) {
     const ribbon = parsed.layout === "ribbon";
     const duel = parsed.layout === "duel";
     const odds = parsed.layout === "odds";

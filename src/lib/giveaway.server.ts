@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/supabase/types";
 import { normalizeGiveawayLayout, type GiveawayLayout } from "@/lib/giveawayLayouts";
+import { giveawayRevealProgress, parseGiveawayPresentation, type GiveawayPresentation } from "@/lib/giveawayPresentation";
 
 export type GiveawayPlatform = "KICK" | "TWITCH" | "YOUTUBE" | "TIKTOK";
 
@@ -91,6 +92,9 @@ export type StoredGiveawayDraw = {
   confirmed_at: string | null;
   confirm_nonce: string | null;
   overlayLayout: GiveawayLayout;
+  presentation: GiveawayPresentation;
+  revealStartedAt: string | null;
+  revealDuration: number;
 };
 
 function asRecord(raw: unknown): Record<string, unknown> | null {
@@ -144,6 +148,16 @@ export function readGiveawayDraw(raw: unknown): StoredGiveawayDraw {
     confirmed_at: typeof confirmedAt === "string" ? confirmedAt : null,
     confirm_nonce: typeof nonce === "string" ? nonce : null,
     overlayLayout: normalizeGiveawayLayout(field(value, "overlayLayout")),
+    presentation: parseGiveawayPresentation(field(value, "presentation")),
+    revealStartedAt:
+      typeof field(value, "revealStartedAt") === "string"
+        ? (field(value, "revealStartedAt") as string)
+        : null,
+    revealDuration:
+      typeof field(value, "revealDuration") === "number" &&
+      Number.isFinite(field(value, "revealDuration"))
+        ? Math.min(60, Math.max(1, field(value, "revealDuration") as number))
+        : 5,
   };
 }
 
@@ -186,6 +200,9 @@ export async function confirmGiveawayPresence(
   const pending = draw.pending_winner;
   if (!pending) return { status: "ignored", reason: "no_pending" };
   if (draw.confirmed_at) return { status: "ignored", reason: "already_confirmed" };
+  if (giveawayRevealProgress(draw.revealStartedAt, draw.revealDuration, Date.now()) < 1) {
+    return { status: "ignored", reason: "revealing" };
+  }
   if (pending.username.trim().toLowerCase() !== username.toLowerCase()) {
     return { status: "ignored", reason: "not_winner" };
   }

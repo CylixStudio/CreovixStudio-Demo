@@ -6,6 +6,7 @@ import { assertActivePro, userHasActivePro } from "@/lib/subscription.server";
 import type { GiveawayPlatform } from "@/lib/giveaway.server";
 import { normalizeGiveawayLayout } from "@/lib/giveawayLayouts";
 import { assertWidgetLayoutAccess } from "@/lib/widgetLayoutAccess";
+import { parseGiveawayPresentation, type GiveawayPresentation } from "@/lib/giveawayPresentation";
 
 export type GiveawaySettings = {
   keyword: string;
@@ -84,6 +85,9 @@ export const getGiveawayState = createServerFn({ method: "GET" })
           }
         : DEFAULT_GIVEAWAY,
       overlayLayout: draw.overlayLayout,
+      presentation: draw.presentation,
+      revealStartedAt: draw.revealStartedAt,
+      revealDuration: draw.revealDuration,
       lastWinner: (settings?.last_winner ?? null) as {
         username: string;
         platform: string;
@@ -130,23 +134,30 @@ export const saveGiveawaySettings = createServerFn({ method: "POST" })
 
 export const saveGiveawayLayout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { layout?: string }) => ({
-    layout: normalizeGiveawayLayout(input?.layout),
+  .inputValidator((input: { layout?: string; presentation?: GiveawayPresentation }) => ({
+    layout: typeof input?.layout === "string" ? normalizeGiveawayLayout(input.layout) : undefined,
+    presentation: input?.presentation ? parseGiveawayPresentation(input.presentation) : undefined,
   }))
   .handler(async ({ data, context }) => {
-    assertWidgetLayoutAccess(
-      "GIVEAWAY",
-      { layout: data.layout },
-      await userHasActivePro(context.supabase, context.userId),
-    );
+    if (data.layout)
+      assertWidgetLayoutAccess(
+        "GIVEAWAY",
+        { layout: data.layout },
+        await userHasActivePro(context.supabase, context.userId),
+      );
     const { readGiveawayDraw } = await import("@/lib/giveaway.server");
-    const { data: row } = await context.supabase
+    const { data: row, error: readError } = await context.supabase
       .from("giveaway_settings")
       .select("keyword, draw_state")
       .eq("user_id", context.userId)
       .maybeSingle();
+    if (readError) return { ok: false as const, error: readError.message };
     const prev = readGiveawayDraw(row?.draw_state);
-    const next = { ...prev, overlayLayout: data.layout };
+    const next = {
+      ...prev,
+      overlayLayout: data.layout ?? prev.overlayLayout,
+      presentation: data.presentation ?? prev.presentation,
+    };
     if (row) {
       const { error } = await context.supabase
         .from("giveaway_settings")
@@ -231,33 +242,47 @@ export const pickGiveawayWinner = createServerFn({ method: "POST" })
     };
     const { data: settings } = await supabase
       .from("giveaway_settings")
-      .select("keyword, claim_seconds, draw_state")
+      .select("keyword, claim_seconds, spin_duration, draw_state")
       .eq("user_id", userId)
       .maybeSingle();
     const claimSeconds = settings?.claim_seconds ?? 120;
     const { readGiveawayDraw } = await import("@/lib/giveaway.server");
     const prevDraw = readGiveawayDraw(settings?.draw_state);
-    await supabase.from("giveaway_settings").upsert(
+    const { error: drawError } = await supabase.from("giveaway_settings").upsert(
       {
         user_id: userId,
         last_winner: payload as never,
         draw_state: {
+          ...prevDraw,
           phase: "settled",
           winner: { username: winner.username, platform: winner.platform },
           claimState: "pending",
-          claimUntil: new Date(Date.now() + claimSeconds * 1000).toISOString(),
+          claimUntil: new Date(
+            Date.now() + (claimSeconds + (settings?.spin_duration ?? 5)) * 1000,
+          ).toISOString(),
           keyword: settings?.keyword || "+1",
           pending_winner: payload,
           confirmed_at: null,
           confirm_nonce: null,
           overlayLayout: prevDraw.overlayLayout,
+          revealStartedAt: at,
+          revealDuration: settings?.spin_duration ?? 5,
         } as never,
         updated_at: at,
       },
       { onConflict: "user_id" },
     );
 
-    return { ok: true as const, winner: payload };
+    if (drawError) throw new Error(drawError.message);
+    return {
+      ok: true as const,
+      winner: payload,
+      revealStartedAt: at,
+      revealDuration: settings?.spin_duration ?? 5,
+      claimUntil: new Date(
+        Date.parse(at) + (claimSeconds + (settings?.spin_duration ?? 5)) * 1000,
+      ).toISOString(),
+    };
   });
 
 /**
@@ -341,6 +366,7 @@ export const publishGiveawayDraw = createServerFn({ method: "POST" })
     const prev = readGiveawayDraw(row?.draw_state);
     const idle = data.phase === "idle";
     const next = {
+      ...prev,
       phase: data.phase,
       winner: idle ? null : (data.winner ?? prev.winner),
       claimState: !idle && prev.confirmed_at ? "confirmed" : data.claimState,
@@ -350,6 +376,7 @@ export const publishGiveawayDraw = createServerFn({ method: "POST" })
       confirmed_at: idle ? null : prev.confirmed_at,
       confirm_nonce: idle ? null : prev.confirm_nonce,
       overlayLayout: prev.overlayLayout,
+      revealStartedAt: idle ? null : prev.revealStartedAt,
     };
     const { error } = await context.supabase
       .from("giveaway_settings")

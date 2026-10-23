@@ -6,7 +6,7 @@ import {
   type ClaimState,
   type DrawPhase,
 } from "@/components/widgets/GiveawayDisplay";
-import { normalizeGiveawayLayout, type GiveawayLayout } from "@/lib/giveawayLayouts";
+import type { GiveawayPresentation } from "@/lib/giveawayPresentation";
 
 type Payload = {
   keyword: string;
@@ -15,7 +15,9 @@ type Payload = {
     winner: { username: string; platform: string; avatarUrl?: string | null } | null;
     claimState: ClaimState;
     claimUntil: string | null;
-    overlayLayout?: GiveawayLayout;
+    presentation?: GiveawayPresentation;
+    revealStartedAt?: string | null;
+    revealDuration?: number;
   } | null;
   lastWinner: { username: string; platform: string } | null;
   participants: Array<{
@@ -35,7 +37,7 @@ export const Route = createFileRoute("/overlay/giveaway")({
       { title: "CylixStudio — Giveaway (OBS)" },
       {
         name: "description",
-        content: "Transparent giveaway name cloud and winner reveal for OBS.",
+        content: "Transparent giveaway winner reveal for OBS.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -65,8 +67,12 @@ function GiveawayOverlay() {
         if (stopped) return;
         if (response.ok) setData(await response.json());
         else if (response.status === 404 || response.status === 403) setData(null);
-      } catch {
-        // Keep the last real draw during a temporary network interruption.
+        else console.warn("[giveaway-overlay] Snapshot request failed", response.status);
+      } catch (error) {
+        console.warn(
+          "[giveaway-overlay] Snapshot unavailable",
+          error instanceof Error ? error.name : "network_error",
+        );
       }
     };
     void load();
@@ -104,7 +110,9 @@ function GiveawayOverlay() {
         lastWinner={data?.lastWinner ?? null}
         expanded
         transparent
-        layout={normalizeGiveawayLayout(data?.draw?.overlayLayout)}
+        presentation={draw?.presentation}
+        revealStartedAt={draw?.revealStartedAt}
+        duration={draw?.revealDuration}
       />
     </main>
   );

@@ -20,6 +20,7 @@ import {
 } from "@/lib/interactiveWidgets";
 import { useLanguage } from "@/lib/i18n";
 import { parsePollConfig, type PollLayout } from "@/lib/widgets";
+import { VotingResultsFace } from "@/components/widgets/VotingResultsFace";
 
 const OPTION_COLORS = ["#38bdf8", "#34d399", "#fbbf24", "#fb7185", "#a78bfa", "#2dd4bf"];
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
@@ -356,6 +357,46 @@ export function PollOverlay({
     boxShadow: "0 32px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08)",
     backdropFilter: "blur(22px)",
   };
+
+  if (["compact", "columns", "cards", "split", "donut"].includes(parsed.layout))
+    return (
+      <OverlayStage {...stageProps}>
+        <OverlayMotionStyles />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "grid",
+            placeItems: "center",
+            padding: 64,
+          }}
+        >
+          <VotingResultsFace
+            family="poll"
+            layout={parsed.layout}
+            title={shown.title || t("widget.poll.heading")}
+            options={shown.options.map((option, index) => ({
+              id: option.id,
+              label: option.label,
+              value: option.votes,
+              percent: whole[index] ?? 0,
+            }))}
+            focus={focusIndex}
+            open={open}
+            remaining={remaining}
+            accent={accent}
+            color={text}
+            background={hexToRgba(
+              parsed.backgroundColor === "#1A1B23" ? "#101216" : parsed.backgroundColor,
+              parsed.backgroundOpacity / 100,
+            )}
+            fontFamily={parsed.fontFamily}
+            fontSize={parsed.fontSize}
+            leaving={leaving}
+          />
+        </div>
+      </OverlayStage>
+    );
 
   return (
     <OverlayStage {...stageProps}>

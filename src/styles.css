@@ -1,5 +1,6 @@
 @import "tailwindcss" source(".");
 @import "tw-animate-css";
+@import "./components/widgets/WidgetRefinement.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -324,6 +325,7 @@ body.overlay-transparent {
   to { opacity: 0; transform: translateY(-10px); }
 }
 .overlay-royal-in { animation: overlay-royal-in 200ms ease-out both; }
+.royal-chat-surface { background-image: linear-gradient(90deg, color-mix(in srgb, var(--royal-accent) 18%, transparent) 0%, color-mix(in srgb, var(--royal-accent) 7%, transparent) 40%, transparent 85%); }
 .royal-chat-badges { display: inline-flex; align-items: center; gap: 2px; margin-right: 4px; vertical-align: -0.18em; }
 [data-royal-face] [data-royal-text] img { height: 1.5em !important; max-width: 100%; object-fit: contain; margin: 0 2px !important; }
 .overlay-anim-fade { animation: overlay-chat-in 420ms ease-out both; }

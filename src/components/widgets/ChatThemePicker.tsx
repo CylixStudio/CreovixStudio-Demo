@@ -3,6 +3,8 @@ import { ROYAL_COMPACT_DEFAULTS, ROYAL_COMPACT_THEME_ID } from "@/lib/royalCompa
 import { RoyalChatRow } from "./RoyalChatRow";
 import { RoleBadgeIcon } from "./RoleBadgeIcon";
 import { useLanguage } from "@/lib/i18n";
+import { ChatMessageFace } from "./ChatMessageFace";
+import { LayoutThumbnail } from "./LayoutThumbnail";
 
 function LayoutMini({ id }: { id: ChatLayout }) {
   if (id === "transparent") {
@@ -12,6 +14,32 @@ function LayoutMini({ id }: { id: ChatLayout }) {
       </div>
     );
   }
+  if (["glass", "island", "bubble"].includes(id))
+    return (
+      <LayoutThumbnail height={90}>
+        <div
+          className={
+            id === "glass"
+              ? "chat-glass-panel w-[380px] rounded-2xl border border-white/10 bg-[#101216]/90 p-4"
+              : "w-[380px]"
+          }
+          style={{ fontSize: 22 }}
+        >
+          <ChatMessageFace
+            layout={id}
+            author="Nova"
+            name={<bdi style={{ color: "#bee1fc", fontWeight: 700 }}>Nova</bdi>}
+            color="#bee1fc"
+          >
+            {id === "glass"
+              ? "A good moment, shared live."
+              : id === "island"
+                ? "Hello, everyone!"
+                : "This stream feels like home."}
+          </ChatMessageFace>
+        </div>
+      </LayoutThumbnail>
+    );
   if (id === "island") {
     return (
       <div className="flex h-14 items-center px-2">

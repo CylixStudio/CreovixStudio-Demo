@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import {
   royalCompactFill,
   royalCompactLayout,
@@ -101,24 +101,28 @@ export function RoyalChatRow({
       ) : null}
       <div
         data-royal-row=""
-        style={{
-          position: "relative",
-          boxSizing: "border-box",
-          width: "fit-content",
-          maxWidth: settings.showAvatar ? `calc(100% - ${layout.avatar + layout.gap}px)` : "100%",
-          minWidth: 0,
-          minHeight: layout.minHeight,
-          padding: layout.padding,
-          borderRadius: layout.radius,
-          borderLeft: `2px solid ${color}`,
-          background: royalCompactFill(color, settings.bubbleOpacity),
-          fontSize: layout.fontSize,
-          lineHeight: 1.5,
-          color: textColor,
-          overflowWrap: "anywhere",
-          whiteSpace: "pre-wrap",
-          direction: "ltr",
-        }}
+        className="royal-chat-surface"
+        style={
+          {
+            "--royal-accent": color,
+            position: "relative",
+            boxSizing: "border-box",
+            width: "fit-content",
+            maxWidth: settings.showAvatar ? `calc(100% - ${layout.avatar + layout.gap}px)` : "100%",
+            minWidth: 0,
+            minHeight: layout.minHeight,
+            padding: layout.padding,
+            borderRadius: layout.radius,
+            borderLeft: `2px solid ${color}`,
+            backgroundColor: royalCompactFill(color, settings.bubbleOpacity),
+            fontSize: layout.fontSize,
+            lineHeight: 1.5,
+            color: textColor,
+            overflowWrap: "anywhere",
+            whiteSpace: "pre-wrap",
+            direction: "ltr",
+          } as CSSProperties
+        }
       >
         <span
           data-royal-identity=""

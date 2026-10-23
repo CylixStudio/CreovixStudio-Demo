@@ -84,6 +84,8 @@ export function EventsMini({
         fontFamily={style.fontFamily}
         fontSize={style.fontSize}
         lang={lang}
+        textAnimation={style.textAnimation}
+        textAlign={style.textAlign}
       />
     </LayoutThumbnail>
   );

@@ -125,7 +125,7 @@ const LABELS: Record<string, Record<string, readonly [string, string]>> = {
     ticker: ["Horizontal ticker", "شريط متحرك أفقي"],
     timeline: ["Event timeline", "خط زمني للأحداث"],
     stack: ["Live event stack", "حزمة الأحداث"],
-    cycle: ["Spotlight last event", "آخر حدث مميز"],
+    cycle: ["Latest event — text only", "آخر حدث — نص فقط"],
     floating: ["Cards carousel", "دوار البطاقات"],
     spotlight: ["Editorial feed", "سجل أنيق"],
     ribbon: ["Broadcast ribbon", "شريط البث"],

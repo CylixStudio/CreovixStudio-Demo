@@ -177,9 +177,12 @@ export function playWheelSpinSound() {
       }, 700);
     };
     if (ctx.state === "suspended") {
-      void ctx.resume().then(run).catch(() => {
-        void ctx.close();
-      });
+      void ctx
+        .resume()
+        .then(run)
+        .catch(() => {
+          void ctx.close();
+        });
     } else {
       run();
     }
@@ -207,7 +210,9 @@ export function SpinWheelView({
   const style = parseSpinConfig(config);
   const layout = parseWheelLayout(config);
   const logoSource =
-    config && typeof config === "object" && (config as { logoSource?: unknown }).logoSource === "custom"
+    config &&
+    typeof config === "object" &&
+    (config as { logoSource?: unknown }).logoSource === "custom"
       ? "custom"
       : "channel";
   const logoUrl = (() => {
@@ -220,13 +225,13 @@ export function SpinWheelView({
   const slices = drawSlices(style.prizes);
   const placeholder = slices[0]?.placeholder ?? true;
   const winnerIndex =
-    !placeholder && spin?.result
-      ? slices.findIndex((slice) => slice.label === spin.result)
-      : -1;
+    !placeholder && spin?.result ? slices.findIndex((slice) => slice.label === spin.result) : -1;
   const center =
     winnerIndex >= 0 ? slices[winnerIndex]!.visualCenter : (slices[0]?.visualCenter ?? 0);
   const rawTitle =
-    config && typeof config === "object" && typeof (config as { title?: unknown }).title === "string"
+    config &&
+    typeof config === "object" &&
+    typeof (config as { title?: unknown }).title === "string"
       ? (config as { title: string }).title.trim()
       : style.title;
 
@@ -298,7 +303,9 @@ export function SpinWheelView({
     return () => window.cancelAnimationFrame(frame);
   }, [spin?.nonce, center, winnerIndex]);
 
-  const sliceKey = slices.map((slice) => `${slice.placeholder ? "p" : slice.label}:${slice.visualCenter}`).join("|");
+  const sliceKey = slices
+    .map((slice) => `${slice.placeholder ? "p" : slice.label}:${slice.visualCenter}`)
+    .join("|");
   const slicesRef = useRef(slices);
   slicesRef.current = slices;
 
@@ -355,17 +362,28 @@ export function SpinWheelView({
   }, [autoSpin, sliceKey]);
 
   const canSpin = Boolean(onSpin) && !placeholder && !spinning && !turning;
-  const sidePanel = layout === "compact" || layout === "studio";
-  const wheelSize = layout === "compact" ? 160 : layout === "studio" ? 210 : layout === "bare" ? 240 : 300;
+  const sidePanel = layout === "studio" || layout === "show";
+  const wheelSize =
+    layout === "compact"
+      ? 176
+      : layout === "studio"
+        ? 260
+        : layout === "show"
+          ? 320
+          : layout === "bare"
+            ? 240
+            : 300;
   const shells = {
-    classic: "rounded-full border border-white/15 bg-[#101012] px-7 py-6",
-    compact: "grid rounded-2xl border border-white/15 bg-[#101012] p-4",
+    classic: "wheel-refined wheel-refined-classic bg-transparent p-5",
+    compact: "wheel-refined wheel-refined-compact bg-transparent p-3",
     bare: "border-0 bg-transparent p-3",
-    show: "rounded-3xl border border-white/10 bg-[#101012] px-8 py-6",
-    bottom: "overflow-hidden rounded-t-3xl border-x border-t border-white/15 bg-[#101012] px-7 pt-4",
-    studio: "grid rounded-e-2xl border-y border-e border-white/15 bg-[#101012] p-4",
+    show: "wheel-refined wheel-refined-show rounded-3xl border border-white/10 bg-[#101216] p-6",
+    bottom:
+      "overflow-hidden rounded-t-3xl border-x border-t border-white/15 bg-[#101012] px-7 pt-4",
+    studio:
+      "wheel-refined wheel-refined-studio grid rounded-3xl border border-white/10 bg-[#101216] p-6",
     spotlight: "relative rounded-3xl border border-white/10 bg-[#101012] p-8",
-    orbit: "relative rounded-full border border-white/20 bg-[#101012] p-9",
+    orbit: "wheel-refined wheel-refined-orbit relative bg-transparent p-10",
   } as const;
 
   return (
@@ -374,142 +392,262 @@ export function SpinWheelView({
       data-wheel-layout={layout}
       data-layout-content
       dir={lang === "ar" ? "rtl" : "ltr"}
-      style={{ fontFamily: style.fontFamily, width: layout === "show" ? 480 : sidePanel ? layout === "compact" ? 390 : 550 : wheelSize + (layout === "orbit" ? 76 : layout === "spotlight" ? 68 : 60),
-        ...(sidePanel ? { gridTemplateColumns: `${wheelSize}px 1fr` } : {}),
-        ...(layout === "studio" ? { borderInlineStart: `5px solid ${style.accentColor}` } : {}),
-        ...(layout === "show" ? { background: `radial-gradient(ellipse at 15% 50%, ${style.accentColor}15, #101012 65%)` } : {}),
-      }}
+      style={
+        {
+          fontFamily: style.fontFamily,
+          minWidth: 0,
+          maxWidth: "min(100%, calc(100vw - 48px))",
+          width:
+            layout === "show"
+              ? 690
+              : sidePanel
+                ? 600
+                : wheelSize +
+                  (layout === "orbit"
+                    ? 120
+                    : layout === "spotlight"
+                      ? 68
+                      : layout === "compact"
+                        ? 36
+                        : 60),
+          ...(sidePanel ? { gridTemplateColumns: `${wheelSize}px 1fr` } : {}),
+          "--wheel-accent": style.accentColor,
+        } as React.CSSProperties
+      }
     >
-      {layout === "spotlight" ? <div className="pointer-events-none absolute inset-3 rounded-2xl border border-white/10" aria-hidden /> : null}
-      {layout === "orbit" ? <div className="pointer-events-none absolute inset-3 rounded-full border border-dashed border-white/20" aria-hidden /> : null}
-      {(
-        <p className={`relative max-w-full text-center font-semibold tracking-[0.16em] text-zinc-300 ${layout === "show" ? "border-b border-white/10 pb-3 text-base" : "text-xs"} ${sidePanel ? "col-start-2 self-end" : ""}`} dir="auto">
+      {layout === "spotlight" ? (
+        <div
+          className="pointer-events-none absolute inset-3 rounded-2xl border border-white/10"
+          aria-hidden
+        />
+      ) : null}
+      {layout === "orbit" ? (
+        <>
+          <div className="wheel-orbit-axis" aria-hidden />
+          <span className="wheel-orbit-stamp">
+            {lang === "ar" ? "حظك التالي" : "YOUR NEXT CHANCE"}
+          </span>
+        </>
+      ) : null}
+      {
+        <p
+          className={`relative max-w-full text-center font-semibold tracking-[0.16em] text-zinc-300 ${layout === "show" ? "border-b border-white/10 pb-3 text-base" : "text-xs"} ${sidePanel ? "col-start-2 self-end" : ""}`}
+          dir="auto"
+        >
           {rawTitle || (lang === "ar" ? "عجلة الحظ" : "Wheel of fortune")}
         </p>
-      )}
+      }
 
-      <div className={`relative shrink-0 ${layout === "bottom" ? "overflow-hidden" : ""} ${sidePanel ? "col-start-1 row-start-1 row-span-3" : ""}`} style={{ width: wheelSize, height: layout === "bottom" ? wheelSize * 0.6 : wheelSize }} data-wheel-slices={slices.length}>
+      <div
+        className={`relative shrink-0 ${layout === "bottom" ? "overflow-hidden" : ""} ${sidePanel ? "col-start-1 row-start-1 row-span-3" : ""}`}
+        style={{ width: wheelSize, height: layout === "bottom" ? wheelSize * 0.6 : wheelSize }}
+        data-wheel-slices={slices.length}
+      >
         <div className="relative" style={{ width: wheelSize, height: wheelSize }}>
-        <div className="absolute inset-0 will-change-transform" style={{ transform: `rotate(${rotation}deg)` }}>
-          <svg viewBox="0 0 320 320" className="size-full overflow-visible" aria-hidden>
-            <defs>
-              <filter id={`${uid}-win`} x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#FFFFFF" floodOpacity="0.85" />
-              </filter>
-              {slices.map((slice, index) => (
-                <clipPath key={`clip-${index}`} id={`${uid}-slice-${index}`}>
-                  <path d={wedgePath(slice.start, slice.start + slice.span)} />
-                </clipPath>
-              ))}
-            </defs>
-            {slices.map((slice, index) => {
-              const mid = slice.visualCenter;
-              const point = polar(LABEL_RADIUS, mid);
-              const full = slice.span >= 359.9;
-              const chord = full
-                ? LABEL_RADIUS * 1.7
-                : 2 * LABEL_RADIUS * Math.sin((slice.span * Math.PI) / 360);
-              const radial = !full && slice.span < 36;
-              const maxWidth = radial ? SLICE_RADIUS - 52 : Math.max(28, chord * 0.78);
-              const fontSize = radial
-                ? Math.min(15, Math.max(10, chord * 0.45))
-                : Math.min(18, Math.max(12, chord * 0.2));
-              const screenMid = mod(mid + rotation, 360);
-              const flip = screenMid > 90 && screenMid < 270;
-              const textRotation = (radial ? mid - 90 : mid) + (flip ? 180 : 0);
-              const label = slice.placeholder ? "" : fitLabel(slice.label, maxWidth, fontSize);
-              const litIndex = winnerIndex >= 0 ? winnerIndex : idleIndex;
-              const winner =
-                (landed || idleLanded) && !slice.placeholder && litIndex >= 0 && index === litIndex;
-              return (
-                <g key={`slice-${index}`}>
-                  <path
-                    d={wedgePath(slice.start, slice.start + slice.span)}
-                    fill={slice.fill}
-                    stroke={winner ? "#FAFAFA" : "#18181B"}
-                    strokeWidth={winner ? 3.2 : 1.4}
-                    filter={winner ? `url(#${uid}-win)` : undefined}
-                    data-label={slice.placeholder ? undefined : slice.label}
-                  />
-                  {label ? (
-                    <text
-                      x={point.x}
-                      y={point.y}
-                      fill={slice.ink}
-                      fontSize={fontSize}
-                      fontWeight={700}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      unicodeBidi="plaintext"
-                      clipPath={`url(#${uid}-slice-${index})`}
-                      transform={`rotate(${textRotation} ${point.x} ${point.y})`}
-                      style={{ fontFamily: style.fontFamily }}
-                    >
-                      {label}
-                    </text>
-                  ) : null}
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-
-        <svg viewBox="0 0 320 320" className="pointer-events-none absolute inset-0 size-full" aria-hidden>
-          {layout === "bare" ? <circle cx={CX} cy={CY} r="150" fill="none" stroke={style.accentColor} strokeWidth="1" /> : (
-            <>
-              <circle cx={CX} cy={CY} r="150" fill="none" stroke="#303034" strokeWidth={layout === "show" ? 12 : 6} />
-              <circle cx={CX} cy={CY} r="144" fill="none" stroke={style.accentColor} strokeWidth={layout === "orbit" ? 3 : 1.5} />
-              {layout === "spotlight" || layout === "show" ? Array.from({ length: 24 }, (_, index) => {
-                const point = polar(151, index * 15);
-                return <circle key={index} cx={point.x} cy={point.y} r="1.4" fill={style.accentColor} />;
-              }) : null}
-            </>
-          )}
-          {logoUrl ? (
-            <>
+          <div
+            className="absolute inset-0 will-change-transform"
+            style={{ transform: `rotate(${rotation}deg)` }}
+          >
+            <svg viewBox="0 0 320 320" className="size-full overflow-visible" aria-hidden>
               <defs>
-                <clipPath id={`${uid}-logo`}>
-                  <circle cx={CX} cy={CY} r="22" />
-                </clipPath>
+                <filter id={`${uid}-win`} x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow
+                    dx="0"
+                    dy="0"
+                    stdDeviation="4"
+                    floodColor="#FFFFFF"
+                    floodOpacity="0.85"
+                  />
+                </filter>
+                {slices.map((slice, index) => (
+                  <clipPath key={`clip-${index}`} id={`${uid}-slice-${index}`}>
+                    <path d={wedgePath(slice.start, slice.start + slice.span)} />
+                  </clipPath>
+                ))}
               </defs>
-              <image href={logoUrl} x={CX - 22} y={CY - 22} width="44" height="44" clipPath={`url(#${uid}-logo)`} />
-            </>
-          ) : (
-            <circle cx={CX} cy={CY} r={layout === "bare" ? 14 : 18} fill={style.backgroundColor} stroke={style.accentColor} strokeWidth="4" />
-          )}
-        </svg>
+              {slices.map((slice, index) => {
+                const mid = slice.visualCenter;
+                const point = polar(LABEL_RADIUS, mid);
+                const full = slice.span >= 359.9;
+                const chord = full
+                  ? LABEL_RADIUS * 1.7
+                  : 2 * LABEL_RADIUS * Math.sin((slice.span * Math.PI) / 360);
+                const radial = !full && slice.span < 36;
+                const maxWidth = radial ? SLICE_RADIUS - 52 : Math.max(28, chord * 0.78);
+                const fontSize = radial
+                  ? Math.min(15, Math.max(10, chord * 0.45))
+                  : Math.min(18, Math.max(12, chord * 0.2));
+                const screenMid = mod(mid + rotation, 360);
+                const flip = screenMid > 90 && screenMid < 270;
+                const textRotation = (radial ? mid - 90 : mid) + (flip ? 180 : 0);
+                const label = slice.placeholder ? "" : fitLabel(slice.label, maxWidth, fontSize);
+                const litIndex = winnerIndex >= 0 ? winnerIndex : idleIndex;
+                const winner =
+                  (landed || idleLanded) &&
+                  !slice.placeholder &&
+                  litIndex >= 0 &&
+                  index === litIndex;
+                return (
+                  <g key={`slice-${index}`}>
+                    <path
+                      d={wedgePath(slice.start, slice.start + slice.span)}
+                      fill={slice.fill}
+                      stroke={winner ? "#FAFAFA" : "#18181B"}
+                      strokeWidth={winner ? 3.2 : 1.4}
+                      filter={winner ? `url(#${uid}-win)` : undefined}
+                      data-label={slice.placeholder ? undefined : slice.label}
+                    />
+                    {label ? (
+                      <text
+                        x={point.x}
+                        y={point.y}
+                        fill={slice.ink}
+                        fontSize={fontSize}
+                        fontWeight={700}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        unicodeBidi="plaintext"
+                        clipPath={`url(#${uid}-slice-${index})`}
+                        transform={`rotate(${textRotation} ${point.x} ${point.y})`}
+                        style={{ fontFamily: style.fontFamily }}
+                      >
+                        {label}
+                      </text>
+                    ) : null}
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
 
-        <svg
-          viewBox="0 0 36 30"
-          className="pointer-events-none absolute top-1.5 z-10 w-8"
-          style={{ left: "50%", transform: "translateX(-50%)" }}
-          aria-hidden
-        >
-          <path
-            d="M18 28 L3.5 4.5 H32.5 Z"
-            fill="#FAFAFA"
-            stroke="#09090B"
-            strokeWidth="2"
-            strokeLinejoin="round"
-          />
-        </svg>
+          <svg
+            viewBox="0 0 320 320"
+            className="pointer-events-none absolute inset-0 size-full"
+            aria-hidden
+          >
+            {layout === "bare" ? (
+              <circle
+                cx={CX}
+                cy={CY}
+                r="150"
+                fill="none"
+                stroke={style.accentColor}
+                strokeWidth="1"
+              />
+            ) : (
+              <>
+                <circle
+                  cx={CX}
+                  cy={CY}
+                  r="150"
+                  fill="none"
+                  stroke="#303034"
+                  strokeWidth={layout === "show" ? 12 : 6}
+                />
+                <circle
+                  cx={CX}
+                  cy={CY}
+                  r="144"
+                  fill="none"
+                  stroke={style.accentColor}
+                  strokeWidth={layout === "orbit" ? 3 : 1.5}
+                />
+                {layout === "spotlight" || layout === "show"
+                  ? Array.from({ length: 24 }, (_, index) => {
+                      const point = polar(151, index * 15);
+                      return (
+                        <circle
+                          key={index}
+                          cx={point.x}
+                          cy={point.y}
+                          r="1.4"
+                          fill={style.accentColor}
+                        />
+                      );
+                    })
+                  : null}
+              </>
+            )}
+            {logoUrl ? (
+              <>
+                <defs>
+                  <clipPath id={`${uid}-logo`}>
+                    <circle cx={CX} cy={CY} r="22" />
+                  </clipPath>
+                </defs>
+                <image
+                  href={logoUrl}
+                  x={CX - 22}
+                  y={CY - 22}
+                  width="44"
+                  height="44"
+                  clipPath={`url(#${uid}-logo)`}
+                />
+              </>
+            ) : (
+              <circle
+                cx={CX}
+                cy={CY}
+                r={layout === "bare" ? 14 : 18}
+                fill={style.backgroundColor}
+                stroke={style.accentColor}
+                strokeWidth="4"
+              />
+            )}
+          </svg>
+
+          <svg
+            viewBox="0 0 36 30"
+            className="pointer-events-none absolute top-1.5 z-10 w-8"
+            style={{ left: "50%", transform: "translateX(-50%)" }}
+            aria-hidden
+          >
+            <path
+              d="M18 28 L3.5 4.5 H32.5 Z"
+              fill="#FAFAFA"
+              stroke="#09090B"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
       </div>
 
       {landed && winnerIndex >= 0 ? (
-        <p className={`relative max-w-full break-words text-center text-lg font-semibold text-zinc-50 ${sidePanel ? "col-start-2" : ""}`} dir="auto">
+        <p
+          className={`relative max-w-full break-words text-center text-lg font-semibold text-zinc-50 ${sidePanel ? "col-start-2" : ""}`}
+          dir="auto"
+        >
           {slices[winnerIndex]?.label}
         </p>
       ) : (
-        <p className={`relative text-center text-xs text-zinc-500 ${sidePanel ? "col-start-2 self-start" : ""}`}>{`${placeholder ? 0 : slices.length} ${lang === "ar" ? "جوائز" : "prizes"}`}</p>
+        <p
+          className={`relative text-center text-xs text-zinc-500 ${sidePanel ? "col-start-2 self-start" : ""}`}
+        >{`${placeholder ? 0 : slices.length} ${lang === "ar" ? "جوائز" : "prizes"}`}</p>
       )}
 
       {(layout === "show" || layout === "studio") && !placeholder ? (
-        <div className={layout === "show" ? "grid w-full grid-cols-3 gap-2 border-t border-white/10 pt-4" : "col-start-2 space-y-2 border-t border-white/10 pt-3"}>
-          {slices.filter(slice => !slice.placeholder).slice(0, 3).map((slice, index) => <div key={index} className={layout === "show" ? "flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-white/5 bg-white/[0.025] px-2 py-3 text-center" : "flex items-center gap-2 text-start"}>
-            <span className="font-mono text-[9px] opacity-35" dir="ltr">{String(index + 1).padStart(2, "0")}</span>
-            <span className="min-w-0 truncate text-[10px]" dir="auto">{slice.label}</span>
-          </div>)}
+        <div className="col-start-2 space-y-2 border-t border-white/10 pt-3">
+          {slices
+            .filter((slice) => !slice.placeholder)
+            .slice(0, 3)
+            .map((slice, index) => (
+              <div
+                key={index}
+                className={
+                  layout === "show"
+                    ? "flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-white/5 bg-white/[0.025] px-2 py-3 text-center"
+                    : "flex items-center gap-2 text-start"
+                }
+              >
+                <span className="font-mono text-[9px] opacity-35" dir="ltr">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="min-w-0 truncate text-[10px]" dir="auto">
+                  {slice.label}
+                </span>
+              </div>
+            ))}
         </div>
       ) : null}
 

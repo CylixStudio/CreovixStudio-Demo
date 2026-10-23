@@ -66,7 +66,7 @@ function OverlayPage() {
   const hideWheel = widget?.type === "SPIN_WHEEL" && !wheelVisible && !isDemoToken(publicId);
 
   return (
-    <main className="grid min-h-screen w-full place-items-center bg-transparent p-6">
+    <main className="grid min-h-screen w-full grid-cols-1 place-items-center bg-transparent p-6">
       {widget && !hideWheel ? (
         <WidgetRenderer
           type={widget.type}

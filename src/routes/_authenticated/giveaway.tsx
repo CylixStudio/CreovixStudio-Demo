@@ -7,14 +7,13 @@ import { toast } from "sonner";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { DarkSelect } from "@/components/ui/dark-select";
+import { ColorField, FontField, RangeField } from "@/components/widgets/PaneKit";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   GiveawayDisplay,
   ParticipantAvatar,
   type DrawPhase,
 } from "@/components/widgets/GiveawayDisplay";
-import { DemoLayoutPlanSwitch } from "@/components/widgets/DemoLayoutPlanSwitch";
-import { LayoutCards } from "@/components/widgets/builderUi";
 import { notePlanError } from "@/components/subscription/upgradePlan";
 import { useLiveChat } from "@/hooks/useLiveChat";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -38,11 +37,11 @@ import {
 import { useLanguage } from "@/lib/i18n";
 import { isTestMode } from "@/lib/testMode";
 import {
-  GIVEAWAY_LAYOUTS,
-  normalizeGiveawayLayout,
-  type GiveawayLayout,
-} from "@/lib/giveawayLayouts";
-import { isProWidgetLayout } from "@/lib/widgetLayoutAccess";
+  GIVEAWAY_ANIMATIONS,
+  parseGiveawayPresentation,
+  parseGiveawayAppearance,
+  type GiveawayPresentation,
+} from "@/lib/giveawayPresentation";
 
 export const Route = createFileRoute("/_authenticated/giveaway")({
   head: () => ({
@@ -80,14 +79,6 @@ const selectClass = "h-10 rounded-xl border-zinc-800 bg-zinc-900";
 const SPIN_DURATIONS = [3, 5, 8, 10, 15];
 const CLAIM_WINDOWS = [60, 120, 300, 600];
 const MULTIPLIERS = [1, 2, 3, 5, 10];
-const PREVIEW_PARTICIPANTS = [
-  { id: "preview-1", username: "Nova", platform: "TWITCH" },
-  { id: "preview-2", username: "ليان", platform: "KICK" },
-  { id: "preview-3", username: "Mira", platform: "YOUTUBE" },
-  { id: "preview-4", username: "فهد", platform: "KICK" },
-  { id: "preview-5", username: "Alex", platform: "TIKTOK" },
-  { id: "preview-6", username: "سارة", platform: "TWITCH" },
-];
 
 const avatarKey = (platform: string, username: string) =>
   `${platform.toUpperCase()}:${username.toLowerCase()}`;
@@ -123,7 +114,7 @@ function GiveawayPage() {
   const publishDraw = useServerFn(publishGiveawayDraw);
   const confirmChat = useServerFn(confirmGiveawayFromChat);
   const fetchOverlayToken = useServerFn(getGiveawayOverlayToken);
-  const saveLayout = useServerFn(saveGiveawayLayout);
+  const savePresentation = useServerFn(saveGiveawayLayout);
 
   const state = useQuery({
     queryKey: ["giveaway"],
@@ -147,7 +138,15 @@ function GiveawayPage() {
   const overlayUrl = proActive ? overlay.data?.overlayUrl || "" : "";
 
   const [form, setForm] = useState<GiveawaySettings>(DEFAULT_GIVEAWAY);
-  const [layout, setLayout] = useState<GiveawayLayout>("glass");
+  const [presentation, setPresentation] = useState<GiveawayPresentation>(
+    parseGiveawayPresentation(null),
+  );
+  const [appearance, setAppearance] = useState(() => parseGiveawayAppearance(null));
+  useEffect(() => {
+    setAppearance(parseGiveawayAppearance(presentation.appearance));
+  }, [presentation.appearance]);
+  const [revealStartedAt, setRevealStartedAt] = useState<string | null>(null);
+  const [revealDuration, setRevealDuration] = useState(5);
   const layoutLoaded = useRef(false);
   const loaded = useRef(false);
   useEffect(() => {
@@ -158,19 +157,22 @@ function GiveawayPage() {
   }, [state.data]);
   useEffect(() => {
     if (state.data && !layoutLoaded.current) {
-      setLayout(normalizeGiveawayLayout(state.data.overlayLayout));
+      setPresentation(parseGiveawayPresentation(state.data.presentation));
       layoutLoaded.current = true;
     }
   }, [state.data]);
-  const displayLayout = !proActive && isProWidgetLayout("GIVEAWAY", { layout }) ? "glass" : layout;
   const layoutMutation = useMutation({
-    mutationFn: (next: GiveawayLayout) => saveLayout({ data: { layout: next } }),
-    onSuccess: (result, next) => {
-      if (!result.ok) {
-        if (!notePlanError(result.error)) toast.error(result.error);
+    mutationFn: (next: GiveawayPresentation) => savePresentation({ data: { presentation: next } }),
+    onSuccess: (_result, next) => {
+      if (!_result.ok) {
+        const error =
+          "error" in _result && typeof _result.error === "string"
+            ? _result.error
+            : "Could not save giveaway presentation";
+        if (!notePlanError(error)) toast.error(error);
         return;
       }
-      setLayout(next);
+      setPresentation(next);
       toast.success(t("giveaway.saved"));
       void queryClient.invalidateQueries({ queryKey: ["giveaway"] });
     },
@@ -212,11 +214,18 @@ function GiveawayPage() {
         keyword: form.keyword || "+1",
         ...next,
       } as GiveawayDrawState,
-    }).catch(() => undefined);
+    })
+      .then((result) => {
+        if (!result.ok) throw new Error(result.error);
+      })
+      .catch((error: Error) => {
+        console.error("[giveaway] Draw publish failed", error.name);
+        toast.error(lang === "ar" ? "تعذر تحديث مصدر السحب" : "Could not update giveaway source");
+      });
 
   // Claim countdown remains active in both the embedded and expanded display.
   useEffect(() => {
-    if (!winner || drawPhase !== "settled" || claimState !== "pending") return;
+    if (!winner || spinning || drawPhase !== "settled" || claimState !== "pending") return;
     if (claimLeft <= 0) {
       setClaimState("expired");
       winnerRef.current = null;
@@ -224,7 +233,7 @@ function GiveawayPage() {
     }
     const id = setTimeout(() => setClaimLeft((value) => value - 1), 1000);
     return () => clearTimeout(id);
-  }, [winner, drawPhase, claimState, claimLeft]);
+  }, [winner, spinning, drawPhase, claimState, claimLeft]);
 
   const pendingStamp = state.data?.pendingWinner
     ? `${state.data.pendingWinner.username}|${state.data.pendingWinner.at}|${state.data.confirmedAt ?? ""}`
@@ -237,6 +246,8 @@ function GiveawayPage() {
     hydrated.current = pendingStamp;
     const confirmedAt = state.data?.confirmedAt ?? null;
     setWinner({ username: pending.username, platform: pending.platform });
+    setRevealStartedAt(state.data?.revealStartedAt ?? null);
+    setRevealDuration(state.data?.revealDuration ?? 5);
     setDrawPhase("settled");
     setClaimState(confirmedAt ? "confirmed" : "pending");
     winnerRef.current = confirmedAt ? null : pending.username.toLowerCase();
@@ -334,42 +345,35 @@ function GiveawayPage() {
 
   const runDraw = async () => {
     if (!participants.length || spinning || !proActive) return;
-    const started = Date.now();
     setSpinning(true);
-    setWinner(null);
-    setDrawPhase("shuffling");
-    await push({ phase: "shuffling" });
-
-    const result = await pick();
-    const wait = Math.max(0, 1200 - (Date.now() - started));
-    if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
-
-    if (!result.ok) {
+    try {
+      const result = await pick();
+      if (!result.ok) {
+        toast.error(t("giveaway.noParticipants"));
+        return;
+      }
+      setWinner({ username: result.winner.username, platform: result.winner.platform });
+      setRevealStartedAt(result.revealStartedAt);
+      setRevealDuration(result.revealDuration);
+      setDrawPhase("settled");
+      winnerRef.current = result.winner.username.toLowerCase();
+      setClaimState("pending");
+      setClaimLeft(form.claimSeconds);
+      await new Promise((resolve) => setTimeout(resolve, result.revealDuration * 1000));
+      void queryClient.invalidateQueries({ queryKey: ["giveaway"] });
+      await announce({
+        data: {
+          username: result.winner.username,
+          keyword: form.keyword || "+1",
+          claimSeconds: form.claimSeconds,
+        },
+      });
+    } catch (error) {
+      console.error("[giveaway] Draw failed", error instanceof Error ? error.name : "unknown");
+      toast.error(lang === "ar" ? "تعذر إتمام السحب" : "Could not complete draw");
+    } finally {
       setSpinning(false);
-      setDrawPhase("idle");
-      toast.error(t("giveaway.noParticipants"));
-      return;
     }
-
-    setWinner({ username: result.winner.username, platform: result.winner.platform });
-    setDrawPhase("settled");
-    setSpinning(false);
-    winnerRef.current = result.winner.username.toLowerCase();
-    setClaimState("pending");
-    setClaimLeft(form.claimSeconds);
-    await push({
-      phase: "settled",
-      winner: result.winner,
-      claimState: "pending",
-      claimUntil: new Date(Date.now() + form.claimSeconds * 1000).toISOString(),
-    });
-    void announce({
-      data: {
-        username: result.winner.username,
-        keyword: form.keyword || "+1",
-        claimSeconds: form.claimSeconds,
-      },
-    }).catch(() => undefined);
   };
 
   const minutes = (n: number) => (n === 1 ? t("giveaway.minutes1") : t("giveaway.minutesN", { n }));
@@ -382,63 +386,111 @@ function GiveawayPage() {
       subtitle={t("giveaway.subtitle")}
     >
       <div className="flex flex-col gap-12 lg:gap-16">
-        <section
-          className="min-w-0 space-y-4"
-          aria-label={lang === "ar" ? "تصميم السحب" : "Giveaway design"}
+        <fieldset
+          disabled={!proActive || spinning || layoutMutation.isPending}
+          className="rounded-2xl border border-white/10 bg-[#101012] p-5 disabled:opacity-60"
+          aria-label={lang === "ar" ? "العرض" : "Display"}
         >
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2 className="text-base font-semibold">
-                {lang === "ar" ? "تصميم السحب" : "Giveaway design"}
-              </h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {lang === "ar"
-                  ? "8 تصاميم · 2 مجاناً و6 برو. المعاينات فقط تستخدم أسماء توضيحية."
-                  : "8 layouts · 2 Free and 6 Pro. Only these thumbnails use sample names."}
-              </p>
-            </div>
-            <DemoLayoutPlanSwitch userId={user.id} className="sm:max-w-sm" />
+          <legend className="px-2 text-base font-semibold">
+            {lang === "ar" ? "العرض" : "Display"}
+          </legend>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <FontField
+              value={appearance.fontFamily}
+              onChange={(fontFamily) => setAppearance((previous) => ({ ...previous, fontFamily }))}
+            />
+            <RangeField
+              label={lang === "ar" ? "حجم اسم الفائز" : "Winner name size"}
+              value={appearance.fontSize}
+              min={24}
+              max={80}
+              suffix="px"
+              onChange={(fontSize) => setAppearance((previous) => ({ ...previous, fontSize }))}
+            />
+            <ColorField
+              label={lang === "ar" ? "لون النص" : "Text color"}
+              value={appearance.textColor}
+              onChange={(textColor) => setAppearance((previous) => ({ ...previous, textColor }))}
+            />
+            <ColorField
+              label={lang === "ar" ? "اللون المميز" : "Accent color"}
+              value={appearance.accentColor}
+              onChange={(accentColor) =>
+                setAppearance((previous) => ({ ...previous, accentColor }))
+              }
+            />
+            <ColorField
+              label={lang === "ar" ? "لون الخلفية" : "Background color"}
+              value={appearance.backgroundColor}
+              onChange={(backgroundColor) =>
+                setAppearance((previous) => ({ ...previous, backgroundColor }))
+              }
+            />
+            <RangeField
+              label={lang === "ar" ? "شفافية البطاقة" : "Panel opacity"}
+              value={appearance.backgroundOpacity}
+              min={0}
+              max={100}
+              suffix="%"
+              onChange={(backgroundOpacity) =>
+                setAppearance((previous) => ({ ...previous, backgroundOpacity }))
+              }
+            />
           </div>
-          <LayoutCards
-            widgetType="GIVEAWAY"
-            options={GIVEAWAY_LAYOUTS.map((option) => ({
-              value: option.value,
-              label: lang === "ar" ? option.ar : option.en,
-              hint: lang === "ar" ? option.hintAr : option.hintEn,
-            }))}
-            value={layout}
-            onSelect={(next) => {
-              if (!layoutMutation.isPending) layoutMutation.mutate(normalizeGiveawayLayout(next));
-            }}
-            ariaLabel={lang === "ar" ? "تخطيط السحب" : "Giveaway layout"}
-            renderPreview={(next) => (
-              <div className="aspect-video w-full">
-                <GiveawayDisplay
-                  participants={PREVIEW_PARTICIPANTS}
-                  winner={PREVIEW_PARTICIPANTS[0]!}
-                  phase="settled"
-                  claimState="pending"
-                  claimLeft={120}
-                  keyword="+1"
-                  expanded={false}
-                  transparent
-                  layout={normalizeGiveawayLayout(next)}
-                />
-              </div>
-            )}
-          />
-          {layoutMutation.isPending ? (
-            <p className="text-xs text-muted-foreground" role="status">
-              {lang === "ar" ? "جارٍ حفظ التصميم…" : "Saving layout…"}
-            </p>
-          ) : null}
-          {!proActive && (
-            <p className="rounded-xl border border-border bg-muted/20 p-3 text-sm text-muted-foreground">
-              {lang === "ar"
-                ? "التصميمان المجانيان متاحان للمعاينة والحفظ. تشغيل السحب وربط الشات ومصدر OBS تتطلب برو. لا يتغير أي تصميم برو محفوظ عند تبديل الخطة."
-                : "The two Free layouts can be previewed and saved. Live draws, chat capture, and the OBS source require Pro. Switching plans does not overwrite a saved Pro layout."}
-            </p>
-          )}
+          <button
+            type="button"
+            className="mt-5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            onClick={() => layoutMutation.mutate({ ...presentation, appearance })}
+          >
+            {lang === "ar" ? "حفظ العرض" : "Save display"}
+          </button>
+        </fieldset>
+        <section
+          className="rounded-2xl border border-white/10 bg-[#101012] p-5"
+          aria-label={lang === "ar" ? "حركة اختيار الفائز" : "Winner Selection Animation"}
+        >
+          <h2 className="mb-1 text-base font-semibold">
+            {lang === "ar" ? "حركة اختيار الفائز" : "Winner Selection Animation"}
+          </h2>
+          <p className="mb-5 text-xs text-muted-foreground">
+            {lang === "ar"
+              ? "تصميم واحد. الحركة تكشف النتيجة المختارة فقط ولا تغيّر فرص الفوز."
+              : "One base design. Animation reveals the selected result; it never changes the odds."}
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label>
+              <span className={label}>{lang === "ar" ? "أسلوب الكشف" : "Reveal style"}</span>
+              <DarkSelect
+                aria-label={lang === "ar" ? "أسلوب الكشف" : "Reveal style"}
+                value={presentation.animation}
+                disabled={!proActive || spinning || layoutMutation.isPending}
+                options={GIVEAWAY_ANIMATIONS.map((option) => ({
+                  value: option.id,
+                  label: lang === "ar" ? option.ar : option.en,
+                }))}
+                onValueChange={(animation) =>
+                  layoutMutation.mutate(parseGiveawayPresentation({ ...presentation, animation }))
+                }
+              />
+            </label>
+            <label>
+              <span className={label}>
+                {lang === "ar" ? "سرعة مرور الأسماء" : "Name movement speed"}
+              </span>
+              <DarkSelect
+                aria-label={lang === "ar" ? "سرعة مرور الأسماء" : "Name movement speed"}
+                value={String(presentation.speed)}
+                disabled={!proActive || spinning || layoutMutation.isPending}
+                options={[0.5, 1, 1.5, 2].map((speed) => ({
+                  value: String(speed),
+                  label: `${speed}×`,
+                }))}
+                onValueChange={(speed) =>
+                  layoutMutation.mutate({ ...presentation, speed: Number(speed) })
+                }
+              />
+            </label>
+          </div>
         </section>
         <fieldset
           disabled={!proActive}
@@ -552,7 +604,9 @@ function GiveawayPage() {
                   keyword={form.keyword}
                   lastWinner={state.data?.lastWinner}
                   expanded={false}
-                  layout={displayLayout}
+                  presentation={presentation}
+                  revealStartedAt={revealStartedAt}
+                  duration={revealDuration}
                   onToggleExpand={() => setExpanded(true)}
                   onReroll={proActive ? () => void runDraw() : undefined}
                 />
@@ -659,7 +713,9 @@ function GiveawayPage() {
             keyword={form.keyword}
             lastWinner={state.data?.lastWinner}
             expanded
-            layout={displayLayout}
+            presentation={presentation}
+            revealStartedAt={revealStartedAt}
+            duration={revealDuration}
             onToggleExpand={() => setExpanded(false)}
             onReroll={proActive ? () => void runDraw() : undefined}
           />

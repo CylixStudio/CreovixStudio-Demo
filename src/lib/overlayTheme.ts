@@ -105,13 +105,13 @@ export const OVERLAY_LAYOUTS: {
   { value: "split_clock", label: "Split clock", hint: "Individual flip-clock timer blocks" },
   {
     value: "circular_pomodoro",
-    label: "Circular Pomodoro",
-    hint: "Circular progress ring with status accents",
+    label: "Time Arc",
+    hint: "Open progress arc with a centered countdown",
   },
   {
     value: "multi_ring_countdown",
-    label: "Multi-Ring Countdown",
-    hint: "Individual progress dials matching the selected time format",
+    label: "Time Unit Rail",
+    hint: "Connected time units matching the selected time format",
   },
   {
     value: "tower",

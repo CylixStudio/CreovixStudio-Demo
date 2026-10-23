@@ -193,7 +193,7 @@ export const DEFAULT_STYLE: BaseStyle = {
   accentColor: "#7C3AED",
 };
 
-function parseStyle(source: Record<string, unknown>, defaults: BaseStyle): BaseStyle {
+export function parseStyle(source: Record<string, unknown>, defaults: BaseStyle): BaseStyle {
   const fontFamily =
     typeof source["fontFamily"] === "string" && source["fontFamily"].trim().length > 0
       ? source["fontFamily"]
@@ -863,6 +863,9 @@ export type EventLabelsConfig = BaseStyle & {
   title: string;
   labels: EventLabelOption[];
   language: "ar" | "en" | null;
+  transitionSeconds: number;
+  textAnimation: "slide" | "fade" | "none";
+  textAlign: "start" | "center" | "end";
 };
 
 function eventLabelsTitle(value: unknown): string {
@@ -879,6 +882,9 @@ export function parseEventLabelsConfig(raw: unknown): EventLabelsConfig {
     title: eventLabelsTitle(source["title"]),
     labels: selectedEventLabelOptions(source["labels"]),
     language,
+    transitionSeconds: num(source["transitionSeconds"], 4, 2, 30),
+    textAnimation: source["textAnimation"] === "fade" || source["textAnimation"] === "none" ? source["textAnimation"] : "slide",
+    textAlign: source["textAlign"] === "center" || source["textAlign"] === "end" ? source["textAlign"] : "start",
   };
 }
 

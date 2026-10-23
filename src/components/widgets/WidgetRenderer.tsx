@@ -6,6 +6,7 @@ import { ReplyAlertFrame } from "@/components/overlay/ReplyAlertFrame";
 import { PlatformIcon, normalizePlatform } from "@/components/widgets/PlatformIcon";
 import { RoleBadgeIcon, normalizeBadgeRole, resolveBadgeRoles } from "@/components/widgets/RoleBadgeIcon";
 import { StreamEventsScheduleView } from "@/components/widgets/StreamEventsScheduleCard";
+import { ChatMessageFace } from "@/components/widgets/ChatMessageFace";
 import { PollOverlay } from "@/components/widgets/PollOverlay";
 import { PredictionOverlay } from "@/components/widgets/PredictionOverlay";
 import { ChatSpotlightView } from "@/components/widgets/ChatSpotlightView";
@@ -1085,8 +1086,8 @@ export function ChatBoxView({
   const containerClass = royal
     ? "flex w-full min-w-0 max-w-[520px] flex-col items-start overflow-visible bg-transparent p-0"
     : layout === "glass"
-      ? "flex w-full min-w-[380px] max-w-[520px] flex-col overflow-hidden rounded-xl bg-slate-900/70 p-5 backdrop-blur-lg border border-white/10 shadow-2xl"
-      : "flex w-full min-w-[380px] max-w-[520px] flex-col items-start overflow-visible rounded-2xl bg-transparent p-0";
+      ? "chat-glass-panel flex w-full min-w-0 max-w-[520px] flex-col overflow-hidden rounded-2xl bg-[#101216]/90 p-5 border border-white/10"
+      : "flex w-full min-w-0 max-w-[520px] flex-col items-start overflow-visible rounded-2xl bg-transparent p-0";
 
   const rowClassForLayout = (messageLayout: ChatLayout, motion: string) => {
     const base = `overlay-chat-row ${motion} items-baseline`;
@@ -1377,6 +1378,13 @@ export function ChatBoxView({
       );
     }
 
+    if (["glass", "bubble", "island"].includes(layout)) return replyWrap(
+      <div className={`overlay-chat-row ${motion}`} data-chat-id={leaving ? undefined : message?.id} data-chat-theme={layout} style={{ maxWidth: "100%", width: layout === "glass" ? "100%" : "fit-content", fontSize: style.fontSize }}>
+        <ChatMessageFace layout={layout} author={author} name={nameBlock} meta={<>{badgesBlock}{platformBlock}</>} color={bubbleUserAccent(message?.color)} avatarUrl={message?.avatarUrl}>
+          <ChatLineText text={text} {...(message?.altText ? { altText: message.altText } : {})} reduced={reducedMotion} render={renderChatText} />
+        </ChatMessageFace>
+      </div>,
+    );
     if (layout === "bubble") {
       const userAccent = bubbleUserAccent(message?.color);
       return replyWrap(
@@ -2319,15 +2327,7 @@ function ViewerCounterView({
   return <ViewerCountFace layout={layout} style={style} digits={digits} label={label} />;
 }
 
-const EMPTY_EVENT_SAMPLES: Partial<Record<EventLabelOption, string>> = {
-  lastFollow: "آخر متابع: CreovixStudio",
-  lastDonation: "آخر متبرع: CylixBot",
-  lastRaid: "آخر هوست: zR3d",
-};
-
-type EventTickerLine =
-  | { key: string; sample: string }
-  | { key: string; option: EventLabelOption; username: string; amount: string | null };
+type EventTickerLine = { key: string; option: EventLabelOption; username: string; amount: string | null };
 
 function eventTickerLines(events: OverlayEvent[], labels: readonly EventLabelOption[]): EventTickerLine[] {
   const resolved = resolveEventLabelLines(events, labels);
@@ -2337,15 +2337,13 @@ function eventTickerLines(events: OverlayEvent[], labels: readonly EventLabelOpt
     const real = byOption.get(option);
     if (real) {
       lines.push({
-        key: `real:${option}:${real.username}:${real.amount ?? ""}`,
+        key: `real:${option}:${real.eventId ?? ""}:${real.username}:${real.amount ?? ""}`,
         option,
         username: real.username,
         amount: real.amount,
       });
       continue;
     }
-    const sample = EMPTY_EVENT_SAMPLES[option];
-    if (sample) lines.push({ key: `sample:${option}`, sample });
   }
   return lines;
 }
@@ -2358,15 +2356,19 @@ function EventLabelsView({ config, events }: { config: unknown; events: OverlayE
   const lineKey = lines.map((line) => line.key).join("|");
   const [slot, setSlot] = useState(0);
   const [motion, setMotion] = useState<"shown" | "exit" | "enter">("shown");
+  const previousKeys = useRef<string[]>([]);
 
   useEffect(() => {
-    setSlot(0);
-  }, [lineKey]);
+    const changed = lines.findIndex((line) => !previousKeys.current.includes(line.key));
+    previousKeys.current = lines.map((line) => line.key);
+    if (changed >= 0) setSlot(changed);
+    else setSlot(current => Math.min(current, Math.max(0, lines.length - 1)));
+  }, [lines]);
 
   useEffect(() => {
     const reduced =
       typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced || lines.length <= 1) {
+    if (reduced || parsed.textAnimation === "none" || lines.length <= 1) {
       setMotion("shown");
       return;
     }
@@ -2375,32 +2377,31 @@ function EventLabelsView({ config, events }: { config: unknown; events: OverlayE
       frame = window.requestAnimationFrame(() => setMotion("shown"));
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [slot, lines.length, lineKey]);
+  }, [slot, lines.length, lineKey, parsed.textAnimation]);
 
   useEffect(() => {
     if (lines.length <= 1) return;
     const reduced =
       typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const fadeMs = reduced ? 0 : 400;
+    const fadeMs = reduced || parsed.textAnimation === "none" ? 0 : 300;
+    const interval = parsed.transitionSeconds * 1000;
     const exitTimer = window.setTimeout(() => {
-      if (!reduced) setMotion("exit");
-    }, 3500);
+      if (!reduced && parsed.textAnimation !== "none") setMotion("exit");
+    }, interval);
     const swapTimer = window.setTimeout(() => {
       setSlot((current) => (current + 1) % lines.length);
-    }, 3500 + fadeMs);
+    }, interval + fadeMs);
     return () => {
       window.clearTimeout(exitTimer);
       window.clearTimeout(swapTimer);
     };
-  }, [slot, lines.length, lineKey]);
+  }, [slot, lines.length, lineKey, parsed.transitionSeconds, parsed.textAnimation]);
 
   const layout = parseEventLabelLayout(config);
   const lineText = (entry: (typeof lines)[number]) =>
-    "sample" in entry
-      ? entry.sample
-      : `${translate(EVENT_LABEL_I18N[entry.option], undefined, lang)}${entry.username ? ` · ${entry.username}` : ""}${entry.amount ? ` · ${entry.amount}` : ""}`;
+    `${translate(EVENT_LABEL_I18N[entry.option], undefined, lang)}: ${entry.username}${entry.amount ? ` · ${entry.amount}` : ""}`;
   return <EventLabelsFace layout={layout} title={parsed.title} lines={lines.map(entry => ({ key: entry.key, text: lineText(entry) }))}
-    active={slot} motion={motion} accent={parsed.accentColor} color={parsed.textColor} fontFamily={parsed.fontFamily} fontSize={parsed.fontSize} lang={lang} />;
+    active={slot} motion={motion} accent={parsed.accentColor} color={parsed.textColor} fontFamily={parsed.fontFamily} fontSize={parsed.fontSize} lang={lang} textAnimation={parsed.textAnimation} textAlign={parsed.textAlign} />;
 }
 
 /* ------------------------------- Renderer ------------------------------- */

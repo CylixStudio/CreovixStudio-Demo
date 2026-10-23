@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ReactElement } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties, type ReactElement } from "react";
 import { Heart, Pause, Play } from "lucide-react";
 
 import { formatDuration, type TimerFrame } from "@/lib/timer";
@@ -70,7 +70,7 @@ export function OverlayView({
   const timeText = formatOverlayTime(remaining, theme.timeFormat);
   const hideBg = theme.hideBackground;
   /** Card/capsule surface: fully transparent when the user hides the container. */
-  const panelStyle = hideBg
+  const panelStyle: CSSProperties = hideBg
     ? { background: "transparent", border: "1px solid transparent", boxShadow: "none" }
     : {
         background: withAlpha(theme.backgroundColor, theme.backgroundOpacity),
@@ -153,7 +153,103 @@ export function OverlayView({
   const isRunning = (frame?.status ?? "IDLE") === "RUNNING";
 
   let body: ReactElement;
-  if (theme.layout === "split_clock") {
+  if (["tower", "broadcast", "circular_pomodoro", "multi_ring_countdown"].includes(theme.layout)) {
+    body = (
+      <div
+        className={`timer-refined timer-refined-${theme.layout}`}
+        style={
+          {
+            ...panelStyle,
+            color: theme.textColor,
+            fontFamily: theme.fontFamily,
+            "--timer-accent": theme.accentColor,
+            "--timer-font": `${theme.fontSize}px`,
+          } as import("react").CSSProperties
+        }
+      >
+        <header>
+          {theme.showLabel ? <span dir="auto">{theme.label}</span> : <span />}
+          {statusBadge}
+        </header>
+        {theme.layout === "tower" ? (
+          <div className="timer-tower-body">
+            <div className="timer-tower-rail">
+              <span style={{ height: `${progress * 100}%` }} />
+            </div>
+            <div className="timer-tower-units" dir="ltr">
+              {segments.map((segment) => (
+                <div key={segment.unit}>
+                  <strong>{segment.value}</strong>
+                  <small>{segment.label}</small>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : theme.layout === "multi_ring_countdown" ? (
+          <div key={pulseKey} className={`timer-time-rail ${animationClass}`} dir="ltr">
+            {segments.map((segment, i) => (
+              <div key={segment.unit}>
+                <span className="timer-rail-dot" />
+                <strong>{segment.value}</strong>
+                <small>{segment.label}</small>
+                {i < segments.length - 1 ? <span className="timer-rail-join" /> : null}
+              </div>
+            ))}
+          </div>
+        ) : theme.layout === "circular_pomodoro" ? (
+          <div className="timer-dual-arc">
+            <svg viewBox="0 0 360 250" aria-hidden>
+              <path
+                d="M40 180A140 140 0 0 1 320 180"
+                fill="none"
+                stroke={withAlpha(theme.accentColor, 15)}
+                strokeWidth="5"
+              />
+              <path
+                d="M40 180A140 140 0 0 1 320 180"
+                fill="none"
+                stroke={theme.accentColor}
+                strokeWidth="5"
+                pathLength="100"
+                strokeDasharray={`${progress * 100} 100`}
+                strokeLinecap="round"
+              />
+              <path
+                d="M70 180A110 110 0 0 1 290 180"
+                fill="none"
+                stroke={withAlpha(theme.textColor, 12)}
+                strokeWidth="1"
+              />
+            </svg>
+            <div>
+              <span key={pulseKey} className={animationClass} dir="ltr">
+                {timeText}
+              </span>
+              <small>{lang === "ar" ? "الوقت المتبقي" : "TIME REMAINING"}</small>
+            </div>
+          </div>
+        ) : (
+          <div className="timer-broadcast-counter">
+            <span className="timer-broadcast-label">
+              {lang === "ar" ? "الوقت المتبقي" : "TIME REMAINING"}
+            </span>
+            <span dir="ltr">{time}</span>
+            <span className="timer-broadcast-icon">
+              {isRunning ? <Pause size={24} /> : <Play size={24} />}
+            </span>
+          </div>
+        )}
+        <footer>
+          <span className="timer-refined-progress">
+            <span style={{ width: `${progress * 100}%` }} />
+          </span>
+          {theme.showStatus ? (
+            <span className="timer-status-dot" style={{ opacity: isRunning ? 1 : 0.4 }} />
+          ) : null}
+        </footer>
+      </div>
+    );
+  } else if (theme.layout === "split_clock") {
     body = (
       <div
         className="space-y-4 p-3"

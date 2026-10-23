@@ -497,6 +497,42 @@ export function StandaloneWidgetFields({
                 ]}
               />
             </label>
+            <RangeField
+              label={lang === "ar" ? "مدة عرض النص" : "Text display interval"}
+              value={parsed.transitionSeconds}
+              min={2}
+              max={30}
+              suffix="s"
+              onChange={(value) => set("transitionSeconds", value)}
+            />
+            <label className="block">
+              <span className={paneLabelClass}>
+                {lang === "ar" ? "حركة النص" : "Text transition"}
+              </span>
+              <DarkSelect
+                value={parsed.textAnimation}
+                onValueChange={(value) => set("textAnimation", value)}
+                options={[
+                  { value: "slide", label: lang === "ar" ? "انزلاق هادئ" : "Soft slide" },
+                  { value: "fade", label: lang === "ar" ? "تلاشي" : "Fade" },
+                  { value: "none", label: lang === "ar" ? "بدون حركة" : "None" },
+                ]}
+              />
+            </label>
+            <label className="block">
+              <span className={paneLabelClass}>
+                {lang === "ar" ? "محاذاة النص" : "Text alignment"}
+              </span>
+              <DarkSelect
+                value={parsed.textAlign}
+                onValueChange={(value) => set("textAlign", value)}
+                options={[
+                  { value: "start", label: lang === "ar" ? "البداية" : "Start" },
+                  { value: "center", label: lang === "ar" ? "الوسط" : "Center" },
+                  { value: "end", label: lang === "ar" ? "النهاية" : "End" },
+                ]}
+              />
+            </label>
             {testPanel}
           </PaneBody>
         )}

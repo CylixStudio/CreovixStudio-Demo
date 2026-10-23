@@ -1,4 +1,4 @@
-import { Activity, ArrowUpRight, Radio, Sparkles } from "lucide-react";
+import { Activity, ArrowUpRight, Radio } from "lucide-react";
 import type { EventLabelLayout } from "@/lib/widgetLayouts";
 
 export function EventLabelsFace({
@@ -12,6 +12,8 @@ export function EventLabelsFace({
   fontFamily,
   fontSize,
   lang,
+  textAnimation = "slide",
+  textAlign = "start",
 }: {
   layout: EventLabelLayout;
   title: string;
@@ -23,6 +25,8 @@ export function EventLabelsFace({
   fontFamily: string;
   fontSize: number;
   lang: "ar" | "en";
+  textAnimation?: "slide" | "fade" | "none";
+  textAlign?: "start" | "center" | "end";
 }) {
   const selected = lines.length ? lines[active % lines.length] : null;
   const textSize = Math.max(16, fontSize * 0.52);
@@ -41,6 +45,131 @@ export function EventLabelsFace({
       {selected.text}
     </span>
   ) : null;
+  const parts = (text: string) => {
+    const match = text.match(/^(.+?)(?:\s*:\s*|\s+·\s+)(.*)$/);
+    return { label: match?.[1] ?? title, value: match?.[2] ?? text };
+  };
+  if (layout === "cycle")
+    return (
+      <div
+        data-events-layout="cycle"
+        data-layout-content
+        dir={lang === "ar" ? "rtl" : "ltr"}
+        style={{
+          color,
+          fontFamily,
+          fontSize,
+          textAlign,
+          background: "transparent",
+          minWidth: 260,
+          maxWidth: "min(760px, calc(100vw - 48px))",
+          overflowWrap: "anywhere",
+        }}
+      >
+        <span
+          className={`event-text-only event-text-${textAnimation}`}
+          data-motion={motion}
+          dir="auto"
+        >
+          {selected?.text ?? ""}
+        </span>
+      </div>
+    );
+  if (["stack", "floating", "spotlight", "ribbon"].includes(layout)) {
+    const item = selected ? parts(selected.text) : null;
+    return (
+      <div
+        data-events-layout={layout}
+        data-layout-content
+        className={`events-editorial events-editorial-${layout}`}
+        dir={lang === "ar" ? "rtl" : "ltr"}
+        style={
+          {
+            color,
+            fontFamily,
+            "--events-accent": accent,
+            "--events-font": `${Math.max(20, fontSize)}px`,
+          } as import("react").CSSProperties
+        }
+      >
+        <header>
+          <span className="events-label">{title}</span>
+          <Radio size={16} />
+        </header>
+        {layout === "stack" ? (
+          <div className="events-pile">
+            {lines.slice(0, 4).map((line, i) => {
+              const p = parts(line.text);
+              return (
+                <article key={line.key}>
+                  <span className="events-order" dir="ltr">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div>
+                    <small>{p.label}</small>
+                    <bdi>{p.value}</bdi>
+                  </div>
+                  <ArrowUpRight size={16} />
+                </article>
+              );
+            })}
+          </div>
+        ) : layout === "floating" ? (
+          <div className="events-carousel">
+            {lines.length
+              ? [0, 1, 2].map((offset) => {
+                  const line = lines[(active + offset) % lines.length]!;
+                  const p = parts(line.text);
+                  return (
+                    <article
+                      key={`${offset}-${line.key}`}
+                      className={offset === 0 ? "event-line-swap is-current" : ""}
+                      data-motion={offset === 0 ? motion : "shown"}
+                    >
+                      <span className="events-order" dir="ltr">
+                        {String(((active + offset) % lines.length) + 1).padStart(2, "0")}
+                      </span>
+                      <small>{p.label}</small>
+                      <bdi>{p.value}</bdi>
+                    </article>
+                  );
+                })
+              : null}
+          </div>
+        ) : layout === "spotlight" ? (
+          <div className="events-ledger">
+            {lines.map((line, i) => {
+              const p = parts(line.text);
+              return (
+                <article key={line.key}>
+                  <div>
+                    <span className="events-order" dir="ltr">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <small>{p.label}</small>
+                  </div>
+                  <bdi>{p.value}</bdi>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="events-ribbon-body">
+            <span className="events-ribbon-mark">
+              <Activity size={28} />
+            </span>
+            <div className="event-line-swap" data-motion={motion}>
+              <small>{item?.label}</small>
+              <bdi>{item?.value}</bdi>
+            </div>
+            <span className="events-ribbon-index" dir="ltr">
+              {lines.length ? `${(active % lines.length) + 1} / ${lines.length}` : "—"}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  }
   let body;
   if (layout === "island") {
     body = (
@@ -115,32 +244,6 @@ export function EventLabelsFace({
             </span>
           </div>
         ))}
-      </div>
-    );
-  } else if (layout === "cycle") {
-    body = (
-      <div className="relative w-[400px] overflow-hidden rounded-3xl border border-white/10 bg-[#101012] p-6">
-        <span
-          className="absolute top-0 end-0 h-20 w-20 rounded-es-full border-b border-s border-white/10"
-          style={{ background: `${accent}08` }}
-        />
-        <div className="mb-6 flex items-center gap-2">
-          <Sparkles size={15} style={{ color: accent }} />
-          {heading}
-        </div>
-        <div className="min-h-14 font-semibold">{current}</div>
-        <div className="mt-5 flex gap-1.5" aria-hidden>
-          {lines.map((line, i) => (
-            <span
-              key={line.key}
-              className="h-1 rounded-full transition-[width] motion-reduce:transition-none"
-              style={{
-                width: i === active % lines.length ? 24 : 6,
-                background: i === active % lines.length ? accent : "rgba(255,255,255,.15)",
-              }}
-            />
-          ))}
-        </div>
       </div>
     );
   } else if (layout === "floating") {
