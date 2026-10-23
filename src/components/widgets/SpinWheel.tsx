@@ -365,24 +365,25 @@ export function SpinWheelView({
   const sidePanel = layout === "studio" || layout === "show";
   const wheelSize =
     layout === "compact"
-      ? 176
+      ? 144
       : layout === "studio"
-        ? 260
+        ? 300
         : layout === "show"
           ? 320
           : layout === "bare"
-            ? 240
-            : 300;
+            ? 220
+            : layout === "spotlight"
+              ? 350
+              : 300;
   const shells = {
     classic: "wheel-refined wheel-refined-classic bg-transparent p-5",
-    compact: "wheel-refined wheel-refined-compact bg-transparent p-3",
-    bare: "border-0 bg-transparent p-3",
-    show: "wheel-refined wheel-refined-show rounded-3xl border border-white/10 bg-[#101216] p-6",
+    compact: "premium-wheel premium-wheel-compact",
+    bare: "premium-wheel premium-wheel-bare",
+    show: "premium-wheel premium-wheel-show",
     bottom:
       "overflow-hidden rounded-t-3xl border-x border-t border-white/15 bg-[#101012] px-7 pt-4",
-    studio:
-      "wheel-refined wheel-refined-studio grid rounded-3xl border border-white/10 bg-[#101216] p-6",
-    spotlight: "relative rounded-3xl border border-white/10 bg-[#101012] p-8",
+    studio: "premium-wheel premium-wheel-studio",
+    spotlight: "premium-wheel premium-wheel-spotlight",
     orbit: "wheel-refined wheel-refined-orbit relative bg-transparent p-10",
   } as const;
 
@@ -415,12 +416,6 @@ export function SpinWheelView({
         } as React.CSSProperties
       }
     >
-      {layout === "spotlight" ? (
-        <div
-          className="pointer-events-none absolute inset-3 rounded-2xl border border-white/10"
-          aria-hidden
-        />
-      ) : null}
       {layout === "orbit" ? (
         <>
           <div className="wheel-orbit-axis" aria-hidden />
@@ -626,20 +621,12 @@ export function SpinWheelView({
         >{`${placeholder ? 0 : slices.length} ${lang === "ar" ? "جوائز" : "prizes"}`}</p>
       )}
 
-      {(layout === "show" || layout === "studio") && !placeholder ? (
-        <div className="col-start-2 space-y-2 border-t border-white/10 pt-3">
+      {["compact", "show", "studio", "bare", "spotlight"].includes(layout) && !placeholder ? (
+        <div className="premium-wheel-prizes">
           {slices
             .filter((slice) => !slice.placeholder)
-            .slice(0, 3)
             .map((slice, index) => (
-              <div
-                key={index}
-                className={
-                  layout === "show"
-                    ? "flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-white/5 bg-white/[0.025] px-2 py-3 text-center"
-                    : "flex items-center gap-2 text-start"
-                }
-              >
+              <div key={index} className={index === winnerIndex ? "is-selected" : ""}>
                 <span className="font-mono text-[9px] opacity-35" dir="ltr">
                   {String(index + 1).padStart(2, "0")}
                 </span>

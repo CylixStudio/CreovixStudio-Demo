@@ -39,7 +39,7 @@ test("draw parsing preserves every layout and the actual winner, claim, and conf
     };
     assert.deepEqual(readGiveawayDraw(saved), {
       ...saved,
-      presentation: { animation: "roulette", speed: 1 },
+      presentation: { animation: "carousel", speed: 1 },
       revealStartedAt: null,
       revealDuration: 5,
     });

@@ -358,7 +358,7 @@ export function PollOverlay({
     backdropFilter: "blur(22px)",
   };
 
-  if (["compact", "columns", "cards", "split", "donut"].includes(parsed.layout))
+  if (["compact", "columns", "cards", "split", "donut", "ballot", "leaderboard"].includes(parsed.layout))
     return (
       <OverlayStage {...stageProps}>
         <OverlayMotionStyles />

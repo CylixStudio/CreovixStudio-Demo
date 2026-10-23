@@ -170,7 +170,7 @@ export function PredictionOverlay({
     backdropFilter: "blur(22px)",
   };
 
-  if (["classic", "split", "ribbon", "odds"].includes(parsed.layout))
+  if (["classic", "split", "ribbon", "odds", "duel"].includes(parsed.layout))
     return (
       <OverlayStage {...stageProps}>
         <OverlayMotionStyles />

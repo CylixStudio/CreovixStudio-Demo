@@ -16,14 +16,25 @@ import { setDemoDbProvider } from "../src/demo/context.ts";
 import { createDemoSupabase } from "../src/lib/demoSupabase.ts";
 import { DEMO_USER_ID } from "../src/lib/demoMode.ts";
 
-test("six presentation mechanisms have bilingual labels and safe speed limits", () => {
+test("only Avatar Carousel remains; removed and unknown animations migrate safely", () => {
   assert.deepEqual(
     GIVEAWAY_ANIMATIONS.map(({ id }) => id),
-    ["roulette", "spotlight", "shuffle", "elimination", "carousel", "minimal"],
+    ["carousel"],
   );
   for (const animation of GIVEAWAY_ANIMATIONS) {
     assert.ok(animation.ar && animation.en);
     assert.equal(parseGiveawayPresentation({ animation: animation.id }).animation, animation.id);
+  }
+  for (const animation of [
+    "roulette",
+    "spotlight",
+    "shuffle",
+    "elimination",
+    "minimal",
+    "unknown",
+    null,
+  ]) {
+    assert.equal(parseGiveawayPresentation({ animation }).animation, "carousel");
   }
   for (const speed of [NaN, Infinity, undefined, "fast"]) {
     assert.equal(parseGiveawayPresentation({ speed }).speed, 1);
@@ -41,7 +52,7 @@ test("Display settings use shared widget validation and survive presentation ser
     backgroundColor: "#111318",
     backgroundOpacity: 80,
   });
-  const presentation = { animation: "minimal", speed: 1.5, appearance };
+  const presentation = { animation: "carousel", speed: 1.5, appearance };
   assert.deepEqual(
     parseGiveawayPresentation(JSON.parse(JSON.stringify(presentation))),
     presentation,
@@ -147,6 +158,16 @@ test("legacy layouts and completed winner/claim data survive presentation parsin
   assert.equal(parsed.revealDuration, 8);
   assert.equal(readGiveawayDraw({ revealDuration: NaN }).revealDuration, 5);
   assert.equal(readGiveawayDraw({ revealDuration: Infinity }).revealDuration, 5);
+  for (const animation of ["roulette", "spotlight", "shuffle", "elimination", "minimal"]) {
+    const migrated = readGiveawayDraw({
+      ...draw,
+      presentation: { ...draw.presentation, animation },
+    });
+    assert.deepEqual(migrated, {
+      ...parsed,
+      presentation: { ...parsed.presentation, animation: "carousel" },
+    });
+  }
 });
 
 test("a preselected winner cannot claim before reveal; legacy and completed draws keep claim validation", async () => {

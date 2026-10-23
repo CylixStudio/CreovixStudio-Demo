@@ -101,8 +101,8 @@ export const OVERLAY_LAYOUTS: {
     label: "Cute Heart",
     hint: "Dark capsule with a pink heart badge",
   },
-  { value: "broadcast", label: "Broadcast panel", hint: "Timer and broadcast identity columns" },
-  { value: "split_clock", label: "Split clock", hint: "Individual flip-clock timer blocks" },
+  { value: "broadcast", label: "Minimal Time Signature", hint: "Open typography with a tall identity marker" },
+  { value: "split_clock", label: "Milestone Countdown", hint: "Time and remaining-time milestone stations" },
   {
     value: "circular_pomodoro",
     label: "Time Arc",
@@ -110,13 +110,13 @@ export const OVERLAY_LAYOUTS: {
   },
   {
     value: "multi_ring_countdown",
-    label: "Time Unit Rail",
-    hint: "Connected time units matching the selected time format",
+    label: "Cinematic Countdown",
+    hint: "Wide-screen time with a quiet film-strip rail",
   },
   {
     value: "tower",
-    label: "Timer Tower",
-    hint: "Vertical countdown with stacked time units",
+    label: "Timer Console",
+    hint: "Control badge and horizontal time-unit console",
   },
 ];
 

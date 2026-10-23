@@ -37,20 +37,20 @@ export function ChatMessageFace({
     <div
       data-chat-face={layout}
       dir="ltr"
-      className={`chat-refined chat-refined-${layout}`}
+      className={`premium-chat premium-chat-${layout}`}
       style={{ "--chat-accent": color } as CSSProperties}
     >
-      {layout === "bubble" ? <ChatPortrait url={avatarUrl} author={author} /> : null}
-      <div className="chat-refined-body">
+      {layout !== "island" ? <ChatPortrait url={avatarUrl} author={author} /> : null}
+      <div className="premium-chat-copy">
         <header>
-          {layout === "island" ? <span className="chat-island-dot" /> : null}
           {meta}
           {name}
         </header>
-        <bdi className="chat-refined-text" dir="auto">
+        <bdi className="premium-chat-text" dir="auto">
           {children}
         </bdi>
       </div>
+      {layout === "island" ? <ChatPortrait url={avatarUrl} author={author} /> : null}
     </div>
   );
 }

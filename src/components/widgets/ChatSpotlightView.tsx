@@ -180,39 +180,36 @@ export function PinnedMessageCard({
         data-layout-content
         data-pinned-layout={chrome}
         data-motion={motion}
-        className={`overlay-spotlight-swap pinned-refined pinned-refined-${chrome}`}
+        className={`overlay-spotlight-swap premium-pin premium-pin-${chrome}`}
         dir={lang === "ar" ? "rtl" : "ltr"}
         style={
           {
             fontFamily: skin.fontFamily ?? style.fontFamily,
             color: style.textColor,
-            background: chrome === "direct" || chrome === "message" ? "transparent" : surface,
+            "--pin-surface": surface,
             "--pin-accent": accent,
           } as CSSProperties
         }
       >
         {chrome === "direct" ? (
           <>
-            <header>
+            <span className="premium-pin-stamp">
+              <Pin size={18} />
+            </span>
+            <div>
               {pinLabel}
-              <span className="pinned-strip-rule" />
-            </header>
-            <div className="pinned-strip-line">
-              {author}
-              <span className="pinned-separator" />
               {text}
+              <footer>{author}</footer>
             </div>
           </>
         ) : chrome === "glass" ? (
           <>
-            <span className="pinned-float-icon">
-              <Pin size={20} />
-            </span>
-            <div className="pinned-float-content">
-              <header>
-                {author}
-                <span className="pinned-float-caption">{title}</span>
-              </header>
+            <aside className="premium-pin-portrait">
+              <span>{Array.from(message.author.trim())[0] ?? "?"}</span>
+              {author}
+            </aside>
+            <div className="premium-pin-paper">
+              {pinLabel}
               {text}
             </div>
           </>
@@ -220,56 +217,46 @@ export function PinnedMessageCard({
           <>
             <header>
               {pinLabel}
-              <span className="pinned-on-air">{lang === "ar" ? "على الشاشة" : "ON SCREEN"}</span>
+              <Quote size={32} strokeWidth={1} />
             </header>
-            <div className="pinned-broadcast-body">
-              <Quote size={38} strokeWidth={1.2} />
-              {text}
-            </div>
+            <div className="premium-pin-quote">{text}</div>
             <footer>
+              <span className="premium-pin-byline" />
               {author}
-              <span className="pinned-broadcast-rule" />
             </footer>
           </>
         ) : chrome === "lower-third" ? (
           <>
-            <span className="pinned-lower-mark">
-              <Pin size={19} />
-            </span>
-            <div className="pinned-lower-text">
-              {text}
-              <div>
-                {author}
-                <span className="pinned-float-caption">{title}</span>
-              </div>
-            </div>
-          </>
-        ) : chrome === "message" ? (
-          <>
-            <div className="pinned-message-meta">
-              <span className="pinned-message-initial" aria-hidden>
-                {Array.from(message.author.trim())[0] ?? "?"}
-              </span>
+            <div className="premium-pin-caption">
+              <span>{Array.from(message.author.trim())[0] ?? "?"}</span>
               {author}
               {pinLabel}
             </div>
-            <div className="pinned-message-bubble">{text}</div>
+            <div className="premium-pin-subtitle">{text}</div>
+          </>
+        ) : chrome === "message" ? (
+          <>
+            <div className="premium-pin-toast">
+              <Pin size={15} />
+              {pinLabel}
+            </div>
+            <div className="premium-pin-conversation">
+              {author}
+              {text}
+            </div>
+            <span className="premium-pin-orbit-avatar">
+              {Array.from(message.author.trim())[0] ?? "?"}
+            </span>
           </>
         ) : (
           <>
             <aside>
-              <span className="pinned-split-index">
-                <Pin size={24} />
-              </span>
-              <span className="pinned-split-caption">{title}</span>
+              {pinLabel}
+              <Quote size={26} />
+              {author}
             </aside>
-            <div className="pinned-split-body">
-              {text}
-              <footer>
-                {author}
-                <Quote size={22} strokeWidth={1.2} />
-              </footer>
-            </div>
+            <div className="premium-pin-feature">{text}</div>
+            <span className="premium-pin-bookmark" />
           </>
         )}
       </article>
@@ -277,126 +264,6 @@ export function PinnedMessageCard({
   }
 
   switch (chrome) {
-    case "direct":
-      decoration = {
-        background: "transparent",
-        borderTop: "none",
-        borderRight: "none",
-        borderBottom: "none",
-        borderLeft: "none",
-        borderRadius: 0,
-        boxShadow: "none",
-        backdropFilter: "none",
-        padding: "8px 4px",
-        textShadow: "0 2px 5px rgba(0,0,0,.9)",
-      };
-      content = (
-        <div className="flex flex-col gap-2">
-          {author}
-          {text}
-        </div>
-      );
-      break;
-    case "bold":
-      decoration = {
-        borderRadius: 3,
-        borderTop: `3px solid ${accent}`,
-        borderRight: `3px solid ${accent}`,
-        borderBottom: `3px solid ${accent}`,
-        borderLeft: `3px solid ${accent}`,
-        padding: 0,
-        boxShadow: `7px 7px 0 ${withAlpha(accent, 25)}`,
-      };
-      content = (
-        <>
-          <div
-            className="flex flex-wrap items-center justify-between gap-3 px-5 py-3"
-            style={{
-              background: withAlpha(accent, 20),
-              borderBottom: `1px solid ${withAlpha(accent, 40)}`,
-            }}
-          >
-            {pinLabel}
-            <span aria-hidden style={{ color: accent, fontSize: 22 }}>
-              ◆
-            </span>
-          </div>
-          <div className="space-y-4 px-5 py-5">
-            {text}
-            {author}
-          </div>
-        </>
-      );
-      break;
-    case "lower-third":
-      decoration = {
-        maxWidth: 900,
-        padding: 0,
-        borderRadius: 6,
-        borderTop: "none",
-        borderRight: "none",
-        borderLeft: "none",
-        borderBottom: `3px solid ${accent}`,
-        boxShadow: "none",
-      };
-      content = (
-        <div className="flex flex-wrap items-stretch">
-          <div
-            className="flex min-w-0 flex-col justify-center gap-3 px-5 py-4"
-            style={{
-              flex: "1 1 150px",
-              background: withAlpha(accent, 18),
-              borderInlineEnd: outline,
-            }}
-          >
-            {pinLabel}
-            {author}
-          </div>
-          <div className="flex min-w-0 items-center px-6 py-4" style={{ flex: "3 1 260px" }}>
-            {text}
-          </div>
-        </div>
-      );
-      break;
-    case "message":
-      decoration = {
-        maxWidth: 520,
-        background: "transparent",
-        borderTop: "none",
-        borderRight: "none",
-        borderBottom: "none",
-        borderLeft: "none",
-        padding: 0,
-        boxShadow: "none",
-        backdropFilter: "none",
-      };
-      content = (
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <span
-              aria-hidden
-              className="flex size-10 shrink-0 items-center justify-center rounded-full font-bold"
-              style={{ background: withAlpha(accent, 20), color: accent }}
-            >
-              {[...message.author.trim()][0] ?? "?"}
-            </span>
-            {author}
-          </div>
-          <div
-            className="relative space-y-4 px-6 py-5"
-            style={{
-              background: surface,
-              border: outline,
-              borderRadius: lang === "ar" ? "22px 4px 22px 22px" : "4px 22px 22px 22px",
-              marginInlineStart: 20,
-            }}
-          >
-            {text}
-            {pinLabel}
-          </div>
-        </div>
-      );
-      break;
     case "pill":
       decoration = {
         maxWidth: 760,
@@ -420,28 +287,7 @@ export function PinnedMessageCard({
         </div>
       );
       break;
-    case "split":
-      decoration = { maxWidth: 760, padding: 0, borderRadius: 18, overflow: "hidden" };
-      content = (
-        <div className="flex flex-wrap items-stretch">
-          <div
-            className="flex min-w-0 flex-col justify-between gap-5 p-5"
-            style={{
-              flex: "1 1 170px",
-              background: withAlpha(accent, 14),
-              borderInlineEnd: `3px solid ${accent}`,
-            }}
-          >
-            {pinLabel}
-            <Quote size={40} strokeWidth={1.3} style={{ color: accent }} aria-hidden />
-            {author}
-          </div>
-          <div className="flex min-w-0 items-center p-6" style={{ flex: "2 1 230px" }}>
-            {text}
-          </div>
-        </div>
-      );
-      break;
+
     case "featured":
       decoration = {
         maxWidth: 640,
@@ -460,21 +306,6 @@ export function PinnedMessageCard({
         </div>
       );
       break;
-    default:
-      decoration = {
-        background: withAlpha(style.backgroundColor, Math.max(style.backgroundOpacity, 70)),
-        backdropFilter: "blur(20px)",
-        boxShadow: "0 16px 40px rgba(0,0,0,.3)",
-      };
-      content = (
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            {author}
-            {pinLabel}
-          </div>
-          {text}
-        </div>
-      );
   }
 
   return (

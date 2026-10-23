@@ -17,14 +17,7 @@ function LayoutMini({ id }: { id: ChatLayout }) {
   if (["glass", "island", "bubble"].includes(id))
     return (
       <LayoutThumbnail height={90}>
-        <div
-          className={
-            id === "glass"
-              ? "chat-glass-panel w-[380px] rounded-2xl border border-white/10 bg-[#101216]/90 p-4"
-              : "w-[380px]"
-          }
-          style={{ fontSize: 22 }}
-        >
+        <div className={"w-[380px]"} style={{ fontSize: 22 }}>
           <ChatMessageFace
             layout={id}
             author="Nova"
@@ -40,24 +33,7 @@ function LayoutMini({ id }: { id: ChatLayout }) {
         </div>
       </LayoutThumbnail>
     );
-  if (id === "island") {
-    return (
-      <div className="flex h-14 items-center px-2">
-        <span className="rounded-full border border-violet-400/40 bg-[rgba(15,15,26,0.85)] px-2 py-1 text-[10px] text-white">
-          Nova hello
-        </span>
-      </div>
-    );
-  }
-  if (id === "bubble") {
-    return (
-      <div className="flex h-14 items-center px-2">
-        <span className="rounded-2xl rounded-ss-sm border border-slate-600/60 bg-slate-800/90 px-2 py-1 text-[10px] text-white">
-          Nova hello
-        </span>
-      </div>
-    );
-  }
+
   return (
     <div className="flex h-14 items-center px-2">
       <span className="w-full rounded-md border border-white/10 bg-slate-900/70 px-2 py-1 text-[10px] text-white backdrop-blur">
@@ -107,7 +83,7 @@ export function ChatThemePicker({
   onSelectLayout: (layout: ChatLayout) => void;
   onSelectRoyal: () => void;
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const card =
     "flex h-full min-w-0 flex-col overflow-hidden rounded-xl border bg-zinc-950/40 text-start transition-colors hover:border-primary/50";
   const nameClass =
@@ -127,7 +103,16 @@ export function ChatThemePicker({
             <div className="bg-[repeating-conic-gradient(#1c1d24_0%_25%,#121318_0%_50%)] bg-[length:12px_12px]">
               <LayoutMini id={entry.value} />
             </div>
-            <span className={nameClass}>{entry.label}</span>
+            <span className={nameClass}>
+              {lang === "ar"
+                ? {
+                    glass: "بصمة المرسل",
+                    island: "شات عائم",
+                    bubble: "سطر الشات الفاخر",
+                    transparent: "شفاف بالكامل",
+                  }[entry.value]
+                : entry.label}
+            </span>
           </button>
         );
       })}

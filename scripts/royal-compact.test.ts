@@ -30,14 +30,35 @@ test("royal-compact theme id is present beside the existing layouts", () => {
 });
 
 test("speech bubbles stay free and beat a leftover royal theme id", () => {
-  assert.equal(widgetSaveAllowed(false, "CHAT_BOX", { chatLayout: "bubble", themeId: "dark-glass" }), true);
-  assert.equal(widgetSaveAllowed(false, "CHAT_BOX", { chatLayout: "bubble", themeId: ROYAL_COMPACT_THEME_ID }), false);
-  assert.equal(widgetSaveAllowed(false, "CHAT_BOX", { themeId: ROYAL_COMPACT_THEME_ID, chatLayout: "glass" }), false);
+  assert.equal(
+    widgetSaveAllowed(false, "CHAT_BOX", { chatLayout: "bubble", themeId: "dark-glass" }),
+    true,
+  );
+  assert.equal(
+    widgetSaveAllowed(false, "CHAT_BOX", { chatLayout: "bubble", themeId: ROYAL_COMPACT_THEME_ID }),
+    false,
+  );
+  assert.equal(
+    widgetSaveAllowed(false, "CHAT_BOX", { themeId: ROYAL_COMPACT_THEME_ID, chatLayout: "glass" }),
+    false,
+  );
   assert.equal(readChatPresentation(null), "glass");
-  assert.equal(readChatPresentation({ chatLayout: "bubble", themeId: ROYAL_COMPACT_THEME_ID }), "bubble");
-  assert.equal(chatUsesRoyalCompact({ chatLayout: "bubble", themeId: ROYAL_COMPACT_THEME_ID }), false);
-  assert.equal(readChatPresentation({ themeId: ROYAL_COMPACT_THEME_ID, chatLayout: "glass" }), ROYAL_COMPACT_THEME_ID);
-  assert.equal(readChatPresentation({ themeId: ROYAL_COMPACT_THEME_ID, chatLayout: "island" }), ROYAL_COMPACT_THEME_ID);
+  assert.equal(
+    readChatPresentation({ chatLayout: "bubble", themeId: ROYAL_COMPACT_THEME_ID }),
+    "bubble",
+  );
+  assert.equal(
+    chatUsesRoyalCompact({ chatLayout: "bubble", themeId: ROYAL_COMPACT_THEME_ID }),
+    false,
+  );
+  assert.equal(
+    readChatPresentation({ themeId: ROYAL_COMPACT_THEME_ID, chatLayout: "glass" }),
+    ROYAL_COMPACT_THEME_ID,
+  );
+  assert.equal(
+    readChatPresentation({ themeId: ROYAL_COMPACT_THEME_ID, chatLayout: "island" }),
+    ROYAL_COMPACT_THEME_ID,
+  );
   assert.equal(chatUsesRoyalCompact({ themeId: ROYAL_COMPACT_THEME_ID }), true);
   const clampedBubble = clampFreeWidgetConfig("CHAT_BOX", {
     chatLayout: "bubble",
@@ -52,7 +73,10 @@ test("free save of royal-compact is rejected and Pro save is accepted", () => {
   const config = royalCompactPayload({ ...ROYAL_COMPACT_DEFAULTS, showAvatar: false });
   assert.equal(widgetSaveAllowed(false, "CHAT_BOX", config), false);
   assert.equal(widgetSaveAllowed(true, "CHAT_BOX", config), true);
-  assert.equal(widgetSaveAllowed(false, "CHAT_BOX", { chatLayout: "glass", themeId: "dark-glass" }), true);
+  assert.equal(
+    widgetSaveAllowed(false, "CHAT_BOX", { chatLayout: "glass", themeId: "dark-glass" }),
+    true,
+  );
 });
 
 test("expired subscription is not active Pro", () => {
@@ -144,10 +168,15 @@ test("royal settings round-trip through the config shape", () => {
   test("Demo persistence keeps provider-supplied badge artwork without creating counts or roles", () => {
     const state = normalizeDemoFile({
       messages: {
-        "demo-chat-box": [{
-          id: "custom", author: "Viewer", text: "hello", badges: [],
-          badgeList: [{ type: "custom", imageUrl: "https://cdn.example.com/badge.png" }],
-        }],
+        "demo-chat-box": [
+          {
+            id: "custom",
+            author: "Viewer",
+            text: "hello",
+            badges: [],
+            badgeList: [{ type: "custom", imageUrl: "https://cdn.example.com/badge.png" }],
+          },
+        ],
       },
     });
     const badges = state.messages["demo-chat-box"]![0]!.badgeList!;
@@ -158,9 +187,15 @@ test("royal settings round-trip through the config shape", () => {
   const stored = royalCompactPayload(settings);
   assert.deepEqual(parseRoyalCompactSettings(stored), settings);
   assert.deepEqual(parseRoyalCompactSettings({}), { ...ROYAL_COMPACT_DEFAULTS });
-  assert.equal(readChatAvatarUrl({ profile_picture: "https://files.kick.com/a.png" }), "https://files.kick.com/a.png");
+  assert.equal(
+    readChatAvatarUrl({ profile_picture: "https://files.kick.com/a.png" }),
+    "https://files.kick.com/a.png",
+  );
   assert.equal(readChatAvatarUrl({ avatar: "not-a-url" }), null);
-  assert.equal(readChatAvatarUrl({ authorDetails: { profileImageUrl: "https://yt.img/a.jpg" } }), "https://yt.img/a.jpg");
+  assert.equal(
+    readChatAvatarUrl({ authorDetails: { profileImageUrl: "https://yt.img/a.jpg" } }),
+    "https://yt.img/a.jpg",
+  );
 });
 
 test("expired Pro overlay falls back without deleting stored royal settings", () => {
@@ -195,31 +230,30 @@ function sourceSlice(source: string, start: string, end: string): string {
   return source.slice(from, to);
 }
 
-test("speech bubbles and the other chat layouts stay on the previous markup", () => {
-  const demo = readFileSync(new URL("../src/components/widgets/WidgetRenderer.tsx", import.meta.url), "utf8");
-  const product = readFileSync(
-    new URL("../../CylixStudio/src/components/widgets/WidgetRenderer.tsx", import.meta.url),
+test("Royal stays isolated while replacement chat layouts share their preview/source face", () => {
+  const demo = readFileSync(
+    new URL("../src/components/widgets/WidgetRenderer.tsx", import.meta.url),
     "utf8",
   );
-  const bubbleStart = 'if (layout === "bubble")';
-  const islandStart = 'if (layout === "island")';
-  assert.equal(sourceSlice(demo, bubbleStart, islandStart), sourceSlice(product, bubbleStart, islandStart));
-  assert.match(sourceSlice(demo, bubbleStart, islandStart), /data-chat-arc=""/);
-  assert.match(sourceSlice(demo, bubbleStart, islandStart), /data-chat-fill=""/);
-  const royal = sourceSlice(demo, "if (royal)", bubbleStart);
+  const shared = 'if (["glass", "bubble", "island"].includes(layout))';
+  const royal = sourceSlice(demo, "if (royal)", shared);
   assert.match(royal, /data-chat-theme="royal-compact"/);
   assert.match(royal, /<RoyalChatRow/);
   assert.doesNotMatch(royal, /data-chat-arc/);
   assert.doesNotMatch(royal, /data-chat-fill/);
-  assert.equal(
-    sourceSlice(demo, islandStart, "  const quiet ="),
-    sourceSlice(product, islandStart, "  const quiet ="),
-  );
+  assert.match(sourceSlice(demo, shared, "  const quiet ="), /<ChatMessageFace/);
+  assert.doesNotMatch(demo, /function BubbleAvatar|data-chat-arc=""|data-chat-fill=""/);
 });
 
 test("picker and actual renderer share the compact face, isolated text and avatar fallback", () => {
-  const face = readFileSync(new URL("../src/components/widgets/RoyalChatRow.tsx", import.meta.url), "utf8");
-  const picker = readFileSync(new URL("../src/components/widgets/ChatThemePicker.tsx", import.meta.url), "utf8");
+  const face = readFileSync(
+    new URL("../src/components/widgets/RoyalChatRow.tsx", import.meta.url),
+    "utf8",
+  );
+  const picker = readFileSync(
+    new URL("../src/components/widgets/ChatThemePicker.tsx", import.meta.url),
+    "utf8",
+  );
   assert.match(picker, /<RoyalChatRow/);
   assert.match(face, /borderLeft: `2px solid \$\{color\}`/);
   assert.match(face, /borderRadius: layout.radius/);

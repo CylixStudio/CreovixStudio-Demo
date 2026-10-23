@@ -171,3 +171,29 @@ test("idle live overlays do not invent sample votes or outcomes", () => {
     }
   }
 });
+
+test("cinema events use real upcoming entries once and safely wrap an empty or short feed", async () => {
+  const { EventLabelsFace } = await server.ssrLoadModule(
+    "/src/components/widgets/EventLabelsFace.tsx",
+  );
+  const props = {
+    layout: "ribbon",
+    title: "Events",
+    lines: [
+      { key: "one", text: "Follow: First" },
+      { key: "two", text: "Raid: Second" },
+    ],
+    active: 1,
+    motion: "shown",
+    accent: "#bee1fc",
+    color: "#ffffff",
+    fontFamily: "Arial",
+    fontSize: 32,
+    lang: "en",
+  };
+  const html = render(EventLabelsFace, props);
+  assert.ok(html.indexOf("Second") < html.indexOf("First"));
+  assert.equal((html.match(/Second/g) ?? []).length, 1);
+  assert.equal((html.match(/First/g) ?? []).length, 1);
+  assert.doesNotMatch(render(EventLabelsFace, { ...props, lines: [] }), /undefined|NaN|Infinity/);
+});

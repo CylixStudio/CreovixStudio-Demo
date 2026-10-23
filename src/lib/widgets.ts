@@ -128,18 +128,18 @@ export const CHAT_LAYOUTS: {
   },
   {
     value: "glass",
-    label: "🧊 Full Glass Container",
-    hint: "Continuous chat panel window",
+    label: "Streamer Signature",
+    hint: "Portrait-led sender identity and editorial message",
   },
   {
     value: "island",
-    label: "🏝️ Dynamic Island Messages",
-    hint: "Each message a floating capsule",
+    label: "Floating Chat",
+    hint: "Offset floating messages with trailing portraits",
   },
   {
     value: "bubble",
-    label: "💬 Speech Bubbles",
-    hint: "Rounded bubbles with offset corner",
+    label: "Premium Chatline",
+    hint: "Compact avatar rail and inline chat identity",
   },
 ];
 

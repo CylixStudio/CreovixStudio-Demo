@@ -244,6 +244,19 @@ function GoalLayoutFrame({
       </span>
     </span>
   );
+  if (layout === "bold" || layout === "ring") {
+    return <div data-goal-layout={layout} className={`premium-goal premium-goal-${layout}`} style={{color:ink,fontFamily,"--goal-accent":accent} as React.CSSProperties}>
+      {layout === "bold" ? <>
+        <header><span dir="auto">{title}</span>{showPercent ? <bdi>{percent.toFixed(0)}%</bdi> : null}</header>
+        <div className="premium-goal-summit" aria-hidden>{[25,50,75,100].map((step,index)=><div key={step} className={percent>=step?"is-reached":""} style={{"--peak-height":`${45+index*22}px`} as React.CSSProperties}><span/><small>{step}%</small></div>)}</div>
+        <footer>{amount}</footer>
+      </> : <>
+        <aside><span dir="auto">{title}</span><strong dir="ltr">{current.toLocaleString("en-US",{maximumFractionDigits:2})}</strong><small dir="ltr">/ {target.toLocaleString("en-US",{maximumFractionDigits:2})} {unit}</small></aside>
+        <div className="premium-goal-mosaic" aria-label={`${percent.toFixed(0)}%`}>{Array.from({length:25},(_,index)=><span key={index} className={index<Math.round(percent/4)?"is-reached":""}/>)}</div>
+        {showPercent?<span className="premium-goal-caption" dir="ltr">{percent.toFixed(0)}%</span>:null}
+      </>}
+    </div>;
+  }
   if (layout === "scoreboard") {
     return <div data-goal-layout={layout} className="w-[460px] overflow-hidden rounded-2xl border border-white/15 bg-[#101012]" style={{ color: ink, fontFamily }}>
       <div className="flex items-center justify-between border-b border-white/10 px-5 py-3"><span className="text-sm font-semibold" dir="auto">{title}</span>{showPercent ? <span className="rounded-full border border-white/10 px-2.5 py-1 text-xs tabular-nums" style={{ color: accent }}>{percent.toFixed(0)}%</span> : null}</div>
@@ -259,20 +272,6 @@ function GoalLayoutFrame({
       <div className="relative mt-6 h-px bg-white/15"><div className="absolute inset-y-0 start-0" style={{ width: `${percent}%`, background: accent }} /><span className="absolute top-1/2 size-3 -translate-y-1/2 rotate-45 border-2 border-[#0a0a0a]" style={{ insetInlineStart: `calc(${percent}% - 6px)`, background: accent }} /></div>
       <div className="mt-2 flex justify-between text-[9px] tabular-nums opacity-30" dir="ltr">{["0", "25", "50", "75", "100"].map(value => <span key={value}>{value}</span>)}</div>
     </div>;
-  }
-  if (layout === "ring") {
-    return (
-      <div data-goal-layout="ring" className="flex w-[420px] items-center gap-6 rounded-3xl border border-white/10 bg-zinc-950 p-6" style={{ color: ink, fontFamily }}>
-        <div className="relative size-32 shrink-0">
-          <svg viewBox="0 0 120 120" className="size-full -rotate-90" aria-hidden>
-            <circle cx="60" cy="60" r="50" fill="none" stroke={withAlpha(ink, 14)} strokeWidth="9" />
-            <circle cx="60" cy="60" r="50" fill="none" stroke={accent} strokeWidth="9" strokeLinecap="round" strokeDasharray={`${percent * Math.PI} ${100 * Math.PI}`} />
-          </svg>
-          {showPercent ? <span className="absolute inset-0 grid place-items-center text-2xl font-bold tabular-nums">{percent.toFixed(0)}%</span> : null}
-        </div>
-        <div className="min-w-0 space-y-3"><p className="text-sm font-semibold" dir="auto">{title}</p><div className="text-xl">{amount}</div></div>
-      </div>
-    );
   }
   if (layout === "segments") {
     return (
@@ -633,45 +632,6 @@ function bubbleUserAccent(color: string | null | undefined) {
   if (/^#[0-9a-f]{8}$/i.test(value)) return value.slice(0, 7);
   if (/^(rgb|hsl)a?\(/i.test(value)) return value;
   return BUBBLE_ACCENT_FALLBACK;
-}
-
-function BubbleAvatar({ url, letter }: { url: string | null; letter: string }) {
-  const [failed, setFailed] = useState(false);
-  const safe = url && /^https:\/\//i.test(url) && !failed ? url : null;
-  const size = 36;
-  return (
-    <span
-      data-chat-avatar=""
-      style={{
-        width: size,
-        height: size,
-        boxSizing: "border-box",
-        borderRadius: 999,
-        border: "3px solid var(--bubble-accent, #f2f2f2)",
-        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.28)",
-        overflow: "hidden",
-        flex: "0 0 auto",
-        display: "grid",
-        placeItems: "center",
-        background: "#121214",
-        color: "#f2f2f2",
-        fontSize: 13,
-        fontWeight: 700,
-        lineHeight: 1,
-      }}
-    >
-      {safe ? (
-        <img
-          src={safe}
-          alt=""
-          onError={() => setFailed(true)}
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-        />
-      ) : (
-        letter
-      )}
-    </span>
-  );
 }
 
 function shortRoleLabel(type: string | null | undefined): "Mod" | "VIP" | null {
@@ -1086,7 +1046,7 @@ export function ChatBoxView({
   const containerClass = royal
     ? "flex w-full min-w-0 max-w-[520px] flex-col items-start overflow-visible bg-transparent p-0"
     : layout === "glass"
-      ? "chat-glass-panel flex w-full min-w-0 max-w-[520px] flex-col overflow-hidden rounded-2xl bg-[#101216]/90 p-5 border border-white/10"
+      ? "premium-chat-list flex w-full min-w-0 max-w-[520px] flex-col bg-transparent p-0"
       : "flex w-full min-w-0 max-w-[520px] flex-col items-start overflow-visible rounded-2xl bg-transparent p-0";
 
   const rowClassForLayout = (messageLayout: ChatLayout, motion: string) => {
@@ -1117,39 +1077,12 @@ export function ChatBoxView({
         }
       : {};
 
-  const islandCapsuleStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    width: "fit-content",
-    maxWidth: "90%",
-    padding: "8px 18px",
-    borderRadius: 24,
-    background: "rgba(15, 15, 26, 0.85)",
-    backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
-    border: "1px solid rgba(168, 85, 247, 0.3)",
-    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.4)",
-    marginBottom: 8,
-  };
-
   const islandNameStyle: React.CSSProperties = {
     display: "inline-flex",
     alignItems: "center",
     gap: 6,
     marginInlineEnd: 6,
     flexShrink: 0,
-  };
-
-  const islandTextStyle: React.CSSProperties = {
-    display: "inline",
-    color: "#ffffff",
-    wordBreak: "break-word",
-    overflowWrap: "anywhere",
-    whiteSpace: "normal",
-    minWidth: 0,
   };
 
   const renderMessage = (message: ChatMessage, leaving = false) => {
@@ -1385,148 +1318,6 @@ export function ChatBoxView({
         </ChatMessageFace>
       </div>,
     );
-    if (layout === "bubble") {
-      const userAccent = bubbleUserAccent(message?.color);
-      return replyWrap(
-        <div
-          dir="ltr"
-          data-chat-id={leaving ? undefined : message?.id}
-          data-chat-theme="bubble"
-          className={`overlay-chat-row ${motion}`}
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            direction: "ltr",
-            alignItems: "center",
-            justifyContent: "flex-start",
-            gap: 6,
-            width: "fit-content",
-            maxWidth: "100%",
-            minWidth: 0,
-            background: "transparent",
-            border: "none",
-            boxShadow: "none",
-            ["--bubble-accent" as string]: userAccent,
-          }}
-        >
-          <BubbleAvatar
-            url={typeof message?.avatarUrl === "string" ? message.avatarUrl : null}
-            letter={chatInitial(author)}
-          />
-          <div
-            dir="ltr"
-            data-chat-bubble=""
-            style={{
-              position: "relative",
-              isolation: "isolate",
-              boxSizing: "border-box",
-              direction: "ltr",
-              width: "fit-content",
-              maxWidth: "min(520px, 100%)",
-              minWidth: 0,
-              minHeight: 34,
-              padding: 0,
-              background: "none",
-              border: "none",
-              borderRadius: 0,
-              boxShadow: "none",
-              overflow: "visible",
-            }}
-          >
-            <svg
-              aria-hidden
-              data-chat-arc=""
-              viewBox="0 0 18 40"
-              preserveAspectRatio="none"
-              style={{
-                position: "absolute",
-                left: 0,
-                top: 0,
-                width: 18,
-                height: "100%",
-                overflow: "visible",
-                pointerEvents: "none",
-                zIndex: 2,
-                color: "var(--bubble-accent, #f2f2f2)",
-              }}
-            >
-              <path
-                d="M15 2 Q 2 20 15 38"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="butt"
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-            <span
-              aria-hidden
-              data-chat-fill=""
-              style={{
-                position: "absolute",
-                top: 0,
-                bottom: 0,
-                left: 6,
-                right: 0,
-                borderRadius: 0,
-                backgroundColor: "transparent",
-                backgroundImage: `linear-gradient(to right, ${withAlpha(userAccent, 26)} 0px, ${withAlpha(userAccent, 8)} 90px, transparent 190px), linear-gradient(to right, rgba(8, 10, 14, 0.58) 0px, rgba(8, 10, 14, 0.16) 100px, transparent 200px)`,
-                maskImage: "linear-gradient(to right, #000 0px, #000 36px, transparent min(210px, 100%))",
-                WebkitMaskImage: "linear-gradient(to right, #000 0px, #000 36px, transparent min(210px, 100%))",
-                pointerEvents: "none",
-                zIndex: 0,
-              }}
-            />
-            <span
-              dir="ltr"
-              style={{
-                position: "relative",
-                zIndex: 1,
-                display: "flex",
-                flexWrap: "wrap",
-                alignItems: "center",
-                columnGap: 6,
-                rowGap: 2,
-                direction: "ltr",
-                minHeight: 34,
-                padding: "5px 2px 5px 20px",
-                maxWidth: "100%",
-              }}
-            >
-              {badgesBlock}
-              {platformBlock}
-              {nameBlock}
-              {message?.previewSample ? (
-                <span style={{ fontSize: 9, letterSpacing: "0.04em", opacity: 0.6 }}>{t("chat.previewSample")}</span>
-              ) : null}
-              <span style={{ color: "#ffffff", fontWeight: 500 }}>:</span>
-              <span dir="auto" style={{ ...textStyle, color: "#ffffff", fontWeight: 500 }}>
-                <ChatLineText text={text} altText={message?.altText} reduced={reducedMotion} render={renderChatText} />
-              </span>
-            </span>
-          </div>
-        </div>,
-      );
-    }
-
-    if (layout === "island") {
-      return replyWrap(
-        <div
-          dir="auto"
-          data-chat-id={leaving ? undefined : message?.id}
-          className={`overlay-chat-row ${motion}`}
-          style={islandCapsuleStyle}
-        >
-          <span style={{ display: "inline", minWidth: 0 }}>
-            {identity}
-            <span dir="auto" style={islandTextStyle}>
-              <ChatLineText text={text} altText={message?.altText} reduced={reducedMotion} render={renderChatText} />
-            </span>
-          </span>
-        </div>,
-      );
-    }
-
     return replyWrap(
       <div
         dir="auto"

@@ -148,7 +148,7 @@ test("all timer geometries render exact Latin countdowns without changing zero o
       assert.ok(html.includes('dir="ltr"'));
       assert.doesNotMatch(html, /NaN|Infinity/);
       assert.equal(formatOverlayTime(seconds, format), expected);
-      if (["split_clock", "tower", "multi_ring_countdown"].includes(layout)) {
+      if (layout === "tower") {
         for (const value of expected.split(":"))
           assert.ok(
             new RegExp(`>${value}</(?:span|strong)>`).test(html),
@@ -186,8 +186,8 @@ test("pinned root uses consistent border edges across layout rerenders without s
     const rootStyle = html.match(/data-pinned-layout="[^"]+"[^>]*style="([^"]+)"/)?.[1];
     assert.ok(rootStyle, layout);
     assert.doesNotMatch(rootStyle, /(?:^|;)border:/, layout);
-    if (html.includes("pinned-refined")) {
-      assert.ok(html.includes(`pinned-refined-${layout}`));
+    if (html.includes("premium-pin")) {
+      assert.ok(html.includes(`premium-pin-${layout}`));
       continue;
     }
     for (const edge of ["top", "right", "bottom", "left"]) {
@@ -196,13 +196,15 @@ test("pinned root uses consistent border edges across layout rerenders without s
   }
 });
 
-test("direct is transparent and new layouts do not change persisted pin/reply/auto-hide data", () => {
+test("replacement notification keeps a transparent exterior and preserves pin/reply/auto-hide data", () => {
   const html = renderToStaticMarkup(
     createElement(PinnedMessageCard, { config: { layout: "direct" }, message }),
   );
-  assert.ok(html.includes("background:transparent"));
-  const css = readFileSync(resolve(src, "components/widgets/WidgetRefinement.css"), "utf8");
-  assert.match(css, /\.pinned-refined-direct\s*\{[^}]*border:\s*(?:0|none)/);
+  assert.ok(html.includes("premium-pin-direct"));
+  const rootStyle = html.match(/data-pinned-layout="[^"]+"[^>]*style="([^"]+)"/)?.[1] ?? "";
+  assert.doesNotMatch(rootStyle, /(?:^|;)background:/);
+  const css = readFileSync(resolve(src, "components/widgets/PremiumReplacements.css"), "utf8");
+  assert.match(css, /\.premium-pin-direct\s*>\s*div\s*\{[^}]*background:\s*var\(--pin-surface\)/);
   for (const layout of CHROME_LAYOUTS) {
     assert.deepEqual(
       parseSpotlightState({ spotlight: message, layout }),

@@ -150,9 +150,6 @@ export function GiveawayDisplay({
     0,
     candidates.findIndex((p) => chosen && giveawayAccountKey(p) === giveawayAccountKey(chosen)),
   );
-  const steps = reducedMotion
-    ? 0
-    : Math.floor((1 - Math.pow(1 - progress, 3)) * 36 * settings.speed);
   const stripSlot = giveawayRevealSlot(
     candidates.length,
     selectedIndex,
@@ -164,12 +161,7 @@ export function GiveawayDisplay({
   const strip = candidates.length
     ? Array.from({ length: lastSlot + 2 }, (_, index) => candidates[index % candidates.length]!)
     : [];
-  const focus =
-    settings.animation === "carousel" || settings.animation === "roulette"
-      ? focusedSlot % Math.max(1, candidates.length)
-      : progress >= 0.92
-        ? selectedIndex
-        : steps % Math.max(1, candidates.length);
+  const focus = focusedSlot % Math.max(1, candidates.length);
   const focusAccount = candidates[focus];
   const showWinner = Boolean(chosen) && !animating && phase !== "idle" && phase !== "shuffling";
   const title = lang === "ar" ? "السحب المباشر" : "LIVE GIVEAWAY";
@@ -279,108 +271,21 @@ export function GiveawayDisplay({
                   <p className="gw-eyebrow">
                     {lang === "ar" ? "لحظة واحدة…" : "THE MOMENT IS YOURS"}
                   </p>
-                  {settings.animation === "roulette" ? (
-                    <div className="gw-slot-window">
-                      <span className="gw-slot-cursor" />
-                      <div
-                        className="gw-slot-track"
-                        style={{ transform: `translateY(${-stripSlot * 82}px)` }}
-                      >
-                        {strip.map((participant, index) => (
-                          <bdi key={index} className={index === focusedSlot ? "gw-focus" : ""}>
-                            {participant.username}
-                          </bdi>
-                        ))}
-                      </div>
-                    </div>
-                  ) : settings.animation === "carousel" ? (
-                    <div className="gw-carousel-window">
-                      <div
-                        className="gw-carousel-track"
-                        style={{ transform: `translateX(${-stripSlot * 154}px)` }}
-                        dir="ltr"
-                      >
-                        {strip.map((p, i) => (
-                          <div key={i} className={focusedSlot === i ? "gw-focus" : ""}>
-                            <ParticipantAvatar {...p} size={108} />
-                            <bdi>{p.username}</bdi>
-                          </div>
-                        ))}
-                      </div>
-                      <span className="gw-carousel-cursor" />
-                    </div>
-                  ) : settings.animation === "minimal" ? (
-                    <div className="gw-minimal">
-                      <span
-                        className="gw-minimal-line"
-                        style={{ transform: `scaleX(${progress})` }}
-                      />
-                      <Trophy size={50} />
-                      <p
-                        style={{
-                          opacity: reducedMotion ? 0 : Math.max(0, (progress - 0.65) / 0.35),
-                          transform: `translateY(${(1 - progress) * 18}px)`,
-                        }}
-                        dir="auto"
-                      >
-                        {chosen.username}
-                      </p>
-                    </div>
-                  ) : (
+                  <div className="gw-carousel-window">
                     <div
-                      className={`gw-candidate-grid ${settings.animation === "shuffle" ? "gw-shuffle" : ""}`}
-                      style={
-                        settings.animation === "shuffle"
-                          ? { height: Math.ceil(candidates.length / 3) * 134 }
-                          : undefined
-                      }
+                      className="gw-carousel-track"
+                      style={{ transform: `translateX(${-stripSlot * 154}px)` }}
+                      dir="ltr"
                     >
-                      {candidates.map((p, index) => {
-                        const isChosen = giveawayAccountKey(p) === giveawayAccountKey(chosen);
-                        const removed =
-                          settings.animation === "elimination" &&
-                          !isChosen &&
-                          progress > (index + 1) / (candidates.length + 1);
-                        const slot =
-                          settings.animation === "shuffle" && !reducedMotion && progress < 0.88
-                            ? (index + Math.floor(progress * 6 * settings.speed)) %
-                              candidates.length
-                            : index;
-                        return (
-                          <div
-                            key={p.id}
-                            className={`gw-candidate ${focus === index && !removed ? "gw-focus" : ""} ${removed ? "gw-eliminated" : ""}`}
-                            style={{
-                              left:
-                                settings.animation === "shuffle"
-                                  ? `${(slot % 3) * 33.333}%`
-                                  : undefined,
-                              top:
-                                settings.animation === "shuffle"
-                                  ? Math.floor(slot / 3) * 134
-                                  : undefined,
-                              transform:
-                                settings.animation === "shuffle"
-                                  ? `translateY(${(slot % 2) * 12}px) rotate(${((slot % 3) - 1) * 3}deg)`
-                                  : undefined,
-                            }}
-                          >
-                            {settings.animation === "shuffle" ? (
-                              <span className="gw-card-index" dir="ltr">
-                                {String(index + 1).padStart(2, "0")}
-                              </span>
-                            ) : (
-                              <ParticipantAvatar {...p} size={52} badge={false} />
-                            )}
-                            <bdi>{p.username}</bdi>
-                            {settings.animation === "elimination" ? (
-                              <span className="gw-elimination-mark">{removed ? "—" : "·"}</span>
-                            ) : null}
-                          </div>
-                        );
-                      })}
+                      {strip.map((p, i) => (
+                        <div key={i} className={focusedSlot === i ? "gw-focus" : ""}>
+                          <ParticipantAvatar {...p} size={108} />
+                          <bdi>{p.username}</bdi>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                    <span className="gw-carousel-cursor" />
+                  </div>
                   <div className="gw-progress">
                     <span style={{ width: reducedMotion ? "0%" : `${progress * 100}%` }} />
                   </div>

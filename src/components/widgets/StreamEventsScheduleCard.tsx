@@ -94,19 +94,21 @@ export function StreamEventsScheduleCard({
   );
 
   const chrome = parseChromeLayout(config);
-  if (["agenda", "bold", "roadmap", "spotlight"].includes(style.layout)) {
+  if (["agenda", "bold", "roadmap", "spotlight", "calendar"].includes(style.layout)) {
     const next = style.events[Math.max(0, activeIndex + 1)];
     return (
       <section
         data-layout-content
         data-schedule-layout={style.layout}
         dir={dir}
-        className={`schedule-refined schedule-refined-${style.layout}`}
+        className={`premium-schedule premium-schedule-${style.layout}`}
         style={
           {
             fontFamily: style.fontFamily,
             "--schedule-accent": style.accentColor,
             "--schedule-font": `${Math.max(16, style.fontSize)}px`,
+            color: style.textColor,
+            background: style.layout === "roadmap" ? "transparent" : undefined,
           } as import("react").CSSProperties
         }
       >
@@ -117,7 +119,7 @@ export function StreamEventsScheduleCard({
             {badge}
           </span>
         </header>
-        <div className="schedule-current">
+        <div className="premium-schedule-now">
           <div>
             <small>{t("scheduleCard.onStream")}</small>
             <h2 dir="auto">{eventTitle}</h2>
@@ -125,15 +127,13 @@ export function StreamEventsScheduleCard({
           <strong dir="ltr">{countdown}</strong>
         </div>
         {style.layout === "spotlight" ? (
-          <div className="schedule-next-feature">
-            <span className="schedule-next-label">{t("scheduleCard.upNext")}</span>
+          <div className="premium-schedule-feature">
+            <span>{t("scheduleCard.upNext")}</span>
             <h3 dir="auto">{next?.title ?? t("scheduleCard.complete")}</h3>
-            <span className="schedule-next-duration" dir="ltr">
-              {next ? formatCountdown(next.durationSeconds) : "—"}
-            </span>
+            <span dir="ltr">{next ? formatCountdown(next.durationSeconds) : "—"}</span>
           </div>
         ) : (
-          <div className="schedule-items">
+          <div className="premium-schedule-program">
             {style.events.map((event, index) => (
               <article
                 key={event.id}
@@ -141,19 +141,21 @@ export function StreamEventsScheduleCard({
                   index === activeIndex ? "is-active" : index < activeIndex ? "is-past" : ""
                 }
               >
-                <span className="schedule-item-index" dir="ltr">
+                <span className="premium-schedule-index" dir="ltr">
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <div>
-                  <span className="schedule-start" dir="ltr">
+                  <span className="premium-schedule-start" dir="ltr">
                     {formatCountdown(cumulativeStarts[index] ?? 0)}
                   </span>
                   <h3 dir="auto">{event.title}</h3>
                 </div>
-                <span className="schedule-duration" dir="ltr">
+                <span className="premium-schedule-duration" dir="ltr">
                   {formatCountdown(event.durationSeconds)}
                 </span>
-                {index === activeIndex ? <span className="schedule-item-live">{badge}</span> : null}
+                {index === activeIndex ? (
+                  <span className="premium-schedule-live">{badge}</span>
+                ) : null}
               </article>
             ))}
           </div>
@@ -185,13 +187,7 @@ export function StreamEventsScheduleCard({
       </section>
     );
   }
-  if (style.layout !== "direct" && style.layout !== "timeline") {
-    const agenda = style.layout === "agenda";
-    const calendar = style.layout === "calendar";
-    const bold = style.layout === "bold";
-    const roadmap = style.layout === "roadmap";
-    const spotlight = style.layout === "spotlight";
-    const glass = style.layout === "glass";
+  if (style.layout === "glass") {
     const currentColor =
       urgency === "critical" ? "#fb7185" : urgency === "warn" ? "#fcd34d" : style.accentColor;
     const clock = (
@@ -203,7 +199,7 @@ export function StreamEventsScheduleCard({
         )}
         style={{
           color: currentColor,
-          fontSize: `${Math.max(24, Math.round(style.fontSize * (bold ? 1.8 : spotlight ? 1.5 : 1.1)))}px`,
+          fontSize: `${Math.max(24, Math.round(style.fontSize * 1.1))}px`,
         }}
       >
         {countdown}
@@ -216,13 +212,12 @@ export function StreamEventsScheduleCard({
         data-schedule-layout={style.layout}
         className={cn(
           "w-full overflow-hidden border border-white/10 text-zinc-100",
-          bold ? "border-t-4" : "rounded-2xl",
-          glass ? "bg-[#0a0a0a]/75 backdrop-blur-2xl" : "bg-[#0a0a0a]",
+          "rounded-2xl",
+          "bg-[#0a0a0a]/75 backdrop-blur-2xl",
           compact ? "p-3" : "p-4",
         )}
         style={{
           fontFamily: style.fontFamily,
-          borderTopColor: bold ? style.accentColor : undefined,
         }}
       >
         <header className="flex min-w-0 items-center justify-between gap-3">
@@ -237,64 +232,22 @@ export function StreamEventsScheduleCard({
           </span>
         </header>
 
-        {!agenda && !calendar && !roadmap ? (
-          <div
-            className={cn(
-              "my-4",
-              glass && "rounded-xl border border-white/10 bg-white/[0.04] p-4",
-              bold && "flex flex-col border-b border-white/20 pb-4",
-              spotlight && "flex flex-col items-center text-center",
-            )}
-          >
-            {spotlight ? (
-              <div
-                className="mb-3 grid size-36 place-items-center rounded-full border-[3px] shadow-[0_0_35px_rgba(190,225,252,.06)]"
-                style={{ borderColor: currentColor }}
-              >
-                {clock}
-              </div>
-            ) : (
-              <div
-                className={cn("flex items-center justify-between gap-3", bold && "order-2 mt-2")}
-              >
-                {clock}
-                {glass ? <Clock3 className="size-6 text-white/20" aria-hidden /> : null}
-              </div>
-            )}
-            <p
-              className={cn(
-                "break-words font-semibold",
-                bold ? "text-2xl font-black leading-tight" : "mt-2 text-base",
-              )}
-              dir="auto"
-            >
-              {eventTitle}
-            </p>
-            {snapshot.status === "active" && snapshot.next ? (
-              <p className="mt-2 text-xs text-zinc-500" dir="auto">
-                {t("scheduleCard.next", { title: snapshot.next.title })}
-              </p>
-            ) : null}
+        <div className="my-4 rounded-xl border border-white/10 bg-white/[0.04] p-4">
+          <div className="flex items-center justify-between gap-3">
+            {clock}
+            <Clock3 className="size-6 text-white/20" aria-hidden />
           </div>
-        ) : null}
-
-        <div
-          className={cn(
-            "mt-4",
-            calendar
-              ? "grid grid-cols-2 gap-2"
-              : glass
-                ? "flex gap-2 overflow-x-auto pb-2"
-                : spotlight
-                  ? "flex flex-wrap justify-center gap-1.5"
-                  : roadmap
-                    ? "relative space-y-4 py-2"
-                    : "space-y-0",
-          )}
-        >
-          {roadmap ? (
-            <div className="absolute inset-y-2 start-1/2 w-px bg-white/10" aria-hidden />
+          <p className="break-words font-semibold mt-2 text-base" dir="auto">
+            {eventTitle}
+          </p>
+          {snapshot.status === "active" && snapshot.next ? (
+            <p className="mt-2 text-xs text-zinc-500" dir="auto">
+              {t("scheduleCard.next", { title: snapshot.next.title })}
+            </p>
           ) : null}
+        </div>
+
+        <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
           {style.events.map((event, index) => {
             const current = index === activeIndex;
             const passed = activeIndex > index;
@@ -303,112 +256,43 @@ export function StreamEventsScheduleCard({
                 key={event.id}
                 className={cn(
                   "relative min-w-0",
-                  calendar
-                    ? "flex min-h-32 flex-col rounded-lg border p-3"
-                    : agenda
-                      ? "grid grid-cols-[3.5rem_minmax(0,1fr)] gap-3 border-b border-white/[.07] py-3"
-                      : bold
-                        ? "flex items-center gap-3 border-b border-white/10 py-3"
-                        : roadmap
-                          ? "w-[calc(50%-10px)] rounded-xl border p-3"
-                          : spotlight
-                            ? "max-w-full rounded-full border px-3 py-1.5 text-xs"
-                            : "flex w-28 shrink-0 flex-col rounded-lg border p-3",
+                  "flex w-28 shrink-0 flex-col rounded-lg border p-3",
                   passed && "opacity-40",
-                  roadmap && (index % 2 === 0 ? "me-auto" : "ms-auto"),
                 )}
                 style={{
                   borderColor: current ? style.accentColor : "rgba(255,255,255,.1)",
                   background: current ? "rgba(190,225,252,.06)" : undefined,
                 }}
               >
-                {agenda ? (
-                  <span dir="ltr" className="pt-1 font-mono text-xs tabular-nums text-zinc-500">
-                    {formatCountdown(cumulativeStarts[index] ?? 0)}
-                  </span>
-                ) : null}
-                {!agenda && !spotlight ? (
-                  <span
-                    dir="ltr"
-                    className={cn(
-                      "font-mono font-bold tabular-nums",
-                      bold ? "w-9 shrink-0 text-3xl" : "mb-2 text-xs",
-                    )}
-                    style={{ color: current ? style.accentColor : "#71717a" }}
-                  >
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                ) : null}
-                <div
-                  className={cn("min-w-0", bold && "flex-1", calendar && "flex flex-1 flex-col")}
+                <span
+                  dir="ltr"
+                  className="font-mono font-bold tabular-nums mb-2 text-xs"
+                  style={{ color: current ? style.accentColor : "#71717a" }}
                 >
-                  <p
-                    dir="auto"
-                    className={cn(
-                      "break-words font-semibold",
-                      bold
-                        ? "text-base"
-                        : spotlight
-                          ? "truncate text-[0.65rem]"
-                          : "text-xs leading-relaxed",
-                    )}
-                  >
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <div className="min-w-0">
+                  <p dir="auto" className="break-words font-semibold text-xs leading-relaxed">
                     {event.title}
                   </p>
-                  {!spotlight ? (
-                    <div
-                      className={cn(
-                        "mt-2 flex flex-wrap items-center justify-between gap-1",
-                        calendar && "mt-auto pt-3",
-                      )}
-                    >
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-1">
+                    <span dir="ltr" className="font-mono text-[0.6rem] tabular-nums text-zinc-500">
+                      {formatCountdown(event.durationSeconds)}
+                    </span>
+                    {current ? (
                       <span
-                        dir="ltr"
-                        className="font-mono text-[0.6rem] tabular-nums text-zinc-500"
+                        className="text-[0.5rem] font-bold uppercase"
+                        style={{ color: style.accentColor }}
                       >
-                        {calendar || roadmap
-                          ? `${formatCountdown(cumulativeStarts[index] ?? 0)} · `
-                          : ""}
-                        {formatCountdown(event.durationSeconds)}
+                        {badge}
                       </span>
-                      {current ? (
-                        <span
-                          className="text-[0.5rem] font-bold uppercase"
-                          style={{ color: style.accentColor }}
-                        >
-                          {badge}
-                        </span>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {current && (agenda || calendar || roadmap) ? (
-                    <div className="mt-1">{clock}</div>
-                  ) : null}
+                    ) : null}
+                  </div>
                 </div>
-                {roadmap ? (
-                  <span
-                    className={cn(
-                      "absolute top-5 size-2 rounded-full",
-                      index % 2 === 0 ? "-end-[15px]" : "-start-[15px]",
-                    )}
-                    style={{
-                      background: current ? style.accentColor : passed ? "#71717a" : "#27272a",
-                    }}
-                    aria-hidden
-                  />
-                ) : null}
               </div>
             );
           })}
         </div>
-        {(agenda || calendar || roadmap) && snapshot.status !== "active" ? (
-          <div className="mt-4 border-t border-white/10 pt-3">
-            <p className="text-sm text-zinc-400" dir="auto">
-              {eventTitle}
-            </p>
-            {clock}
-          </div>
-        ) : null}
         <footer className="mt-4 flex items-center justify-between gap-2 border-t border-white/[.06] pt-3">
           <span className="flex items-center gap-2 text-[0.55rem] uppercase tracking-widest text-zinc-500">
             <span

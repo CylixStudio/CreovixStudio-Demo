@@ -1,12 +1,7 @@
 import { DEFAULT_STYLE, parseStyle, type BaseStyle } from "@/lib/widgets";
 
 export const GIVEAWAY_ANIMATIONS = [
-  { id: "roulette", en: "Name Roulette", ar: "روليت الأسماء" },
-  { id: "spotlight", en: "Spotlight Reveal", ar: "كشاف الأسماء" },
-  { id: "shuffle", en: "Card Shuffle", ar: "خلط البطاقات" },
-  { id: "elimination", en: "Elimination", ar: "التصفية التدريجية" },
   { id: "carousel", en: "Avatar Carousel", ar: "شريط صور المشاركين" },
-  { id: "minimal", en: "Minimal Reveal", ar: "كشف هادئ" },
 ] as const;
 export type GiveawayAnimation = (typeof GIVEAWAY_ANIMATIONS)[number]["id"];
 export type GiveawayPresentation = {
@@ -29,7 +24,7 @@ export function parseGiveawayAppearance(raw: unknown): BaseStyle {
   return { ...style, fontSize: Math.max(24, Math.min(80, style.fontSize)) };
 }
 export const DEFAULT_GIVEAWAY_PRESENTATION: GiveawayPresentation = {
-  animation: "roulette",
+  animation: "carousel",
   speed: 1,
 };
 
@@ -37,7 +32,7 @@ export function parseGiveawayPresentation(raw: unknown): GiveawayPresentation {
   const value = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
   return {
     animation:
-      GIVEAWAY_ANIMATIONS.find((entry) => entry.id === value["animation"])?.id ?? "roulette",
+      GIVEAWAY_ANIMATIONS.find((entry) => entry.id === value["animation"])?.id ?? "carousel",
     speed:
       typeof value["speed"] === "number" && Number.isFinite(value["speed"])
         ? Math.min(2, Math.max(0.5, value["speed"]))
